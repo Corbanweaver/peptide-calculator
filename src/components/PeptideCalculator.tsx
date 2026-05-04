@@ -101,6 +101,7 @@ export function PeptideCalculator() {
                 Enter your vial amount, water amount, and dose target. The app
                 calculates how many U-100 units to draw.
               </p>
+              <GuideStrip />
 
               <div className="mt-6 grid gap-4">
                 <SoftPanel title="1) Syringe size">
@@ -356,53 +357,63 @@ function MiniSyringe({
   selected: boolean;
   capacityMl: number;
 }) {
-  const fillWidth = 30 + capacityMl * 20;
+  const fillWidth = 18 + capacityMl * 24;
 
   return (
     <svg
-      viewBox="0 0 220 44"
+      viewBox="0 0 260 52"
       role="img"
       aria-label={`${capacityMl.toFixed(1)} mL syringe`}
       className="h-11 w-full min-w-0"
     >
-      <line x1="5" x2="35" y1="22" y2="22" stroke="#64748b" strokeWidth="2" />
-      <rect x="35" y="13" width="128" height="18" rx="5" fill="#ffffff" />
+      <line
+        x1="13"
+        x2="53"
+        y1="26"
+        y2="26"
+        stroke="#94a3b8"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+      <rect x="53" y="17" width="138" height="18" rx="5" fill="#ffffff" />
       <rect
-        x="35"
-        y="13"
+        x="53"
+        y="17"
         width={fillWidth}
         height="18"
-        rx="5"
+        rx="4"
         fill={selected ? "#38bdf8" : "#cbd5e1"}
-        opacity={selected ? "0.95" : "0.55"}
+        opacity={selected ? "0.9" : "0.38"}
       />
       <rect
-        x="35"
-        y="13"
-        width="128"
+        x="53"
+        y="17"
+        width="138"
         height="18"
         rx="5"
         fill="none"
-        stroke="#0f172a"
-        strokeWidth="2"
+        stroke="#111827"
+        strokeWidth="2.5"
       />
-      {Array.from({ length: 9 }, (_, index) => {
-        const x = 48 + index * 12;
+      {Array.from({ length: 11 }, (_, index) => {
+        const x = 67 + index * 11;
+        const longTick = index % 5 === 0;
         return (
           <line
             key={x}
             x1={x}
             x2={x}
-            y1="14"
-            y2={index % 2 === 0 ? 28 : 23}
-            stroke="#0f172a"
-            strokeWidth="1.5"
+            y1="18"
+            y2={longTick ? 35 : 29}
+            stroke="#111827"
+            strokeWidth={longTick ? "2" : "1.4"}
           />
         );
       })}
-      <rect x="163" y="17" width="34" height="10" rx="5" fill="#fb923c" />
-      <circle cx="202" cy="22" r="13" fill="#fb923c" />
-      <rect x="156" y="9" width="7" height="26" rx="3.5" fill="#e2e8f0" />
+      <rect x="191" y="13" width="7" height="26" rx="3.5" fill="#dbe4ee" />
+      <rect x="198" y="22" width="28" height="8" rx="4" fill="#fb923c" />
+      <circle cx="236" cy="26" r="14" fill="#fb923c" />
+      <rect x="221" y="21" width="8" height="10" rx="2" fill="#fdba74" />
     </svg>
   );
 }
@@ -421,10 +432,10 @@ function DoseSyringeGuide({
   const safeCapacity = Math.max(capacityUnits, 1);
   const safeUnits = Number.isFinite(units) ? Math.max(units, 0) : 0;
   const cappedUnits = Math.min(safeUnits, safeCapacity);
-  const barrelX = 78;
-  const barrelY = 58;
-  const barrelWidth = 402;
-  const barrelHeight = 78;
+  const barrelX = 72;
+  const barrelY = 64;
+  const barrelWidth = 356;
+  const barrelHeight = 50;
   const fillWidth = (cappedUnits / safeCapacity) * barrelWidth;
   const markerX = barrelX + fillWidth;
   const majorStep = safeCapacity <= 30 ? 5 : 10;
@@ -471,16 +482,17 @@ function DoseSyringeGuide({
           aria-label={`Syringe filled to ${formatNumber(units, 2)} units out of ${formatNumber(capacityUnits, 0)} units`}
           className="h-auto w-full"
         >
+          <rect x="19" y="87" width="45" height="4" rx="2" fill="#94a3b8" />
           <line
-            x1="20"
+            x1="9"
             x2={barrelX}
-            y1="97"
-            y2="97"
-            stroke="#0f172a"
-            strokeWidth="4"
+            y1="89"
+            y2="89"
+            stroke="#111827"
+            strokeWidth="3"
             strokeLinecap="round"
           />
-          <rect x="48" y="79" width="30" height="36" rx="4" fill="#0f172a" />
+          <rect x="52" y="75" width="20" height="28" rx="4" fill="#111827" />
           <rect
             x={barrelX}
             y={barrelY}
@@ -488,15 +500,16 @@ function DoseSyringeGuide({
             height={barrelHeight}
             rx="8"
             fill="#ffffff"
+            opacity="0.96"
           />
           <rect
             x={barrelX}
             y={barrelY}
             width={fillWidth}
             height={barrelHeight}
-            rx="8"
+            rx="6"
             fill={tooLarge ? "#f59e0b" : "#0ea5e9"}
-            opacity="0.9"
+            opacity="0.88"
           />
           <rect
             x={barrelX}
@@ -505,8 +518,8 @@ function DoseSyringeGuide({
             height={barrelHeight}
             rx="8"
             fill="none"
-            stroke="#0f172a"
-            strokeWidth="8"
+            stroke="#111827"
+            strokeWidth="5"
           />
           {minorTicks.map((tick) => {
             const x = barrelX + (tick / safeCapacity) * barrelWidth;
@@ -516,10 +529,10 @@ function DoseSyringeGuide({
                 key={`minor-${tick}`}
                 x1={x}
                 x2={x}
-                y1="64"
-                y2={isMajor ? 111 : 88}
-                stroke="#334155"
-                strokeWidth={isMajor ? "2.8" : "1.8"}
+                y1="66"
+                y2={isMajor ? 111 : 91}
+                stroke="#111827"
+                strokeWidth={isMajor ? "2.2" : "1.35"}
               />
             );
           })}
@@ -531,9 +544,9 @@ function DoseSyringeGuide({
                 <text
                   key={`label-${tick}`}
                   x={x}
-                  y="129"
+                  y="132"
                   textAnchor="middle"
-                  className="fill-slate-700 text-[16px] font-semibold"
+                  className="fill-slate-700 text-[13px] font-semibold"
                 >
                   {tick}
                 </text>
@@ -542,25 +555,102 @@ function DoseSyringeGuide({
           <line
             x1={markerX}
             x2={markerX}
-            y1="50"
-            y2="144"
+            y1="54"
+            y2="122"
             stroke={tooLarge ? "#92400e" : "#0369a1"}
-            strokeWidth="4"
+            strokeWidth="4.5"
             strokeLinecap="round"
           />
           <rect
             x={barrelX + barrelWidth}
-            y="76"
-            width="42"
-            height="42"
-            rx="8"
-            fill="#0f172a"
+            y="58"
+            width="9"
+            height="62"
+            rx="4.5"
+            fill="#dbe4ee"
           />
-          <rect x="520" y="70" width="8" height="54" rx="4" fill="#0f172a" />
-          <ellipse cx="535" cy="97" rx="18" ry="46" fill="#0f172a" />
+          <rect
+            x={barrelX + barrelWidth + 9}
+            y="82"
+            width="52"
+            height="13"
+            rx="6.5"
+            fill="#fb923c"
+          />
+          <circle cx="522" cy="88.5" r="25" fill="#fb923c" />
+          <rect x="480" y="79" width="20" height="19" rx="4" fill="#fdba74" />
         </svg>
       </div>
     </section>
+  );
+}
+
+function GuideStrip() {
+  const steps = [
+    { label: "Syringe", hint: "Pick size", visual: <GuideSyringeIcon /> },
+    {
+      label: "Vial",
+      hint: "Select mg",
+      visual: <VialIllustration tone="amber" />,
+    },
+    { label: "Water", hint: "Add mL", visual: <WaterIllustration /> },
+    { label: "Dose", hint: "Choose mcg", visual: <DoseIllustration /> },
+  ];
+
+  return (
+    <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+      {steps.map((step, index) => (
+        <div
+          key={step.label}
+          className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-[#fbfbfc] px-3 py-2"
+        >
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-900 text-xs font-semibold text-white">
+            {index + 1}
+          </span>
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+            {step.visual}
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-slate-900">
+              {step.label}
+            </span>
+            <span className="block text-xs text-slate-500">{step.hint}</span>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function GuideSyringeIcon() {
+  return (
+    <svg viewBox="0 0 48 48" role="img" aria-label="Syringe" className="h-8 w-8">
+      <line
+        x1="6"
+        x2="16"
+        y1="24"
+        y2="24"
+        stroke="#94a3b8"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+      <rect
+        x="15"
+        y="18"
+        width="20"
+        height="12"
+        rx="3"
+        fill="#ffffff"
+        stroke="#111827"
+        strokeWidth="2"
+      />
+      <path d="M15 18h9v12h-9z" fill="#38bdf8" opacity="0.9" />
+      <line x1="23" x2="23" y1="19" y2="29" stroke="#111827" strokeWidth="1.3" />
+      <line x1="28" x2="28" y1="19" y2="27" stroke="#111827" strokeWidth="1.3" />
+      <rect x="35" y="20" width="2.5" height="8" rx="1.2" fill="#cbd5e1" />
+      <rect x="37" y="22" width="6" height="4" rx="2" fill="#fb923c" />
+      <circle cx="43" cy="24" r="4" fill="#fb923c" />
+    </svg>
   );
 }
 
@@ -568,22 +658,91 @@ function VialIllustration({ tone }: { tone: "amber" | "sky" }) {
   const liquid = tone === "amber" ? "#f59e0b" : "#38bdf8";
 
   return (
-    <svg viewBox="0 0 48 48" role="img" aria-label="Peptide vial" className="h-10 w-10">
-      <rect x="17" y="5" width="14" height="8" rx="3" fill="#475569" />
-      <rect x="14" y="12" width="20" height="30" rx="6" fill="#ffffff" stroke="#0f172a" strokeWidth="2" />
-      <path d="M15 28h18v8a6 6 0 0 1-6 6h-6a6 6 0 0 1-6-6z" fill={liquid} opacity="0.8" />
-      <rect x="17" y="19" width="14" height="8" rx="2" fill="#e2e8f0" />
-      <circle cx="24" cy="23" r="2.5" fill="#0ea5e9" />
+    <svg
+      viewBox="0 0 48 48"
+      role="img"
+      aria-label="Peptide vial"
+      className="h-10 w-10"
+    >
+      <rect x="17" y="5" width="14" height="7" rx="2.5" fill="#475569" />
+      <rect x="18" y="9" width="12" height="5" rx="1.5" fill="#94a3b8" />
+      <rect
+        x="14"
+        y="13"
+        width="20"
+        height="29"
+        rx="6"
+        fill="#f8fbff"
+        stroke="#111827"
+        strokeWidth="2"
+      />
+      <path
+        d="M16 30h16v6a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5z"
+        fill={liquid}
+        opacity="0.88"
+      />
+      <rect
+        x="17"
+        y="19"
+        width="14"
+        height="8"
+        rx="2"
+        fill="#f8fafc"
+        stroke="#cbd5e1"
+      />
+      <path d="M21 23h6" stroke="#0ea5e9" strokeLinecap="round" strokeWidth="2" />
+      <path
+        d="M18 16c3-1 7-1 12 0"
+        stroke="#ffffff"
+        strokeLinecap="round"
+        strokeWidth="1.5"
+        opacity="0.8"
+      />
     </svg>
   );
 }
 
 function WaterIllustration() {
   return (
-    <svg viewBox="0 0 48 48" role="img" aria-label="Water vial" className="h-10 w-10">
-      <path d="M24 5c6 8 12 15 12 24a12 12 0 0 1-24 0c0-9 6-16 12-24z" fill="#bae6fd" stroke="#0f172a" strokeWidth="2" />
-      <path d="M17 31c3 4 10 5 14 0" fill="none" stroke="#0ea5e9" strokeLinecap="round" strokeWidth="2" />
-      <circle cx="18" cy="25" r="2" fill="#ffffff" opacity="0.8" />
+    <svg
+      viewBox="0 0 48 48"
+      role="img"
+      aria-label="Bacteriostatic water"
+      className="h-10 w-10"
+    >
+      <rect x="17" y="5" width="14" height="7" rx="2.5" fill="#64748b" />
+      <rect
+        x="14"
+        y="13"
+        width="20"
+        height="29"
+        rx="6"
+        fill="#f8fafc"
+        stroke="#111827"
+        strokeWidth="2"
+      />
+      <path d="M16 27h16v9a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5z" fill="#bae6fd" />
+      <rect
+        x="17"
+        y="18"
+        width="14"
+        height="8"
+        rx="2"
+        fill="#ffffff"
+        stroke="#cbd5e1"
+      />
+      <path
+        d="M24 19c2 3 4 5 4 7a4 4 0 0 1-8 0c0-2 2-4 4-7z"
+        fill="#38bdf8"
+        opacity="0.9"
+      />
+      <path
+        d="M19 35c3 3 7 3 10 0"
+        fill="none"
+        stroke="#0ea5e9"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
     </svg>
   );
 }
@@ -591,9 +750,18 @@ function WaterIllustration() {
 function DoseIllustration() {
   return (
     <svg viewBox="0 0 48 48" role="img" aria-label="Dose target" className="h-10 w-10">
-      <circle cx="24" cy="24" r="17" fill="#fef3c7" stroke="#0f172a" strokeWidth="2" />
+      <circle cx="24" cy="24" r="17" fill="#fff7ed" stroke="#111827" strokeWidth="2" />
       <circle cx="24" cy="24" r="10" fill="#ffffff" stroke="#f59e0b" strokeWidth="2" />
       <circle cx="24" cy="24" r="4" fill="#0ea5e9" />
+      <path d="M32 14l5-5" stroke="#111827" strokeLinecap="round" strokeWidth="2" />
+      <path
+        d="M35 9h4v4"
+        fill="none"
+        stroke="#111827"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+      />
     </svg>
   );
 }
