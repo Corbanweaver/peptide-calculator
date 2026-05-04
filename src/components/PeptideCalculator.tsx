@@ -25,8 +25,61 @@ const doseOptionsByUnit: Record<DoseInputUnit, Choice[]> = {
   iu: [1, 2, 5, 10, 20, "other"],
 };
 
+const searchItems = [
+  {
+    label: "Syringe size",
+    eyebrow: "Step 1",
+    detail: "Choose 0.3, 0.5, or 1.0 mL",
+    href: "#syringe-size",
+    keywords: "syringe needle injection size units u100",
+  },
+  {
+    label: "Total MG's in your vial",
+    eyebrow: "Step 2",
+    detail: "Pick the total peptide amount",
+    href: "#vial-total",
+    keywords: "vial mg peptide powder quantity amount",
+  },
+  {
+    label: "BAC water",
+    eyebrow: "Step 3",
+    detail: "Choose how much BAC water to add",
+    href: "#bac-water",
+    keywords: "water bacteriostatic bac diluent ml",
+  },
+  {
+    label: "Dose",
+    eyebrow: "Step 4",
+    detail: "Choose MCG or IU dose",
+    href: "#dose-target",
+    keywords: "dose dosage mcg iu amount target",
+  },
+  {
+    label: "What to do",
+    eyebrow: "Result",
+    detail: "See where to pull the syringe",
+    href: "#what-to-do",
+    keywords: "result guide pull syringe units marker",
+  },
+  {
+    label: "Customer profile",
+    eyebrow: "Account",
+    detail: "Sign in or create an account",
+    href: "/account",
+    keywords: "account profile sign in login customer saved protocols",
+  },
+  {
+    label: "Disclaimer",
+    eyebrow: "Legal",
+    detail: "Read important safety information",
+    href: "/disclaimer",
+    keywords: "legal disclaimer safety prescription",
+  },
+];
+
 export function PeptideCalculator() {
   const [syringeMl, setSyringeMl] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [vialChoice, setVialChoice] = useState<Choice>(10);
   const [vialOther, setVialOther] = useState(10);
@@ -76,11 +129,37 @@ export function PeptideCalculator() {
     result && result.syringeUnits > syringeCapacity,
   );
   const doseAsMg = result ? result.doseMcg / 1000 : null;
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const filteredSearchItems = useMemo(() => {
+    if (!normalizedSearchQuery) {
+      return [];
+    }
+
+    return searchItems
+      .filter((item) =>
+        `${item.label} ${item.eyebrow} ${item.detail} ${item.keywords}`
+          .toLowerCase()
+          .includes(normalizedSearchQuery),
+      )
+      .slice(0, 5);
+  }, [normalizedSearchQuery]);
+
+  function handleSearchSelect(href: string) {
+    if (href.startsWith("#")) {
+      document
+        .querySelector(href)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.location.assign(href);
+    }
+
+    setSearchQuery("");
+  }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,#f8fafc_0%,#eef7ff_42%,#fff7ed_100%)] text-slate-900">
+    <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,#f8fbff_0%,#eef9ff_38%,#fff7fb_70%,#fffaf1_100%)] text-slate-900">
       <div className="mx-auto flex min-w-0 max-w-[1440px]">
-        <aside className="hidden min-h-screen w-[86px] shrink-0 border-r border-slate-200 bg-[#f7f7f7] py-5 md:flex md:flex-col md:items-center md:gap-3">
+        <aside className="hidden min-h-screen w-[86px] shrink-0 border-r border-sky-100 bg-white/70 py-5 shadow-[12px_0_45px_rgba(14,165,233,0.06)] backdrop-blur md:flex md:flex-col md:items-center md:gap-3">
           <IconTab icon={<FlaskConical size={20} />} href="#home" active />
           <IconTab icon={<Home size={20} />} href="#home" />
           <IconTab icon={<Calculator size={20} />} href="#calculator" />
@@ -90,29 +169,76 @@ export function PeptideCalculator() {
 
         <div className="min-w-0 w-full px-4 pb-10 pt-4 sm:px-6">
           <header id="home" className="flex items-center gap-3">
-            <div className="flex h-12 min-w-0 flex-1 items-center gap-3 rounded-full bg-[#e7e7e5] px-4">
-              <Search size={18} className="text-slate-500" aria-hidden="true" />
-              <input
-                value=""
-                readOnly
-                placeholder="Search"
-                className="min-w-0 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-500"
-              />
+            <div className="relative min-w-0 flex-1">
+              <div className="flex h-12 min-w-0 items-center gap-3 rounded-full bg-white/80 px-4 shadow-[0_14px_45px_rgba(14,165,233,0.09)] ring-1 ring-sky-100 backdrop-blur">
+                <Search size={18} className="text-sky-800" aria-hidden="true" />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && filteredSearchItems[0]) {
+                      event.preventDefault();
+                      handleSearchSelect(filteredSearchItems[0].href);
+                    }
+
+                    if (event.key === "Escape") {
+                      setSearchQuery("");
+                    }
+                  }}
+                  placeholder="Search calculator"
+                  aria-label="Search peptide calculator"
+                  className="min-w-0 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-500"
+                />
+              </div>
+              {normalizedSearchQuery ? (
+                <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-30 rounded-3xl border border-sky-100 bg-white/95 p-2 shadow-[0_22px_65px_rgba(15,23,42,0.14)] backdrop-blur">
+                  {filteredSearchItems.length ? (
+                    filteredSearchItems.map((item) => (
+                      <button
+                        key={item.label}
+                        type="button"
+                        onClick={() => handleSearchSelect(item.href)}
+                        onMouseDown={(event) => event.preventDefault()}
+                        className="grid w-full gap-0.5 rounded-2xl px-4 py-3 text-left transition hover:bg-sky-50"
+                      >
+                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-sky-800">
+                          {item.eyebrow}
+                        </span>
+                        <span className="text-sm font-semibold text-slate-950">
+                          {item.label}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {item.detail}
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="rounded-2xl px-4 py-3 text-sm text-slate-500">
+                      No calculator match yet. Try dose, vial, water, or account.
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
-            <button
-              type="button"
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-slate-700 shadow-sm ring-1 ring-slate-200"
+            <a
+              href="/account"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#ffffff_0%,#e0f2fe_58%,#fff7ed_100%)] text-slate-800 shadow-[0_12px_35px_rgba(14,165,233,0.12)] ring-1 ring-sky-100 transition hover:-translate-y-0.5 hover:shadow-[0_16px_45px_rgba(14,165,233,0.18)]"
               aria-label="Account"
             >
               <UserCircle2 size={22} aria-hidden="true" />
-            </button>
+            </a>
           </header>
 
           <section
             id="calculator"
             className="mt-5 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]"
           >
-            <div className="min-w-0 rounded-[28px] border border-slate-200 bg-white/95 p-5 shadow-[0_22px_70px_rgba(15,23,42,0.06)] sm:p-6">
+            <div className="relative min-w-0 overflow-hidden rounded-[28px] border border-sky-100 bg-white/95 p-5 shadow-[0_24px_80px_rgba(14,165,233,0.09)] ring-1 ring-white/70 sm:p-6">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(90deg,rgba(14,165,233,0.16)_0%,rgba(236,72,153,0.08)_48%,rgba(251,146,60,0.12)_100%)]"
+              />
+              <div className="relative">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
                   <h1 className="text-3xl font-semibold sm:text-4xl">
@@ -136,7 +262,7 @@ export function PeptideCalculator() {
               <GuideStrip doseInputUnit={doseInputUnit} />
 
               <div className="mt-6 grid gap-4">
-                <SoftPanel title="What syringe size do you have?">
+                <SoftPanel id="syringe-size" title="What syringe size do you have?">
                   <SyringeSizePicker
                     options={syringeOptions}
                     value={syringeMl}
@@ -145,6 +271,7 @@ export function PeptideCalculator() {
                 </SoftPanel>
 
                 <SoftPanel
+                  id="vial-total"
                   title="Total MG's in your vial"
                   visual={<VialIllustration tone="amber" />}
                 >
@@ -166,6 +293,7 @@ export function PeptideCalculator() {
                 </SoftPanel>
 
                 <SoftPanel
+                  id="bac-water"
                   title="How much BAC water do you want to add?"
                   visual={<WaterIllustration />}
                 >
@@ -187,6 +315,7 @@ export function PeptideCalculator() {
                 </SoftPanel>
 
                 <SoftPanel
+                  id="dose-target"
                   title="What dose are you taking?"
                   visual={<DoseIllustration />}
                 >
@@ -209,9 +338,13 @@ export function PeptideCalculator() {
                   ) : null}
                 </SoftPanel>
               </div>
+              </div>
             </div>
 
-            <aside className="min-w-0 rounded-[28px] border border-slate-200 bg-white/95 p-5 shadow-[0_22px_70px_rgba(15,23,42,0.06)] sm:p-6">
+            <aside
+              id="what-to-do"
+              className="min-w-0 rounded-[28px] border border-sky-100 bg-white/95 p-5 shadow-[0_24px_80px_rgba(14,165,233,0.09)] ring-1 ring-white/70 sm:p-6"
+            >
               <h2 className="text-lg font-semibold">What to do</h2>
               <p className="mt-1 text-sm text-slate-600">
                 Follow the blue marker on the syringe guide.
@@ -293,8 +426,8 @@ function IconTab({
       href={href}
       className={`grid h-12 w-12 place-items-center rounded-2xl transition ${
         active
-          ? "bg-slate-900 text-white"
-          : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"
+          ? "bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] text-white shadow-[0_12px_28px_rgba(14,165,233,0.18)]"
+          : "bg-white/80 text-slate-700 ring-1 ring-sky-100 hover:bg-sky-50"
       }`}
     >
       {icon}
@@ -310,11 +443,11 @@ function DoseUnitSelector({
   onChange: (value: DoseInputUnit) => void;
 }) {
   return (
-    <div className="w-full rounded-2xl border border-slate-200 bg-[#fbfbfc] p-2 xl:w-auto">
-      <div className="px-2 pb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+    <div className="w-full rounded-2xl border border-sky-100 bg-white/75 p-2 shadow-sm xl:w-auto">
+      <div className="px-2 pb-2 text-xs font-semibold uppercase tracking-[0.08em] text-sky-900">
         Dose unit
       </div>
-      <div className="grid grid-cols-2 gap-1 rounded-full bg-[#eef0f3] p-1">
+      <div className="grid grid-cols-2 gap-1 rounded-full bg-sky-50 p-1">
         {(["mcg", "iu"] as const).map((unit) => {
           const selected = unit === value;
           return (
@@ -325,7 +458,7 @@ function DoseUnitSelector({
               onClick={() => onChange(unit)}
               className={`h-9 rounded-full px-4 text-sm font-semibold transition ${
                 selected
-                  ? "bg-slate-900 text-white shadow-sm"
+                  ? "bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] text-white shadow-sm"
                   : "text-slate-600 hover:bg-white"
               }`}
             >
@@ -339,16 +472,21 @@ function DoseUnitSelector({
 }
 
 function SoftPanel({
+  id,
   title,
   visual,
   children,
 }: {
+  id?: string;
   title: string;
   visual?: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl bg-[linear-gradient(145deg,#f8fafc_0%,#f1f7ff_100%)] p-4">
+    <section
+      id={id}
+      className="scroll-mt-4 rounded-2xl bg-[linear-gradient(145deg,#fbfdff_0%,#f1f9ff_58%,#fffaf7_100%)] p-4 ring-1 ring-sky-50"
+    >
       <div
         className={
           visual
@@ -357,7 +495,7 @@ function SoftPanel({
         }
       >
         {visual ? (
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 sm:h-14 sm:w-14">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white shadow-[0_12px_30px_rgba(14,165,233,0.08)] ring-1 ring-sky-100 sm:h-14 sm:w-14">
             {visual}
           </div>
         ) : null}
@@ -390,8 +528,8 @@ function SyringeSizePicker({
             onClick={() => onChange(option)}
             className={`grid min-h-16 grid-cols-[58px_minmax(0,1fr)] items-center gap-3 rounded-2xl border px-3 py-2 text-left transition ${
               selected
-                ? "border-sky-400 bg-white shadow-sm"
-                : "border-white bg-white/70 hover:border-slate-200 hover:bg-white"
+                ? "border-sky-400 bg-white shadow-[0_12px_30px_rgba(14,165,233,0.10)]"
+                : "border-white bg-white/75 hover:border-sky-100 hover:bg-white"
             }`}
           >
             <span className="text-sm font-semibold text-slate-900">
@@ -413,6 +551,9 @@ function MiniSyringe({
   capacityMl: number;
 }) {
   const fillWidth = 18 + capacityMl * 23;
+  const idPart = String(capacityMl).replace(".", "");
+  const fillGradientId = `mini-fill-${idPart}-${selected ? "selected" : "idle"}`;
+  const barrelGradientId = `mini-barrel-${idPart}`;
 
   return (
     <svg
@@ -421,6 +562,18 @@ function MiniSyringe({
       aria-label={`${capacityMl.toFixed(1)} mL syringe`}
       className="h-11 w-full min-w-0"
     >
+      <defs>
+        <linearGradient id={barrelGradientId} x1="52" x2="200" y1="14" y2="38">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.48" stopColor="#eef7ff" />
+          <stop offset="1" stopColor="#ffffff" />
+        </linearGradient>
+        <linearGradient id={fillGradientId} x1="52" x2="120" y1="14" y2="38">
+          <stop offset="0" stopColor={selected ? "#22d3ee" : "#dbe4ee"} />
+          <stop offset="0.72" stopColor={selected ? "#38bdf8" : "#cbd5e1"} />
+          <stop offset="1" stopColor={selected ? "#0ea5e9" : "#e2e8f0"} />
+        </linearGradient>
+      </defs>
       <line
         x1="8"
         x2="43"
@@ -430,18 +583,26 @@ function MiniSyringe({
         strokeLinecap="round"
         strokeWidth="1.8"
       />
-      <rect x="38" y="21" width="14" height="10" rx="2" fill="#111827" />
-      <rect x="52" y="14" width="148" height="24" rx="6" fill="#f8fbff" />
-      <path d="M58 18h134" stroke="#ffffff" strokeLinecap="round" strokeWidth="2" />
-      <path d="M58 35h132" stroke="#dbe4ee" strokeLinecap="round" strokeWidth="1.2" />
+      <rect x="34" y="22" width="7" height="8" rx="1.5" fill="#0f172a" />
+      <rect x="41" y="20" width="11" height="12" rx="2.5" fill="#111827" />
+      <rect
+        x="52"
+        y="14"
+        width="148"
+        height="24"
+        rx="6"
+        fill={`url(#${barrelGradientId})`}
+      />
+      <path d="M58 18h134" stroke="#ffffff" strokeLinecap="round" strokeWidth="2.2" />
+      <path d="M59 34h130" stroke="#cbd5e1" strokeLinecap="round" strokeWidth="1.1" />
       <rect
         x="52"
         y="14"
         width={fillWidth}
         height="24"
         rx="4"
-        fill={selected ? "#38bdf8" : "#cbd5e1"}
-        opacity={selected ? "0.88" : "0.34"}
+        fill={`url(#${fillGradientId})`}
+        opacity={selected ? "0.95" : "0.48"}
       />
       <rect
         x="52"
@@ -470,7 +631,9 @@ function MiniSyringe({
       })}
       <rect x="199" y="9" width="7" height="34" rx="3.5" fill="#dbe4ee" />
       <rect x="206" y="22" width="29" height="8" rx="4" fill="#fb923c" />
+      <path d="M207 23h26" stroke="#fed7aa" strokeLinecap="round" strokeWidth="1.5" />
       <circle cx="244" cy="26" r="14" fill="#fb923c" />
+      <circle cx="239" cy="22" r="4" fill="#fdba74" opacity="0.72" />
       <rect x="229" y="21" width="8" height="10" rx="2" fill="#fdba74" />
       <path d="M214 23h14" stroke="#fed7aa" strokeLinecap="round" strokeWidth="1.5" />
     </svg>
@@ -541,6 +704,18 @@ function DoseSyringeGuide({
           aria-label={`Syringe filled to ${formatNumber(units, 2)} units out of ${formatNumber(capacityUnits, 0)} units`}
           className="h-auto w-full"
         >
+          <defs>
+            <linearGradient id="guide-barrel" x1="72" x2="428" y1="64" y2="114">
+              <stop offset="0" stopColor="#ffffff" />
+              <stop offset="0.52" stopColor="#eef7ff" />
+              <stop offset="1" stopColor="#ffffff" />
+            </linearGradient>
+            <linearGradient id="guide-dose-fill" x1="72" x2="180" y1="64" y2="114">
+              <stop offset="0" stopColor={tooLarge ? "#fbbf24" : "#22d3ee"} />
+              <stop offset="0.7" stopColor={tooLarge ? "#f59e0b" : "#0ea5e9"} />
+              <stop offset="1" stopColor={tooLarge ? "#d97706" : "#0284c7"} />
+            </linearGradient>
+          </defs>
           <rect x="19" y="87" width="45" height="4" rx="2" fill="#94a3b8" />
           <line
             x1="9"
@@ -558,7 +733,7 @@ function DoseSyringeGuide({
             width={barrelWidth}
             height={barrelHeight}
             rx="8"
-            fill="#ffffff"
+            fill="url(#guide-barrel)"
             opacity="0.96"
           />
           <rect
@@ -567,8 +742,21 @@ function DoseSyringeGuide({
             width={fillWidth}
             height={barrelHeight}
             rx="6"
-            fill={tooLarge ? "#f59e0b" : "#0ea5e9"}
-            opacity="0.88"
+            fill="url(#guide-dose-fill)"
+            opacity="0.92"
+          />
+          <path
+            d={`M${barrelX + 8} ${barrelY + 9}h${barrelWidth - 20}`}
+            stroke="#ffffff"
+            strokeLinecap="round"
+            strokeWidth="3"
+            opacity="0.9"
+          />
+          <path
+            d={`M${barrelX + 12} ${barrelY + barrelHeight - 8}h${barrelWidth - 24}`}
+            stroke="#cbd5e1"
+            strokeLinecap="round"
+            strokeWidth="1.6"
           />
           <rect
             x={barrelX}
@@ -637,6 +825,7 @@ function DoseSyringeGuide({
             fill="#fb923c"
           />
           <circle cx="522" cy="88.5" r="25" fill="#fb923c" />
+          <circle cx="513" cy="79" r="7" fill="#fdba74" opacity="0.7" />
           <rect x="480" y="79" width="20" height="19" rx="4" fill="#fdba74" />
         </svg>
       </div>
@@ -662,7 +851,7 @@ function GuideStrip({ doseInputUnit }: { doseInputUnit: DoseInputUnit }) {
   ];
 
   return (
-    <section className="mt-5 rounded-[22px] border border-sky-100 bg-sky-50/45 p-3">
+    <section className="mt-5 rounded-[22px] border border-sky-100 bg-[linear-gradient(135deg,#eef9ff_0%,#fff7fb_56%,#fffaf1_100%)] p-3 shadow-[0_16px_45px_rgba(14,165,233,0.08)]">
       <div className="mb-2 flex items-center justify-between gap-3">
         <div className="text-xs font-bold uppercase tracking-[0.12em] text-sky-900">
           Steps
@@ -675,12 +864,12 @@ function GuideStrip({ doseInputUnit }: { doseInputUnit: DoseInputUnit }) {
         {steps.map((step, index) => (
           <div
             key={step.label}
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-3 py-2 shadow-sm"
+            className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-3 py-2 shadow-[0_10px_25px_rgba(15,23,42,0.06)] ring-1 ring-sky-50"
           >
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-900 text-xs font-semibold text-white">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] text-xs font-semibold text-white shadow-sm">
               {index + 1}
             </span>
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white shadow-sm ring-1 ring-sky-100">
               {step.visual}
             </span>
             <span className="min-w-0">
@@ -729,6 +918,8 @@ function GuideSyringeIcon() {
 
 function VialIllustration({ tone }: { tone: "amber" | "sky" }) {
   const powder = tone === "amber" ? "#e2e8f0" : "#dbeafe";
+  const glassGradientId = `vial-glass-${tone}`;
+  const capGradientId = `vial-cap-${tone}`;
 
   return (
     <svg
@@ -737,7 +928,18 @@ function VialIllustration({ tone }: { tone: "amber" | "sky" }) {
       aria-label="Peptide vial"
       className="h-10 w-10"
     >
-      <rect x="17" y="5" width="14" height="7" rx="2.5" fill="#475569" />
+      <defs>
+        <linearGradient id={glassGradientId} x1="14" x2="34" y1="13" y2="42">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.62" stopColor="#eef7ff" />
+          <stop offset="1" stopColor="#ffffff" />
+        </linearGradient>
+        <linearGradient id={capGradientId} x1="17" x2="31" y1="5" y2="12">
+          <stop offset="0" stopColor="#0f172a" />
+          <stop offset="1" stopColor="#64748b" />
+        </linearGradient>
+      </defs>
+      <rect x="17" y="5" width="14" height="7" rx="2.5" fill={`url(#${capGradientId})`} />
       <rect x="18" y="9" width="12" height="5" rx="1.5" fill="#94a3b8" />
       <rect
         x="14"
@@ -745,7 +947,7 @@ function VialIllustration({ tone }: { tone: "amber" | "sky" }) {
         width="20"
         height="29"
         rx="6"
-        fill="#f8fbff"
+        fill={`url(#${glassGradientId})`}
         stroke="#111827"
         strokeWidth="2"
       />
@@ -789,6 +991,17 @@ function WaterIllustration() {
       aria-label="Bacteriostatic water"
       className="h-10 w-10"
     >
+      <defs>
+        <linearGradient id="water-glass" x1="14" x2="34" y1="13" y2="42">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.58" stopColor="#eef7ff" />
+          <stop offset="1" stopColor="#ffffff" />
+        </linearGradient>
+        <linearGradient id="water-fill" x1="16" x2="32" y1="27" y2="41">
+          <stop offset="0" stopColor="#7dd3fc" />
+          <stop offset="1" stopColor="#0ea5e9" />
+        </linearGradient>
+      </defs>
       <rect x="17" y="5" width="14" height="7" rx="2.5" fill="#64748b" />
       <rect
         x="14"
@@ -796,11 +1009,11 @@ function WaterIllustration() {
         width="20"
         height="29"
         rx="6"
-        fill="#f8fafc"
+        fill="url(#water-glass)"
         stroke="#111827"
         strokeWidth="2"
       />
-      <path d="M16 27h16v9a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5z" fill="#bae6fd" />
+      <path d="M16 27h16v9a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5z" fill="url(#water-fill)" opacity="0.72" />
       <rect
         x="17"
         y="18"
@@ -829,11 +1042,22 @@ function WaterIllustration() {
 function DoseIllustration() {
   return (
     <svg viewBox="0 0 48 48" role="img" aria-label="Dose amount" className="h-10 w-10">
-      <rect x="9" y="9" width="30" height="30" rx="8" fill="#ffffff" stroke="#111827" strokeWidth="2" />
+      <defs>
+        <linearGradient id="dose-card" x1="9" x2="39" y1="9" y2="39">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset="0.56" stopColor="#f0f9ff" />
+          <stop offset="1" stopColor="#fff7ed" />
+        </linearGradient>
+        <linearGradient id="dose-drop" x1="16" x2="24" y1="22" y2="34">
+          <stop offset="0" stopColor="#38bdf8" />
+          <stop offset="1" stopColor="#0ea5e9" />
+        </linearGradient>
+      </defs>
+      <rect x="9" y="9" width="30" height="30" rx="8" fill="url(#dose-card)" stroke="#111827" strokeWidth="2" />
       <rect x="14" y="15" width="16" height="4" rx="2" fill="#e2e8f0" />
       <path
         d="M20 22c2 3 4 5 4 8a4 4 0 0 1-8 0c0-3 2-5 4-8z"
-        fill="#38bdf8"
+        fill="url(#dose-drop)"
         opacity="0.95"
       />
       <text

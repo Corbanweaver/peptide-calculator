@@ -57,7 +57,7 @@ export function AccountConsole() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
       (_event: AuthChangeEvent, session: Session | null) => {
-      setUser(session?.user ?? null);
+        setUser(session?.user ?? null);
       },
     );
 
@@ -69,7 +69,7 @@ export function AccountConsole() {
 
   if (!configured) {
     return (
-      <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+      <div className="rounded-3xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 shadow-sm">
         <div className="mb-2 flex items-center gap-2 font-semibold">
           <CircleAlert size={18} aria-hidden="true" />
           Supabase is not configured yet
@@ -158,29 +158,50 @@ export function AccountConsole() {
   };
 
   return (
-    <section className="rounded-lg border border-slate-300 bg-white p-6 shadow-sm">
+    <section className="rounded-[28px] border border-sky-100 bg-white/95 p-6 shadow-[0_24px_80px_rgba(14,165,233,0.09)] ring-1 ring-white/70">
       {loadingUser ? (
         <div className="flex items-center gap-2 text-sm text-slate-700">
-          <LoaderCircle className="animate-spin text-[#175e65]" size={18} />
+          <LoaderCircle className="animate-spin text-sky-700" size={18} />
           Loading account status...
         </div>
       ) : null}
 
       {!loadingUser && user ? (
         <div className="space-y-4">
-          <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-950">
+          <div className="rounded-3xl border border-emerald-200 bg-[linear-gradient(135deg,#ecfdf5_0%,#f0f9ff_100%)] p-5 text-sm text-emerald-950">
             <div className="mb-2 flex items-center gap-2 font-semibold">
               <CircleCheckBig size={18} aria-hidden="true" />
-              Signed in
+              Profile active
             </div>
-            <p className="break-all">{user.email}</p>
+            <h2 className="text-xl font-semibold text-slate-950">
+              Customer profile
+            </h2>
+            <p className="mt-2 break-all text-slate-700">{user.email}</p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-2xl bg-white/80 p-3 ring-1 ring-emerald-100">
+                <div className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+                  Saved protocols
+                </div>
+                <div className="mt-1 text-base font-semibold text-slate-950">
+                  Coming soon
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white/80 p-3 ring-1 ring-emerald-100">
+                <div className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+                  Premium tools
+                </div>
+                <div className="mt-1 text-base font-semibold text-slate-950">
+                  Ready for launch
+                </div>
+              </div>
+            </div>
           </div>
 
           <button
             type="button"
             onClick={handleSignOut}
             disabled={busyAction === "sign_out"}
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-[#175e65] disabled:cursor-not-allowed disabled:bg-slate-400"
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-400"
           >
             {busyAction === "sign_out" ? (
               <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
@@ -194,7 +215,10 @@ export function AccountConsole() {
 
       {!loadingUser && !user ? (
         <div className="grid gap-6 md:grid-cols-2">
-          <form onSubmit={handleSignIn} className="grid gap-3">
+          <form
+            onSubmit={handleSignIn}
+            className="grid gap-3 rounded-3xl bg-slate-50/80 p-4 ring-1 ring-slate-100"
+          >
             <h2 className="text-lg font-semibold text-slate-950">Sign in</h2>
             <label className="grid gap-1 text-sm font-medium text-slate-700">
               Email
@@ -203,7 +227,7 @@ export function AccountConsole() {
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
+                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
               />
             </label>
             <label className="grid gap-1 text-sm font-medium text-slate-700">
@@ -214,13 +238,13 @@ export function AccountConsole() {
                 minLength={8}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
+                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
               />
             </label>
             <button
               type="submit"
               disabled={busyAction === "sign_in"}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-[#175e65] disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               {busyAction === "sign_in" ? (
                 <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
@@ -231,7 +255,10 @@ export function AccountConsole() {
             </button>
           </form>
 
-          <form onSubmit={handleSignUp} className="grid gap-3">
+          <form
+            onSubmit={handleSignUp}
+            className="grid gap-3 rounded-3xl bg-[linear-gradient(135deg,#f0f9ff_0%,#fff7ed_100%)] p-4 ring-1 ring-sky-100"
+          >
             <h2 className="text-lg font-semibold text-slate-950">Create account</h2>
             <label className="grid gap-1 text-sm font-medium text-slate-700">
               Email
@@ -240,7 +267,7 @@ export function AccountConsole() {
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
+                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
               />
             </label>
             <label className="grid gap-1 text-sm font-medium text-slate-700">
@@ -251,13 +278,13 @@ export function AccountConsole() {
                 minLength={8}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="h-10 rounded-md border border-slate-300 px-3 text-sm outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-100"
+                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
               />
             </label>
             <button
               type="submit"
               disabled={busyAction === "sign_up"}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#175e65] px-4 text-sm font-semibold text-white transition hover:bg-slate-950 disabled:cursor-not-allowed disabled:bg-slate-400"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-sky-800 px-4 text-sm font-semibold text-white transition hover:bg-slate-950 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
               {busyAction === "sign_up" ? (
                 <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
@@ -272,7 +299,7 @@ export function AccountConsole() {
 
       {banner ? (
         <div
-          className={`mt-5 rounded-lg border p-3 text-sm ${
+          className={`mt-5 rounded-2xl border p-3 text-sm ${
             banner.tone === "success"
               ? "border-emerald-300 bg-emerald-50 text-emerald-950"
               : "border-rose-300 bg-rose-50 text-rose-950"
