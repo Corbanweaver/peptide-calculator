@@ -10,7 +10,7 @@ import {
   UserCircle2,
   AlertTriangle,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { calculateDose, formatNumber } from "@/lib/calculations";
 
 type Choice = number | "other";
@@ -78,22 +78,35 @@ const searchItems = [
 
 export function PeptideCalculator() {
   const pathname = usePathname();
-  const [syringeMl, setSyringeMl] = useState(1);
+  const searchParams = useSearchParams();
+  const initialPreset = useMemo(
+    () => readPresetFromSearchParams(searchParams),
+    [searchParams],
+  );
+  const [syringeMl, setSyringeMl] = useState(initialPreset.syringeMl);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loadedPresetName] = useState(initialPreset.compoundName);
+  const [loadedPresetDetail] = useState(initialPreset.presetDetail);
 
-  const [vialChoice, setVialChoice] = useState<Choice>(10);
-  const [vialOther, setVialOther] = useState(10);
+  const [vialChoice, setVialChoice] = useState<Choice>(
+    initialPreset.vial.choice,
+  );
+  const [vialOther, setVialOther] = useState<number>(initialPreset.vial.other);
 
-  const [waterChoice, setWaterChoice] = useState<Choice>(2);
-  const [waterOther, setWaterOther] = useState(2);
+  const [waterChoice, setWaterChoice] = useState<Choice>(
+    initialPreset.water.choice,
+  );
+  const [waterOther, setWaterOther] = useState<number>(initialPreset.water.other);
 
-  const [doseChoice, setDoseChoice] = useState<Choice>(250);
-  const [doseOther, setDoseOther] = useState(250);
+  const [doseChoice, setDoseChoice] = useState<Choice>(
+    initialPreset.dose.choice,
+  );
+  const [doseOther, setDoseOther] = useState<number>(initialPreset.dose.other);
   const [doseInputUnit, setDoseInputUnit] = useState<DoseInputUnit>("mcg");
 
-  const vialMg = vialChoice === "other" ? vialOther : vialChoice;
-  const waterMl = waterChoice === "other" ? waterOther : waterChoice;
-  const doseInputAmount = doseChoice === "other" ? doseOther : doseChoice;
+  const vialMg = Number(vialChoice === "other" ? vialOther : vialChoice);
+  const waterMl = Number(waterChoice === "other" ? waterOther : waterChoice);
+  const doseInputAmount = Number(doseChoice === "other" ? doseOther : doseChoice);
   const concentrationMcgMl =
     vialMg > 0 && waterMl > 0 ? (vialMg * 1000) / waterMl : 0;
   const doseMcg =
@@ -274,6 +287,16 @@ export function PeptideCalculator() {
                   onChange={handleDoseInputUnitChange}
                 />
               </div>
+
+              {loadedPresetName ? (
+                <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3 text-sm leading-6 text-emerald-950">
+                  <span className="font-semibold">Reference preset loaded:</span>{" "}
+                  {loadedPresetName}
+                  {loadedPresetDetail ? ` - ${loadedPresetDetail}` : ""}. Vial
+                  amount, water amount, and dose are still editable. Verify with
+                  the product label or prescriber before use.
+                </div>
+              ) : null}
 
               <GuideStrip doseInputUnit={doseInputUnit} />
 
@@ -686,6 +709,58 @@ function MiniSyringe({
       <path d="M214 23h14" stroke="#fed7aa" strokeLinecap="round" strokeWidth="1.5" />
     </svg>
   );
+}
+
+function parsePositiveNumber(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const parsedValue = Number(value);
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
+
+function findClosestChoice(value: number, options: number[]) {
+  return options.reduce((closest, option) =>
+    Math.abs(option - value) < Math.abs(closest - value) ? option : closest,
+  );
+}
+
+function readPresetFromSearchParams(params: { get: (name: string) => string | null }) {
+  const syringeParam = parsePositiveNumber(params.get("syringeMl"));
+  const vialParam = parsePositiveNumber(params.get("vialMg"));
+  const waterParam = parsePositiveNumber(params.get("waterMl"));
+  const doseParam = parsePositiveNumber(params.get("doseMcg"));
+
+  return {
+    compoundName: params.get("compound") ?? "",
+    presetDetail: params.get("preset") ?? "",
+    syringeMl: syringeParam ? findClosestChoice(syringeParam, syringeOptions) : 1,
+    vial: resolveNumericChoice(vialParam, vialOptions, 10),
+    water: resolveNumericChoice(waterParam, waterOptions, 2),
+    dose: resolveNumericChoice(doseParam, doseOptionsByUnit.mcg, 250),
+  };
+}
+
+function resolveNumericChoice(
+  value: number | null,
+  options: Choice[],
+  defaultValue: number,
+): { choice: Choice; other: number } {
+  if (!value) {
+    return { choice: defaultValue as Choice, other: defaultValue };
+  }
+
+  const matchedOption = options.find(
+    (option): option is number =>
+      typeof option === "number" && Math.abs(option - value) < 0.0001,
+  );
+
+  if (matchedOption) {
+    return { choice: matchedOption, other: matchedOption };
+  }
+
+  return { choice: "other" as Choice, other: value };
 }
 
 function formatSyringeMark(value?: number | null) {

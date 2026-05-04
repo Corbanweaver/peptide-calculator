@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { PeptideCalculator } from "@/components/PeptideCalculator";
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function CalculatorPage() {
-  return <PeptideCalculator />;
+  return (
+    <Suspense fallback={null}>
+      <PeptideCalculator />
+    </Suspense>
+  );
 }
