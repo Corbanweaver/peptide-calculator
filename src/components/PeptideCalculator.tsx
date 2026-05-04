@@ -256,6 +256,8 @@ export function PeptideCalculator() {
             </a>
           </header>
 
+          <MobileTopNav pathname={pathname} />
+
           <section
             id="calculator"
             className="mt-5 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]"
@@ -439,6 +441,46 @@ export function PeptideCalculator() {
   );
 }
 
+function MobileTopNav({ pathname }: { pathname: string }) {
+  return (
+    <nav
+      aria-label="Primary mobile navigation"
+      className="sticky top-2 z-20 mt-3 grid grid-cols-5 gap-2 rounded-[24px] border border-sky-100 bg-white/85 p-2 shadow-[0_16px_45px_rgba(14,165,233,0.12)] backdrop-blur md:hidden"
+    >
+      <IconTab
+        icon={<FlaskConical size={20} />}
+        href="/peptides"
+        label="Peptide library"
+        active={pathname === "/peptides"}
+      />
+      <IconTab
+        icon={<Home size={20} />}
+        href="/"
+        label="Home"
+        active={pathname === "/"}
+      />
+      <IconTab
+        icon={<Calculator size={20} />}
+        href="/calculator"
+        label="Calculator"
+        active={pathname === "/calculator"}
+      />
+      <IconTab
+        icon={<User size={20} />}
+        href="/account"
+        label="Account"
+        active={pathname === "/account"}
+      />
+      <IconTab
+        icon={<FileText size={20} />}
+        href="/disclaimer"
+        label="Disclaimer"
+        active={pathname === "/disclaimer"}
+      />
+    </nav>
+  );
+}
+
 function IconTab({
   icon,
   href,
@@ -455,7 +497,7 @@ function IconTab({
       href={href}
       aria-label={label}
       title={label}
-      className={`grid h-12 w-12 place-items-center rounded-2xl transition ${
+      className={`mx-auto grid h-12 w-12 place-items-center rounded-2xl transition ${
         active
           ? "bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] text-white shadow-[0_12px_28px_rgba(14,165,233,0.18)]"
           : "bg-white/80 text-slate-700 ring-1 ring-sky-100 hover:bg-sky-50"
