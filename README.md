@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PeptiCalc
 
-## Getting Started
+Prescription-aware peptide calculator with:
 
-First, run the development server:
+- concentration + syringe math
+- protocol schedule builder
+- U.S. status-aware compound library
+- Supabase account authentication foundation
+
+## Stack
+
+- Next.js 16 (App Router)
+- TypeScript + Tailwind CSS
+- Supabase Auth + Postgres
+- Vercel (primary frontend hosting)
+- Railway (optional app/backend service hosting)
+
+## Local setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Create env file:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Fill in:
+
+- `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+
+4. Start dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Supabase setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Create a Supabase project.
+2. In Supabase SQL Editor, run `supabase/schema.sql`.
+3. In Supabase Auth settings:
+   - enable Email auth
+   - configure your site URL to `https://peptidecalculator.co`
+4. Add project URL and publishable key into Vercel/Railway environment variables.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Vercel setup
 
-## Learn More
+1. Connect GitHub repo to Vercel.
+2. Add env vars:
+   - `NEXT_PUBLIC_SITE_URL=https://peptidecalculator.co`
+   - `NEXT_PUBLIC_SUPABASE_URL=...`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...`
+3. Domains:
+   - `peptidecalculator.co` connected to production
+   - `www.peptidecalculator.co` as 308 redirect to apex
 
-To learn more about Next.js, take a look at the following resources:
+## Railway setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Railway is optional for background jobs, internal APIs, and future billing/webhook workers.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Create a new Railway project.
+2. Deploy from this GitHub repo.
+3. Add the same env vars used in Vercel.
+4. Railway uses `railway.json` and `npm run start:railway`.
+5. If you attach a domain to Railway, use a separate subdomain (for example `api.peptidecalculator.co`) so the main site can stay on Vercel.
 
-## Deploy on Vercel
+## Accounts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Account UI is available at `/account`:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- create account
+- sign in
+- sign out
+
+If Supabase env vars are missing, the page shows a configuration notice instead of crashing.
+
+## Notes
+
+- This app does not provide medical advice.
+- Protocol generation is reference-only and based on user-provided values.

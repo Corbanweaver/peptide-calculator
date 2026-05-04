@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   description:
     "A prescription-aware peptide calculator for concentration, syringe volume, IU conversion, and protocol schedules.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://peptide-calculator.vercel.app",
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://peptidecalculator.co",
   ),
   keywords: [
     "peptide calculator",

@@ -148,6 +148,12 @@ export function PeptideCalculator() {
             <NavLink href="#library">Library</NavLink>
             <NavLink href="#compliance">Compliance</NavLink>
             <a
+              href="/account"
+              className="rounded-md px-3 py-2 transition hover:bg-white hover:text-slate-950"
+            >
+              Account
+            </a>
+            <a
               href="/disclaimer"
               className="rounded-md px-3 py-2 transition hover:bg-white hover:text-slate-950"
             >

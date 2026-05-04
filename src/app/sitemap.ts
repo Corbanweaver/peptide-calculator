@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://peptide-calculator.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://peptidecalculator.co";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -15,6 +15,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/account`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6,
     },
   ];
 }

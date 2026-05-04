@@ -15,7 +15,7 @@ export default function DisclaimerPage() {
           href="/"
           className="inline-flex items-center gap-2 text-sm font-semibold text-[#175e65] hover:text-slate-950"
         >
-          ← Back to calculator
+          {"<-"} Back to calculator
         </Link>
 
         <header className="space-y-3">
