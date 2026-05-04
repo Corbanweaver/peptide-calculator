@@ -43,6 +43,13 @@ const categories = [
   "Research/blocked",
 ];
 
+const editableMathPreset: CalculatorPreset = {
+  vialMg: 5,
+  waterMl: 2,
+  doseMcg: 100,
+  label: "editable math template only",
+};
+
 const profiles: CompoundProfile[] = [
   {
     name: "Semaglutide",
@@ -892,22 +899,25 @@ export function PeptideLibrary() {
 
             <div className="mt-5 rounded-2xl bg-[linear-gradient(135deg,#f8fbff_0%,#fff7ed_100%)] p-3 text-xs leading-5 text-slate-700 ring-1 ring-sky-100">
               <div className="font-semibold text-slate-950">
-                {profile.referenceDose}
+                {profile.calculatorPreset
+                  ? profile.referenceDose
+                  : "Editable math template: 5 mg vial, 2 mL BAC water, 100 mcg dose."}
               </div>
-              <div className="mt-1">{profile.protocolState}</div>
+              <div className="mt-1">
+                {profile.protocolState}{" "}
+                {!profile.calculatorPreset
+                  ? "The calculator link is for measurement math only, not a recommended protocol."
+                  : ""}
+              </div>
             </div>
 
             <div className="mt-5 flex flex-wrap items-center gap-2">
               <Link
                 href={buildCalculatorHref(profile)}
-                className={`inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
-                  profile.calculatorPreset
-                    ? "bg-slate-950 text-white hover:bg-sky-900"
-                    : "border border-sky-100 bg-white text-sky-900 hover:bg-sky-50"
-                }`}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-900"
               >
                 <Calculator size={16} aria-hidden="true" />
-                {profile.calculatorPreset ? "Use calculator" : "Open calculator"}
+                Use calculator
               </Link>
 
               {profile.sourceUrl ? (
@@ -940,7 +950,7 @@ export function PeptideLibrary() {
         <LibraryNote
           icon={<ShieldCheck size={19} />}
           title="Legal gate"
-          text="FDA-label references can preload calculator math. Research-only or safety-risk compounds do not get public dosing presets."
+          text="FDA-label references can preload source-based calculator math. Research-only or safety-risk compounds only get editable math templates."
         />
         <LibraryNote
           icon={<CheckCircle2 size={19} />}
@@ -959,16 +969,16 @@ export function PeptideLibrary() {
 
 function buildCalculatorHref(profile: CompoundProfile) {
   const params = new URLSearchParams({ compound: profile.name });
+  const preset = profile.calculatorPreset ?? editableMathPreset;
 
-  if (profile.calculatorPreset) {
-    params.set("preset", profile.calculatorPreset.label);
-    params.set("vialMg", String(profile.calculatorPreset.vialMg));
-    params.set("waterMl", String(profile.calculatorPreset.waterMl));
-    params.set("doseMcg", String(profile.calculatorPreset.doseMcg));
+  params.set("preset", preset.label);
+  params.set("presetType", profile.calculatorPreset ? "reference" : "math");
+  params.set("vialMg", String(preset.vialMg));
+  params.set("waterMl", String(preset.waterMl));
+  params.set("doseMcg", String(preset.doseMcg));
 
-    if (profile.calculatorPreset.syringeMl) {
-      params.set("syringeMl", String(profile.calculatorPreset.syringeMl));
-    }
+  if (preset.syringeMl) {
+    params.set("syringeMl", String(preset.syringeMl));
   }
 
   return `/calculator?${params.toString()}`;

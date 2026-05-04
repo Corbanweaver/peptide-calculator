@@ -14,6 +14,20 @@ import { calculateDose, formatNumber } from "@/lib/calculations";
 
 type Choice = number | "other";
 type DoseInputUnit = "mcg" | "iu";
+type PresetType = "reference" | "math";
+type SplitPart = {
+  name: string;
+  percent: string;
+};
+
+type SplitBreakdownItem = {
+  name: string;
+  inputPercent: number;
+  normalizedPercent: number;
+  doseMcg: number;
+  doseMg: number;
+  mcgPerSyringeUnit: number;
+};
 
 const syringeOptions = [0.3, 0.5, 1.0];
 const vialOptions: Choice[] = [5, 10, 15, 20, "other"];
@@ -33,6 +47,7 @@ export function PeptideCalculator() {
   const [syringeMl, setSyringeMl] = useState(initialPreset.syringeMl);
   const [loadedPresetName] = useState(initialPreset.compoundName);
   const [loadedPresetDetail] = useState(initialPreset.presetDetail);
+  const [loadedPresetType] = useState(initialPreset.presetType);
 
   const [vialChoice, setVialChoice] = useState<Choice>(
     initialPreset.vial.choice,
@@ -49,6 +64,12 @@ export function PeptideCalculator() {
   );
   const [doseOther, setDoseOther] = useState<number>(initialPreset.dose.other);
   const [doseInputUnit, setDoseInputUnit] = useState<DoseInputUnit>("mcg");
+  const [advancedSplitEnabled, setAdvancedSplitEnabled] = useState(
+    initialPreset.split.enabled,
+  );
+  const [splitParts, setSplitParts] = useState<SplitPart[]>(
+    initialPreset.split.parts,
+  );
 
   const vialMg = Number(vialChoice === "other" ? vialOther : vialChoice);
   const waterMl = Number(waterChoice === "other" ? waterOther : waterChoice);
@@ -90,6 +111,34 @@ export function PeptideCalculator() {
   const hasReadyCalculation = Boolean(result && !tooLargeForSyringe);
   const doseAsMg = result ? result.doseMcg / 1000 : null;
   const syringeMarkLabel = formatSyringeMark(result?.syringeUnits);
+  const splitTotalPercent = useMemo(
+    () => splitParts.reduce((total, part) => total + parseSplitPercent(part.percent), 0),
+    [splitParts],
+  );
+  const splitBreakdown = useMemo(
+    () =>
+      advancedSplitEnabled && result
+        ? buildSplitBreakdown(
+            splitParts,
+            result.doseMcg,
+            result.mcgPerSyringeUnit,
+          )
+        : [],
+    [advancedSplitEnabled, result, splitParts],
+  );
+
+  function updateSplitPart(index: number, nextPart: Partial<SplitPart>) {
+    setSplitParts((currentParts) =>
+      currentParts.map((part, currentIndex) =>
+        currentIndex === index ? { ...part, ...nextPart } : part,
+      ),
+    );
+  }
+
+  function applySplitTemplate(parts: SplitPart[]) {
+    setAdvancedSplitEnabled(true);
+    setSplitParts(parts);
+  }
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,#cbeaf8_0%,#b9e0f0_36%,#d9e6f2_62%,#efe1d5_100%)] text-slate-900">
@@ -160,11 +209,16 @@ export function PeptideCalculator() {
 
               {loadedPresetName ? (
                 <div className="preset-loaded-banner mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/90 p-3 text-sm leading-6 text-emerald-950 shadow-[0_18px_55px_rgba(16,185,129,0.16)]">
-                  <span className="font-semibold">Reference preset loaded:</span>{" "}
+                  <span className="font-semibold">
+                    {loadedPresetType === "math"
+                      ? "Math template loaded:"
+                      : "Reference preset loaded:"}
+                  </span>{" "}
                   {loadedPresetName}
-                  {loadedPresetDetail ? ` - ${loadedPresetDetail}` : ""}. Vial
-                  amount, water amount, and dose are still editable. Verify with
-                  the product label or prescriber before use.
+                  {loadedPresetDetail ? ` - ${loadedPresetDetail}` : ""}.{" "}
+                  {loadedPresetType === "math"
+                    ? "This is editable calculator math only, not a recommended dose or protocol."
+                    : "Vial amount, water amount, and dose are still editable. Verify with the product label or prescriber before use."}
                 </div>
               ) : null}
 
@@ -251,6 +305,16 @@ export function PeptideCalculator() {
                     />
                   ) : null}
                 </SoftPanel>
+
+                <AdvancedSplitPanel
+                  enabled={advancedSplitEnabled}
+                  parts={splitParts}
+                  totalPercent={splitTotalPercent}
+                  baseCompoundName={loadedPresetName}
+                  onToggle={setAdvancedSplitEnabled}
+                  onPartChange={updateSplitPart}
+                  onApplyTemplate={applySplitTemplate}
+                />
               </div>
               </div>
             </div>
@@ -327,6 +391,10 @@ export function PeptideCalculator() {
                   label="Each syringe mark equals"
                   value={`${formatNumber(result?.mcgPerSyringeUnit, 3)} mcg`}
                   description="This helps explain what each U-100 mark represents."
+                />
+                <CompoundSplitBreakdown
+                  items={splitBreakdown}
+                  totalPercent={splitTotalPercent}
                 />
               </div>
             </aside>
@@ -425,6 +493,156 @@ function DoseUnitSelector({
         })}
       </div>
     </div>
+  );
+}
+
+function AdvancedSplitPanel({
+  enabled,
+  parts,
+  totalPercent,
+  baseCompoundName,
+  onToggle,
+  onPartChange,
+  onApplyTemplate,
+}: {
+  enabled: boolean;
+  parts: SplitPart[];
+  totalPercent: number;
+  baseCompoundName: string;
+  onToggle: (enabled: boolean) => void;
+  onPartChange: (index: number, nextPart: Partial<SplitPart>) => void;
+  onApplyTemplate: (parts: SplitPart[]) => void;
+}) {
+  return (
+    <section className="rounded-2xl border border-sky-100 bg-[linear-gradient(145deg,#ffffff_0%,#f3fbff_58%,#fff7ed_100%)] p-4 shadow-sm">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-sky-900">
+            Advanced
+          </p>
+          <h3 className="mt-1 text-base font-semibold text-slate-900">
+            Split the dose between compounds
+          </h3>
+          <p className="mt-1 max-w-xl text-sm leading-6 text-slate-600">
+            Use this for mixed vials, like 50/50 CJC and Ipamorelin. The syringe
+            mark stays the same, and the breakdown shows each compound amount.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          aria-pressed={enabled}
+          onClick={() => onToggle(!enabled)}
+          className={`flex h-10 w-28 shrink-0 items-center rounded-full px-1 text-sm font-semibold transition ${
+            enabled ? "bg-sky-100 text-sky-950" : "bg-slate-100 text-slate-500"
+          }`}
+        >
+          <span
+            className={`grid h-8 w-14 place-items-center rounded-full transition ${
+              enabled
+                ? "translate-x-12 bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] text-white sm:translate-x-12"
+                : "translate-x-0 bg-white text-slate-600"
+            }`}
+          >
+            {enabled ? "On" : "Off"}
+          </span>
+        </button>
+      </div>
+
+      {enabled ? (
+        <div className="mt-4 grid gap-3">
+          <div className="flex flex-wrap gap-2">
+            <SplitTemplateButton
+              label="50 / 50"
+              onClick={() =>
+                onApplyTemplate(
+                  createSplitParts(2, [
+                    baseCompoundName || "Compound 1",
+                    "Compound 2",
+                  ]),
+                )
+              }
+            />
+            <SplitTemplateButton
+              label="CJC / Ipamorelin"
+              onClick={() =>
+                onApplyTemplate([
+                  { name: "CJC-1295", percent: "50" },
+                  { name: "Ipamorelin", percent: "50" },
+                ])
+              }
+            />
+            <SplitTemplateButton
+              label="33 / 33 / 34"
+              onClick={() => onApplyTemplate(createSplitParts(3))}
+            />
+            <SplitTemplateButton
+              label="4-way"
+              onClick={() => onApplyTemplate(createSplitParts(4))}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            {parts.map((part, index) => (
+              <div
+                key={`split-${index}`}
+                className="grid gap-2 rounded-2xl bg-white/85 p-3 ring-1 ring-sky-100 sm:grid-cols-[minmax(0,1fr)_112px]"
+              >
+                <label className="grid gap-1 text-xs font-semibold text-slate-500">
+                  Compound {index + 1}
+                  <input
+                    value={part.name}
+                    onChange={(event) =>
+                      onPartChange(index, { name: event.target.value })
+                    }
+                    className="h-10 min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
+                  />
+                </label>
+
+                <label className="grid gap-1 text-xs font-semibold text-slate-500">
+                  Split %
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={part.percent}
+                    onChange={(event) =>
+                      onPartChange(index, { percent: event.target.value })
+                    }
+                    className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
+                  />
+                </label>
+              </div>
+            ))}
+          </div>
+
+          <p className="rounded-2xl bg-sky-50 px-3 py-2 text-xs leading-5 text-sky-950 ring-1 ring-sky-100">
+            Entered split: {formatNumber(totalPercent, 2)}%.{" "}
+            {Math.abs(totalPercent - 100) > 0.01
+              ? "The breakdown normalizes these percentages so the full dose still equals 100%."
+              : "The split adds up to 100%."}
+          </p>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function SplitTemplateButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="h-9 rounded-full bg-white px-3 text-sm font-semibold text-slate-700 ring-1 ring-sky-100 transition hover:bg-sky-50"
+    >
+      {label}
+    </button>
   );
 }
 
@@ -604,6 +822,58 @@ function MiniSyringe({
   );
 }
 
+function createSplitParts(count: number, names: string[] = []) {
+  const safeCount = Math.min(Math.max(Math.round(count), 2), 4);
+  const percents =
+    safeCount === 2
+      ? ["50", "50"]
+      : safeCount === 3
+        ? ["33", "33", "34"]
+        : ["25", "25", "25", "25"];
+
+  return Array.from({ length: safeCount }, (_, index) => ({
+    name: names[index] || `Compound ${index + 1}`,
+    percent: percents[index] ?? "0",
+  }));
+}
+
+function parseSplitPercent(value: string) {
+  const parsedValue = Number(value);
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 0;
+}
+
+function buildSplitBreakdown(
+  parts: SplitPart[],
+  totalDoseMcg: number,
+  totalMcgPerSyringeUnit: number,
+) {
+  const safeParts = parts.filter((part) => parseSplitPercent(part.percent) > 0);
+  const totalPercent = safeParts.reduce(
+    (total, part) => total + parseSplitPercent(part.percent),
+    0,
+  );
+
+  if (!totalPercent || !Number.isFinite(totalDoseMcg)) {
+    return [];
+  }
+
+  return safeParts.map((part, index) => {
+    const inputPercent = parseSplitPercent(part.percent);
+    const normalizedPercent = (inputPercent / totalPercent) * 100;
+    const doseMcg = totalDoseMcg * (normalizedPercent / 100);
+
+    return {
+      name: part.name.trim() || `Compound ${index + 1}`,
+      inputPercent,
+      normalizedPercent,
+      doseMcg,
+      doseMg: doseMcg / 1000,
+      mcgPerSyringeUnit:
+        totalMcgPerSyringeUnit * (normalizedPercent / 100),
+    };
+  });
+}
+
 function parsePositiveNumber(value: string | null) {
   if (!value) {
     return null;
@@ -624,14 +894,53 @@ function readPresetFromSearchParams(params: { get: (name: string) => string | nu
   const vialParam = parsePositiveNumber(params.get("vialMg"));
   const waterParam = parsePositiveNumber(params.get("waterMl"));
   const doseParam = parsePositiveNumber(params.get("doseMcg"));
+  const compoundName = params.get("compound") ?? "";
+  const presetType: PresetType =
+    params.get("presetType") === "math" ? "math" : "reference";
 
   return {
-    compoundName: params.get("compound") ?? "",
+    compoundName,
     presetDetail: params.get("preset") ?? "",
+    presetType,
     syringeMl: syringeParam ? findClosestChoice(syringeParam, syringeOptions) : 1,
     vial: resolveNumericChoice(vialParam, vialOptions, 10),
     water: resolveNumericChoice(waterParam, waterOptions, 2),
     dose: resolveNumericChoice(doseParam, doseOptionsByUnit.mcg, 250),
+    split: readSplitFromSearchParams(params, compoundName),
+  };
+}
+
+function readSplitFromSearchParams(
+  params: { get: (name: string) => string | null },
+  compoundName: string,
+) {
+  const splitParam = params.get("split");
+
+  if (!splitParam) {
+    return {
+      enabled: false,
+      parts: createSplitParts(2, [compoundName || "Compound 1", "Compound 2"]),
+    };
+  }
+
+  const parsedParts = splitParam
+    .split(",")
+    .map((segment) => {
+      const [rawName, rawPercent] = segment.split(":");
+      return {
+        name: (rawName ?? "").trim(),
+        percent: String(parseSplitPercent(rawPercent ?? "")),
+      };
+    })
+    .filter((part) => part.name && parseSplitPercent(part.percent) > 0)
+    .slice(0, 4);
+
+  return {
+    enabled: parsedParts.length > 1,
+    parts:
+      parsedParts.length > 1
+        ? parsedParts
+        : createSplitParts(2, [compoundName || "Compound 1", "Compound 2"]),
   };
 }
 
@@ -1140,6 +1449,64 @@ function MetricRow({
         {value}
       </span>
       <span className="text-xs leading-5 text-slate-500">{description}</span>
+    </div>
+  );
+}
+
+function CompoundSplitBreakdown({
+  items,
+  totalPercent,
+}: {
+  items: SplitBreakdownItem[];
+  totalPercent: number;
+}) {
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-2xl bg-[linear-gradient(135deg,#f0fbff_0%,#fff7ed_100%)] p-3 ring-1 ring-cyan-100">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">
+          Split compound breakdown
+        </span>
+        <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-sky-900 ring-1 ring-sky-100">
+          {formatNumber(totalPercent, 2)}% entered
+        </span>
+      </div>
+
+      {Math.abs(totalPercent - 100) > 0.01 ? (
+        <p className="mt-2 text-xs leading-5 text-slate-500">
+          The entered split does not equal 100%, so these numbers are normalized
+          to match the full dose.
+        </p>
+      ) : null}
+
+      <div className="mt-3 grid gap-2">
+        {items.map((item) => (
+          <div
+            key={`${item.name}-${item.inputPercent}`}
+            className="rounded-2xl bg-white/85 p-3 ring-1 ring-sky-100"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-semibold text-slate-950">{item.name}</span>
+              <span className="text-sm font-semibold text-sky-900">
+                {formatNumber(item.normalizedPercent, 2)}%
+              </span>
+            </div>
+            <div className="mt-1 text-base font-semibold tabular-nums text-slate-950">
+              {formatNumber(item.doseMcg, 2)} mcg{" "}
+              <span className="text-sm font-medium text-slate-500">
+                ({formatNumber(item.doseMg, 4)} mg)
+              </span>
+            </div>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              This compound contributes{" "}
+              {formatNumber(item.mcgPerSyringeUnit, 3)} mcg per syringe mark.
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
