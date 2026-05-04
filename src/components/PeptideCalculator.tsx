@@ -15,11 +15,15 @@ import {
 import { calculateDose, formatNumber } from "@/lib/calculations";
 
 type Choice = number | "other";
+type DoseInputUnit = "mcg" | "iu";
 
 const syringeOptions = [0.3, 0.5, 1.0];
 const vialOptions: Choice[] = [5, 10, 15, 20, "other"];
 const waterOptions: Choice[] = [1, 2, 3, 5, "other"];
-const doseOptions: Choice[] = [50, 100, 250, 500, 1000, "other"];
+const doseOptionsByUnit: Record<DoseInputUnit, Choice[]> = {
+  mcg: [50, 100, 250, 500, 1000, "other"],
+  iu: [1, 2, 5, 10, 20, "other"],
+};
 
 export function PeptideCalculator() {
   const [syringeMl, setSyringeMl] = useState(1);
@@ -32,12 +36,28 @@ export function PeptideCalculator() {
 
   const [doseChoice, setDoseChoice] = useState<Choice>(250);
   const [doseOther, setDoseOther] = useState(250);
-
-  const [mcgPerIu, setMcgPerIu] = useState(0);
+  const [doseInputUnit, setDoseInputUnit] = useState<DoseInputUnit>("mcg");
 
   const vialMg = vialChoice === "other" ? vialOther : vialChoice;
   const waterMl = waterChoice === "other" ? waterOther : waterChoice;
-  const doseMcg = doseChoice === "other" ? doseOther : doseChoice;
+  const doseInputAmount = doseChoice === "other" ? doseOther : doseChoice;
+  const concentrationMcgMl =
+    vialMg > 0 && waterMl > 0 ? (vialMg * 1000) / waterMl : 0;
+  const doseMcg =
+    doseInputUnit === "mcg"
+      ? doseInputAmount
+      : doseInputAmount * (concentrationMcgMl / 100);
+  const doseLabel =
+    doseInputUnit === "mcg"
+      ? `${formatNumber(doseInputAmount, 0)} mcg`
+      : `${formatNumber(doseInputAmount, 2)} IU`;
+  const doseOptions = doseOptionsByUnit[doseInputUnit];
+
+  function handleDoseInputUnitChange(unit: DoseInputUnit) {
+    setDoseInputUnit(unit);
+    setDoseChoice(unit === "mcg" ? 250 : 5);
+    setDoseOther(unit === "mcg" ? 250 : 5);
+  }
 
   const result = useMemo(
     () =>
@@ -56,7 +76,6 @@ export function PeptideCalculator() {
     result && result.syringeUnits > syringeCapacity,
   );
   const doseAsMg = result ? result.doseMcg / 1000 : null;
-  const doseAsIu = result && mcgPerIu > 0 ? result.doseMcg / mcgPerIu : null;
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f2f3f5] text-slate-900">
@@ -94,17 +113,30 @@ export function PeptideCalculator() {
             className="mt-5 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]"
           >
             <div className="min-w-0 rounded-[28px] border border-slate-200 bg-white p-5 sm:p-6">
-              <h1 className="text-3xl font-semibold sm:text-4xl">
-                Peptide Calculator
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
-                Enter your vial amount, water amount, and dose target. The app
-                calculates how many U-100 units to draw.
-              </p>
-              <GuideStrip />
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div>
+                  <h1 className="text-3xl font-semibold sm:text-4xl">
+                    Peptide Calculator
+                  </h1>
+                  <p className="mt-2 text-sm font-semibold text-slate-900 sm:text-base">
+                    How to use peptide calculator
+                  </p>
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">
+                    Pick your syringe, vial amount, BAC water, and dose. The app
+                    shows exactly where to pull the syringe.
+                  </p>
+                </div>
+
+                <DoseUnitSelector
+                  value={doseInputUnit}
+                  onChange={handleDoseInputUnitChange}
+                />
+              </div>
+
+              <GuideStrip doseInputUnit={doseInputUnit} />
 
               <div className="mt-6 grid gap-4">
-                <SoftPanel title="1) Syringe size">
+                <SoftPanel title="What syringe size do you have?">
                   <SyringeSizePicker
                     options={syringeOptions}
                     value={syringeMl}
@@ -113,7 +145,7 @@ export function PeptideCalculator() {
                 </SoftPanel>
 
                 <SoftPanel
-                  title="2) Vial quantity"
+                  title="Total mg in vial"
                   visual={<VialIllustration tone="amber" />}
                 >
                   <ChipRow
@@ -134,7 +166,7 @@ export function PeptideCalculator() {
                 </SoftPanel>
 
                 <SoftPanel
-                  title="3) Bacteriostatic water"
+                  title="How much BAC water do you want to add?"
                   visual={<WaterIllustration />}
                 >
                   <ChipRow
@@ -155,7 +187,7 @@ export function PeptideCalculator() {
                 </SoftPanel>
 
                 <SoftPanel
-                  title="4) Target dose"
+                  title="What dose are you taking?"
                   visual={<DoseIllustration />}
                 >
                   <ChipRow
@@ -163,76 +195,27 @@ export function PeptideCalculator() {
                     value={doseChoice}
                     onChange={(value) => setDoseChoice(value as Choice)}
                     formatLabel={(value) =>
-                      value === "other" ? "Other" : `${value} mcg`
+                      value === "other"
+                        ? "Other"
+                        : `${value} ${doseInputUnit === "mcg" ? "mcg" : "IU"}`
                     }
                   />
                   {doseChoice === "other" ? (
                     <NumberField
-                      label="Custom dose (mcg)"
+                      label={`Custom dose (${doseInputUnit === "mcg" ? "mcg" : "IU"})`}
                       value={doseOther}
                       onChange={setDoseOther}
                     />
                   ) : null}
                 </SoftPanel>
-
-                <SoftPanel title="Optional IU conversion">
-                  <label className="grid gap-1 text-xs font-semibold text-slate-600">
-                    mcg per IU
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.001"
-                      value={mcgPerIu}
-                      onChange={(event) => setMcgPerIu(Number(event.target.value))}
-                      className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
-                    />
-                  </label>
-                </SoftPanel>
               </div>
             </div>
 
             <aside className="min-w-0 rounded-[28px] border border-slate-200 bg-white p-5 sm:p-6">
-              <h2 className="text-lg font-semibold">Result</h2>
+              <h2 className="text-lg font-semibold">What to do</h2>
               <p className="mt-1 text-sm text-slate-600">
-                How far to draw on a U-100 syringe.
+                Follow the blue marker on the syringe guide.
               </p>
-
-              <div className="mt-4 rounded-3xl bg-[#f4f5f7] p-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
-                  Draw to
-                </div>
-                <div className="mt-2 font-mono text-4xl font-semibold">
-                  {formatNumber(result?.syringeUnits, 2)} units
-                </div>
-              </div>
-
-              <DoseSyringeGuide
-                units={result?.syringeUnits ?? 0}
-                capacityUnits={syringeCapacity}
-                doseMcg={doseMcg}
-                tooLarge={tooLargeForSyringe}
-              />
-
-              <div className="mt-4 grid gap-2 rounded-2xl border border-slate-200 bg-white p-3">
-                <MetricRow
-                  label="Dose volume"
-                  value={`${formatNumber(result?.doseMl, 4)} mL`}
-                />
-                <MetricRow
-                  label="Concentration"
-                  value={`${formatNumber(result?.concentrationMcgMl)} mcg/mL`}
-                />
-                <MetricRow
-                  label="Dose conversion"
-                  value={`${formatNumber(doseAsMg, 4)} mg${
-                    doseAsIu ? ` / ${formatNumber(doseAsIu, 3)} IU` : ""
-                  }`}
-                />
-                <MetricRow
-                  label="mcg per unit"
-                  value={`${formatNumber(result?.mcgPerSyringeUnit, 3)} mcg`}
-                />
-              </div>
 
               {tooLargeForSyringe ? (
                 <Notice tone="warning">
@@ -249,9 +232,45 @@ export function PeptideCalculator() {
 
               {result && !tooLargeForSyringe ? (
                 <Notice tone="ok">
-                  Calculation ready. Verify with your prescription instructions.
+                  Ready: draw the syringe to {formatNumber(result.syringeUnits, 2)}{" "}
+                  units.
                 </Notice>
               ) : null}
+
+              <div className="mt-4 rounded-3xl bg-[#f4f5f7] p-5">
+                <div className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+                  Pull syringe to
+                </div>
+                <div className="mt-2 font-mono text-4xl font-semibold">
+                  {formatNumber(result?.syringeUnits, 2)} units
+                </div>
+              </div>
+
+              <DoseSyringeGuide
+                units={result?.syringeUnits ?? 0}
+                capacityUnits={syringeCapacity}
+                doseLabel={doseLabel}
+                tooLarge={tooLargeForSyringe}
+              />
+
+              <div className="mt-4 grid gap-2 rounded-2xl border border-slate-200 bg-white p-3">
+                <MetricRow
+                  label="Dose volume"
+                  value={`${formatNumber(result?.doseMl, 4)} mL`}
+                />
+                <MetricRow
+                  label="Concentration"
+                  value={`${formatNumber(result?.concentrationMcgMl)} mcg/mL`}
+                />
+                <MetricRow
+                  label="Dose amount"
+                  value={`${formatNumber(result?.doseMcg, 2)} mcg / ${formatNumber(doseAsMg, 4)} mg`}
+                />
+                <MetricRow
+                  label="mcg per unit"
+                  value={`${formatNumber(result?.mcgPerSyringeUnit, 3)} mcg`}
+                />
+              </div>
             </aside>
           </section>
         </div>
@@ -283,6 +302,42 @@ function IconTab({
   );
 }
 
+function DoseUnitSelector({
+  value,
+  onChange,
+}: {
+  value: DoseInputUnit;
+  onChange: (value: DoseInputUnit) => void;
+}) {
+  return (
+    <div className="w-full rounded-2xl border border-slate-200 bg-[#fbfbfc] p-2 xl:w-auto">
+      <div className="px-2 pb-2 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+        Dose unit
+      </div>
+      <div className="grid grid-cols-2 gap-1 rounded-full bg-[#eef0f3] p-1">
+        {(["mcg", "iu"] as const).map((unit) => {
+          const selected = unit === value;
+          return (
+            <button
+              key={unit}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onChange(unit)}
+              className={`h-9 rounded-full px-4 text-sm font-semibold transition ${
+                selected
+                  ? "bg-slate-900 text-white shadow-sm"
+                  : "text-slate-600 hover:bg-white"
+              }`}
+            >
+              {unit === "mcg" ? "MCG" : "IU"}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function SoftPanel({
   title,
   visual,
@@ -307,7 +362,7 @@ function SoftPanel({
           </div>
         ) : null}
         <div>
-          <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+          <h3 className="text-base font-semibold text-slate-900">{title}</h3>
           <div className="mt-3">{children}</div>
         </div>
       </div>
@@ -367,53 +422,55 @@ function MiniSyringe({
       className="h-11 w-full min-w-0"
     >
       <line
-        x1="13"
-        x2="53"
+        x1="6"
+        x2="43"
         y1="26"
         y2="26"
         stroke="#94a3b8"
         strokeLinecap="round"
         strokeWidth="2"
       />
-      <rect x="53" y="17" width="138" height="18" rx="5" fill="#ffffff" />
+      <rect x="43" y="20" width="10" height="12" rx="2" fill="#111827" />
+      <rect x="53" y="14" width="146" height="24" rx="6" fill="#ffffff" />
+      <path d="M58 18h134" stroke="#e2e8f0" strokeLinecap="round" />
       <rect
         x="53"
-        y="17"
+        y="14"
         width={fillWidth}
-        height="18"
+        height="24"
         rx="4"
         fill={selected ? "#38bdf8" : "#cbd5e1"}
-        opacity={selected ? "0.9" : "0.38"}
+        opacity={selected ? "0.88" : "0.34"}
       />
       <rect
         x="53"
-        y="17"
-        width="138"
-        height="18"
-        rx="5"
+        y="14"
+        width="146"
+        height="24"
+        rx="6"
         fill="none"
         stroke="#111827"
         strokeWidth="2.5"
       />
-      {Array.from({ length: 11 }, (_, index) => {
-        const x = 67 + index * 11;
+      {Array.from({ length: 12 }, (_, index) => {
+        const x = 66 + index * 10.5;
         const longTick = index % 5 === 0;
         return (
           <line
             key={x}
             x1={x}
             x2={x}
-            y1="18"
-            y2={longTick ? 35 : 29}
+            y1="15"
+            y2={longTick ? 38 : 30}
             stroke="#111827"
             strokeWidth={longTick ? "2" : "1.4"}
           />
         );
       })}
-      <rect x="191" y="13" width="7" height="26" rx="3.5" fill="#dbe4ee" />
-      <rect x="198" y="22" width="28" height="8" rx="4" fill="#fb923c" />
-      <circle cx="236" cy="26" r="14" fill="#fb923c" />
-      <rect x="221" y="21" width="8" height="10" rx="2" fill="#fdba74" />
+      <rect x="198" y="10" width="7" height="32" rx="3.5" fill="#dbe4ee" />
+      <rect x="205" y="22" width="29" height="8" rx="4" fill="#fb923c" />
+      <circle cx="244" cy="26" r="14" fill="#fb923c" />
+      <rect x="229" y="21" width="8" height="10" rx="2" fill="#fdba74" />
     </svg>
   );
 }
@@ -421,12 +478,12 @@ function MiniSyringe({
 function DoseSyringeGuide({
   units,
   capacityUnits,
-  doseMcg,
+  doseLabel,
   tooLarge,
 }: {
   units: number;
   capacityUnits: number;
-  doseMcg: number;
+  doseLabel: string;
   tooLarge: boolean;
 }) {
   const safeCapacity = Math.max(capacityUnits, 1);
@@ -454,10 +511,10 @@ function DoseSyringeGuide({
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-slate-900">
-            Syringe guide
+            Match the blue marker
           </h3>
           <p className="mt-1 text-xs leading-5 text-slate-600">
-            For {formatNumber(doseMcg, 0)} mcg, draw to{" "}
+            For {doseLabel}, stop the plunger at{" "}
             <span className="font-mono font-semibold text-slate-900">
               {formatNumber(units, 2)}
             </span>{" "}
@@ -585,16 +642,24 @@ function DoseSyringeGuide({
   );
 }
 
-function GuideStrip() {
+function GuideStrip({ doseInputUnit }: { doseInputUnit: DoseInputUnit }) {
   const steps = [
-    { label: "Syringe", hint: "Pick size", visual: <GuideSyringeIcon /> },
+    {
+      label: "Syringe",
+      hint: "Pick syringe size",
+      visual: <GuideSyringeIcon />,
+    },
     {
       label: "Vial",
-      hint: "Select mg",
+      hint: "Total mg",
       visual: <VialIllustration tone="amber" />,
     },
-    { label: "Water", hint: "Add mL", visual: <WaterIllustration /> },
-    { label: "Dose", hint: "Choose mcg", visual: <DoseIllustration /> },
+    { label: "BAC water", hint: "Add mL", visual: <WaterIllustration /> },
+    {
+      label: "Dose",
+      hint: `Choose ${doseInputUnit === "mcg" ? "MCG" : "IU"}`,
+      visual: <DoseIllustration />,
+    },
   ];
 
   return (
@@ -611,10 +676,12 @@ function GuideStrip() {
             {step.visual}
           </span>
           <span className="min-w-0">
-            <span className="block text-sm font-semibold text-slate-900">
+            <span className="block text-base font-semibold leading-5 text-slate-900">
               {step.label}
             </span>
-            <span className="block text-xs text-slate-500">{step.hint}</span>
+            <span className="block text-sm font-medium leading-5 text-slate-500">
+              {step.hint}
+            </span>
           </span>
         </div>
       ))}
@@ -655,7 +722,7 @@ function GuideSyringeIcon() {
 }
 
 function VialIllustration({ tone }: { tone: "amber" | "sky" }) {
-  const liquid = tone === "amber" ? "#f59e0b" : "#38bdf8";
+  const powder = tone === "amber" ? "#e2e8f0" : "#dbeafe";
 
   return (
     <svg
@@ -676,11 +743,17 @@ function VialIllustration({ tone }: { tone: "amber" | "sky" }) {
         stroke="#111827"
         strokeWidth="2"
       />
+      <path d="M16 35c4-4 11-4 16 0v2a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5z" fill={powder} />
       <path
-        d="M16 30h16v6a5 5 0 0 1-5 5h-6a5 5 0 0 1-5-5z"
-        fill={liquid}
-        opacity="0.88"
+        d="M18 35c3-2 9-2 12 0"
+        fill="none"
+        stroke="#cbd5e1"
+        strokeLinecap="round"
+        strokeWidth="1.5"
       />
+      <circle cx="20" cy="32" r="1" fill="#cbd5e1" />
+      <circle cx="25" cy="31" r="0.9" fill="#e2e8f0" />
+      <circle cx="29" cy="33" r="0.8" fill="#cbd5e1" />
       <rect
         x="17"
         y="19"
@@ -749,19 +822,23 @@ function WaterIllustration() {
 
 function DoseIllustration() {
   return (
-    <svg viewBox="0 0 48 48" role="img" aria-label="Dose target" className="h-10 w-10">
-      <circle cx="24" cy="24" r="17" fill="#fff7ed" stroke="#111827" strokeWidth="2" />
-      <circle cx="24" cy="24" r="10" fill="#ffffff" stroke="#f59e0b" strokeWidth="2" />
-      <circle cx="24" cy="24" r="4" fill="#0ea5e9" />
-      <path d="M32 14l5-5" stroke="#111827" strokeLinecap="round" strokeWidth="2" />
+    <svg viewBox="0 0 48 48" role="img" aria-label="Dose amount" className="h-10 w-10">
+      <rect x="9" y="9" width="30" height="30" rx="8" fill="#ffffff" stroke="#111827" strokeWidth="2" />
+      <rect x="14" y="15" width="16" height="4" rx="2" fill="#e2e8f0" />
       <path
-        d="M35 9h4v4"
-        fill="none"
-        stroke="#111827"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
+        d="M20 22c2 3 4 5 4 8a4 4 0 0 1-8 0c0-3 2-5 4-8z"
+        fill="#38bdf8"
+        opacity="0.95"
       />
+      <text
+        x="29"
+        y="31"
+        textAnchor="middle"
+        className="fill-slate-900 text-[8px] font-bold"
+      >
+        mcg
+      </text>
+      <path d="M33 12h6v6" fill="none" stroke="#fb923c" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
     </svg>
   );
 }
@@ -826,9 +903,13 @@ function NumberField({
 
 function MetricRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-xl px-1 py-1 text-sm">
-      <span className="text-slate-600">{label}</span>
-      <span className="font-mono text-slate-900">{value}</span>
+    <div className="grid gap-1 rounded-2xl bg-[#f8fafc] px-3 py-2 text-sm ring-1 ring-slate-100">
+      <span className="text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">
+        {label}
+      </span>
+      <span className="font-mono text-base font-semibold tabular-nums text-slate-950">
+        {value}
+      </span>
     </div>
   );
 }
