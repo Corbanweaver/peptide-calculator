@@ -12,6 +12,7 @@ import {
   UserCircle2,
   AlertTriangle,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { calculateDose, formatNumber } from "@/lib/calculations";
 
 type Choice = number | "other";
@@ -78,6 +79,7 @@ const searchItems = [
 ];
 
 export function PeptideCalculator() {
+  const pathname = usePathname();
   const [syringeMl, setSyringeMl] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -160,11 +162,36 @@ export function PeptideCalculator() {
     <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,#f8fbff_0%,#eef9ff_38%,#fff7fb_70%,#fffaf1_100%)] text-slate-900">
       <div className="mx-auto flex min-w-0 max-w-[1440px]">
         <aside className="hidden min-h-screen w-[86px] shrink-0 border-r border-sky-100 bg-white/70 py-5 shadow-[12px_0_45px_rgba(14,165,233,0.06)] backdrop-blur md:flex md:flex-col md:items-center md:gap-3">
-          <IconTab icon={<FlaskConical size={20} />} href="#home" active />
-          <IconTab icon={<Home size={20} />} href="#home" />
-          <IconTab icon={<Calculator size={20} />} href="#calculator" />
-          <IconTab icon={<User size={20} />} href="/account" />
-          <IconTab icon={<FileText size={20} />} href="/disclaimer" />
+          <IconTab
+            icon={<FlaskConical size={20} />}
+            href="/peptides"
+            label="Peptide library"
+            active={pathname === "/peptides"}
+          />
+          <IconTab
+            icon={<Home size={20} />}
+            href="/"
+            label="Home"
+            active={pathname === "/"}
+          />
+          <IconTab
+            icon={<Calculator size={20} />}
+            href="/calculator"
+            label="Calculator"
+            active={pathname === "/calculator"}
+          />
+          <IconTab
+            icon={<User size={20} />}
+            href="/account"
+            label="Account"
+            active={pathname === "/account"}
+          />
+          <IconTab
+            icon={<FileText size={20} />}
+            href="/disclaimer"
+            label="Disclaimer"
+            active={pathname === "/disclaimer"}
+          />
         </aside>
 
         <div className="min-w-0 w-full px-4 pb-10 pt-4 sm:px-6">
@@ -353,7 +380,7 @@ export function PeptideCalculator() {
               {tooLargeForSyringe ? (
                 <Notice tone="warning">
                   This dose is larger than your selected syringe capacity of{" "}
-                  {formatNumber(syringeCapacity, 0)} units.
+                  {formatNumber(syringeCapacity, 0)} marks.
                 </Notice>
               ) : null}
 
@@ -365,8 +392,8 @@ export function PeptideCalculator() {
 
               {result && !tooLargeForSyringe ? (
                 <Notice tone="ok">
-                  Ready: draw the syringe to {formatNumber(result.syringeUnits, 2)}{" "}
-                  units.
+                  Ready: draw the syringe to mark{" "}
+                  {formatNumber(result.syringeUnits, 2)}.
                 </Notice>
               ) : null}
 
@@ -375,7 +402,7 @@ export function PeptideCalculator() {
                   Pull syringe to
                 </div>
                 <div className="mt-2 font-mono text-4xl font-semibold">
-                  {formatNumber(result?.syringeUnits, 2)} units
+                  Mark {formatNumber(result?.syringeUnits, 2)}
                 </div>
               </div>
 
@@ -415,15 +442,19 @@ export function PeptideCalculator() {
 function IconTab({
   icon,
   href,
+  label,
   active = false,
 }: {
   icon: ReactNode;
   href: string;
+  label: string;
   active?: boolean;
 }) {
   return (
     <a
       href={href}
+      aria-label={label}
+      title={label}
       className={`grid h-12 w-12 place-items-center rounded-2xl transition ${
         active
           ? "bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] text-white shadow-[0_12px_28px_rgba(14,165,233,0.18)]"
@@ -681,9 +712,8 @@ function DoseSyringeGuide({
           <p className="mt-1 text-xs leading-5 text-slate-600">
             For {doseLabel}, stop the plunger at{" "}
             <span className="font-mono font-semibold text-slate-900">
-              {formatNumber(units, 2)}
-            </span>{" "}
-            units.
+              mark {formatNumber(units, 2)}.
+            </span>
           </p>
         </div>
         <span
@@ -701,7 +731,7 @@ function DoseSyringeGuide({
         <svg
           viewBox="0 0 560 180"
           role="img"
-          aria-label={`Syringe filled to ${formatNumber(units, 2)} units out of ${formatNumber(capacityUnits, 0)} units`}
+          aria-label={`Syringe filled to mark ${formatNumber(units, 2)} out of ${formatNumber(capacityUnits, 0)} marks`}
           className="h-auto w-full"
         >
           <defs>
@@ -837,18 +867,27 @@ function GuideStrip({ doseInputUnit }: { doseInputUnit: DoseInputUnit }) {
   const steps = [
     {
       label: "Syringe",
+      href: "#syringe-size",
       visual: <GuideSyringeIcon />,
     },
     {
       label: "Vial",
+      href: "#vial-total",
       visual: <VialIllustration tone="amber" />,
     },
-    { label: "BAC water", visual: <WaterIllustration /> },
+    { label: "BAC water", href: "#bac-water", visual: <WaterIllustration /> },
     {
       label: "Dose",
+      href: "#dose-target",
       visual: <DoseIllustration />,
     },
   ];
+
+  function scrollToStep(href: string) {
+    document
+      .querySelector(href)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   return (
     <section className="mt-5 rounded-[22px] border border-sky-100 bg-[linear-gradient(135deg,#eef9ff_0%,#fff7fb_56%,#fffaf1_100%)] p-3 shadow-[0_16px_45px_rgba(14,165,233,0.08)]">
@@ -862,9 +901,12 @@ function GuideStrip({ doseInputUnit }: { doseInputUnit: DoseInputUnit }) {
       </div>
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {steps.map((step, index) => (
-          <div
+          <button
             key={step.label}
+            type="button"
+            onClick={() => scrollToStep(step.href)}
             className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-3 py-2 shadow-[0_10px_25px_rgba(15,23,42,0.06)] ring-1 ring-sky-50"
+            aria-label={`Go to ${step.label} selection`}
           >
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] text-xs font-semibold text-white shadow-sm">
               {index + 1}
@@ -877,7 +919,7 @@ function GuideStrip({ doseInputUnit }: { doseInputUnit: DoseInputUnit }) {
                 {step.label}
               </span>
             </span>
-          </div>
+          </button>
         ))}
       </div>
     </section>
@@ -1116,6 +1158,8 @@ function NumberField({
   value: number;
   onChange: (value: number) => void;
 }) {
+  const [draftValue, setDraftValue] = useState(() => String(value));
+
   return (
     <label className="mt-3 grid gap-1 text-xs font-semibold text-slate-600">
       {label}
@@ -1123,8 +1167,21 @@ function NumberField({
         type="number"
         min="0"
         step="0.01"
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
+        value={draftValue}
+        onChange={(event) => {
+          const nextValue = event.target.value;
+          setDraftValue(nextValue);
+
+          if (nextValue === "") {
+            onChange(0);
+            return;
+          }
+
+          const parsedValue = Number(nextValue);
+          if (Number.isFinite(parsedValue)) {
+            onChange(parsedValue);
+          }
+        }}
         className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
       />
     </label>
