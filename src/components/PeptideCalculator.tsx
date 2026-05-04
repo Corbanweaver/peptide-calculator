@@ -6,9 +6,7 @@ import {
   CheckCircle2,
   FileText,
   FlaskConical,
-  Home,
   Search,
-  User,
   UserCircle2,
   AlertTriangle,
 } from "lucide-react";
@@ -131,6 +129,7 @@ export function PeptideCalculator() {
     result && result.syringeUnits > syringeCapacity,
   );
   const doseAsMg = result ? result.doseMcg / 1000 : null;
+  const syringeMarkLabel = formatSyringeMark(result?.syringeUnits);
   const normalizedSearchQuery = searchQuery.trim().toLowerCase();
   const filteredSearchItems = useMemo(() => {
     if (!normalizedSearchQuery) {
@@ -169,22 +168,10 @@ export function PeptideCalculator() {
             active={pathname === "/peptides"}
           />
           <IconTab
-            icon={<Home size={20} />}
-            href="/"
-            label="Home"
-            active={pathname === "/"}
-          />
-          <IconTab
             icon={<Calculator size={20} />}
             href="/calculator"
             label="Calculator"
             active={pathname === "/calculator"}
-          />
-          <IconTab
-            icon={<User size={20} />}
-            href="/account"
-            label="Account"
-            active={pathname === "/account"}
           />
           <IconTab
             icon={<FileText size={20} />}
@@ -265,7 +252,7 @@ export function PeptideCalculator() {
             <div className="relative min-w-0 overflow-hidden rounded-[28px] border border-sky-100 bg-white/95 p-5 shadow-[0_24px_80px_rgba(14,165,233,0.09)] ring-1 ring-white/70 sm:p-6">
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[linear-gradient(90deg,rgba(14,165,233,0.16)_0%,rgba(236,72,153,0.08)_48%,rgba(251,146,60,0.12)_100%)]"
+                className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[linear-gradient(135deg,rgba(14,165,233,0.15)_0%,rgba(236,72,153,0.08)_48%,rgba(251,146,60,0.1)_72%,rgba(255,255,255,0)_100%)]"
               />
               <div className="relative">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -394,8 +381,7 @@ export function PeptideCalculator() {
 
               {result && !tooLargeForSyringe ? (
                 <Notice tone="ok">
-                  Ready: draw the syringe to mark{" "}
-                  {formatNumber(result.syringeUnits, 2)}.
+                  Ready: draw the syringe to the {syringeMarkLabel}.
                 </Notice>
               ) : null}
 
@@ -404,7 +390,7 @@ export function PeptideCalculator() {
                   Pull syringe to
                 </div>
                 <div className="mt-2 font-mono text-4xl font-semibold">
-                  Mark {formatNumber(result?.syringeUnits, 2)}
+                  {syringeMarkLabel}
                 </div>
               </div>
 
@@ -412,6 +398,7 @@ export function PeptideCalculator() {
                 units={result?.syringeUnits ?? 0}
                 capacityUnits={syringeCapacity}
                 doseLabel={doseLabel}
+                markLabel={syringeMarkLabel}
                 tooLarge={tooLargeForSyringe}
               />
 
@@ -445,7 +432,7 @@ function MobileTopNav({ pathname }: { pathname: string }) {
   return (
     <nav
       aria-label="Primary mobile navigation"
-      className="sticky top-2 z-20 mt-3 grid grid-cols-5 gap-2 rounded-[24px] border border-sky-100 bg-white/85 p-2 shadow-[0_16px_45px_rgba(14,165,233,0.12)] backdrop-blur md:hidden"
+      className="sticky top-2 z-20 mt-3 grid grid-cols-3 gap-2 rounded-[24px] border border-sky-100 bg-white/85 p-2 shadow-[0_16px_45px_rgba(14,165,233,0.12)] backdrop-blur md:hidden"
     >
       <IconTab
         icon={<FlaskConical size={20} />}
@@ -454,22 +441,10 @@ function MobileTopNav({ pathname }: { pathname: string }) {
         active={pathname === "/peptides"}
       />
       <IconTab
-        icon={<Home size={20} />}
-        href="/"
-        label="Home"
-        active={pathname === "/"}
-      />
-      <IconTab
         icon={<Calculator size={20} />}
         href="/calculator"
         label="Calculator"
         active={pathname === "/calculator"}
-      />
-      <IconTab
-        icon={<User size={20} />}
-        href="/account"
-        label="Account"
-        active={pathname === "/account"}
       />
       <IconTab
         icon={<FileText size={20} />}
@@ -713,15 +688,48 @@ function MiniSyringe({
   );
 }
 
+function formatSyringeMark(value?: number | null) {
+  const safeValue = Number.isFinite(value) ? Number(value) : 0;
+  const roundedValue = Math.round(safeValue);
+
+  if (Math.abs(safeValue - roundedValue) < 0.005) {
+    return `${formatNumber(roundedValue, 0)}${getOrdinalSuffix(roundedValue)} Mark`;
+  }
+
+  return `${formatNumber(safeValue, 2)} Mark`;
+}
+
+function getOrdinalSuffix(value: number) {
+  const absoluteValue = Math.abs(value);
+  const lastTwoDigits = absoluteValue % 100;
+
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+    return "TH";
+  }
+
+  switch (absoluteValue % 10) {
+    case 1:
+      return "ST";
+    case 2:
+      return "ND";
+    case 3:
+      return "RD";
+    default:
+      return "TH";
+  }
+}
+
 function DoseSyringeGuide({
   units,
   capacityUnits,
   doseLabel,
+  markLabel,
   tooLarge,
 }: {
   units: number;
   capacityUnits: number;
   doseLabel: string;
+  markLabel: string;
   tooLarge: boolean;
 }) {
   const safeCapacity = Math.max(capacityUnits, 1);
@@ -754,7 +762,7 @@ function DoseSyringeGuide({
           <p className="mt-1 text-xs leading-5 text-slate-600">
             For {doseLabel}, stop the plunger at{" "}
             <span className="font-mono font-semibold text-slate-900">
-              mark {formatNumber(units, 2)}.
+              {markLabel}.
             </span>
           </p>
         </div>
@@ -773,7 +781,7 @@ function DoseSyringeGuide({
         <svg
           viewBox="0 0 560 180"
           role="img"
-          aria-label={`Syringe filled to mark ${formatNumber(units, 2)} out of ${formatNumber(capacityUnits, 0)} marks`}
+          aria-label={`Syringe filled to ${markLabel} out of ${formatNumber(capacityUnits, 0)} marks`}
           className="h-auto w-full"
         >
           <defs>
@@ -787,118 +795,129 @@ function DoseSyringeGuide({
               <stop offset="0.7" stopColor={tooLarge ? "#f59e0b" : "#0ea5e9"} />
               <stop offset="1" stopColor={tooLarge ? "#d97706" : "#0284c7"} />
             </linearGradient>
+            <linearGradient id="guide-plunger" x1="480" x2="545" y1="72" y2="105">
+              <stop offset="0" stopColor="#fdba74" />
+              <stop offset="0.58" stopColor="#fb923c" />
+              <stop offset="1" stopColor="#f97316" />
+            </linearGradient>
+            <filter id="guide-syringe-shadow" x="-10%" y="-20%" width="120%" height="140%">
+              <feDropShadow dx="0" dy="3" floodColor="#0f172a" floodOpacity="0.14" stdDeviation="3" />
+            </filter>
           </defs>
-          <rect x="19" y="87" width="45" height="4" rx="2" fill="#94a3b8" />
-          <line
-            x1="9"
-            x2={barrelX}
-            y1="89"
-            y2="89"
-            stroke="#111827"
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-          <rect x="52" y="75" width="20" height="28" rx="4" fill="#111827" />
-          <rect
-            x={barrelX}
-            y={barrelY}
-            width={barrelWidth}
-            height={barrelHeight}
-            rx="8"
-            fill="url(#guide-barrel)"
-            opacity="0.96"
-          />
-          <rect
-            x={barrelX}
-            y={barrelY}
-            width={fillWidth}
-            height={barrelHeight}
-            rx="6"
-            fill="url(#guide-dose-fill)"
-            opacity="0.92"
-          />
-          <path
-            d={`M${barrelX + 8} ${barrelY + 9}h${barrelWidth - 20}`}
-            stroke="#ffffff"
-            strokeLinecap="round"
-            strokeWidth="3"
-            opacity="0.9"
-          />
-          <path
-            d={`M${barrelX + 12} ${barrelY + barrelHeight - 8}h${barrelWidth - 24}`}
-            stroke="#cbd5e1"
-            strokeLinecap="round"
-            strokeWidth="1.6"
-          />
-          <rect
-            x={barrelX}
-            y={barrelY}
-            width={barrelWidth}
-            height={barrelHeight}
-            rx="8"
-            fill="none"
-            stroke="#111827"
-            strokeWidth="5"
-          />
-          {minorTicks.map((tick) => {
-            const x = barrelX + (tick / safeCapacity) * barrelWidth;
-            const isMajor = tick % majorStep === 0;
-            return (
-              <line
-                key={`minor-${tick}`}
-                x1={x}
-                x2={x}
-                y1="66"
-                y2={isMajor ? 111 : 91}
-                stroke="#111827"
-                strokeWidth={isMajor ? "2.2" : "1.35"}
-              />
-            );
-          })}
-          {majorTicks
-            .filter((tick) => tick > 0)
-            .map((tick) => {
+          <g filter="url(#guide-syringe-shadow)">
+            <line
+              x1="9"
+              x2="50"
+              y1="89"
+              y2="89"
+              stroke="#111827"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+            <rect x="46" y="82" width="12" height="14" rx="3" fill="#94a3b8" />
+            <rect x="55" y="74" width="17" height="30" rx="4" fill="#111827" />
+            <rect
+              x={barrelX}
+              y={barrelY}
+              width={barrelWidth}
+              height={barrelHeight}
+              rx="8"
+              fill="url(#guide-barrel)"
+              opacity="0.97"
+            />
+            <rect
+              x={barrelX}
+              y={barrelY}
+              width={fillWidth}
+              height={barrelHeight}
+              rx="6"
+              fill="url(#guide-dose-fill)"
+              opacity="0.92"
+            />
+            <path
+              d={`M${barrelX + 8} ${barrelY + 9}h${barrelWidth - 20}`}
+              stroke="#ffffff"
+              strokeLinecap="round"
+              strokeWidth="3"
+              opacity="0.9"
+            />
+            <path
+              d={`M${barrelX + 12} ${barrelY + barrelHeight - 8}h${barrelWidth - 24}`}
+              stroke="#cbd5e1"
+              strokeLinecap="round"
+              strokeWidth="1.6"
+            />
+            <rect
+              x={barrelX}
+              y={barrelY}
+              width={barrelWidth}
+              height={barrelHeight}
+              rx="8"
+              fill="none"
+              stroke="#111827"
+              strokeWidth="5"
+            />
+            {minorTicks.map((tick) => {
               const x = barrelX + (tick / safeCapacity) * barrelWidth;
+              const isMajor = tick % majorStep === 0;
               return (
-                <text
-                  key={`label-${tick}`}
-                  x={x}
-                  y="132"
-                  textAnchor="middle"
-                  className="fill-slate-700 text-[13px] font-semibold"
-                >
-                  {tick}
-                </text>
+                <line
+                  key={`minor-${tick}`}
+                  x1={x}
+                  x2={x}
+                  y1="66"
+                  y2={isMajor ? 111 : 91}
+                  stroke="#111827"
+                  strokeWidth={isMajor ? "2.2" : "1.35"}
+                />
               );
             })}
-          <line
-            x1={markerX}
-            x2={markerX}
-            y1="54"
-            y2="122"
-            stroke={tooLarge ? "#92400e" : "#0369a1"}
-            strokeWidth="4.5"
-            strokeLinecap="round"
-          />
-          <rect
-            x={barrelX + barrelWidth}
-            y="58"
-            width="9"
-            height="62"
-            rx="4.5"
-            fill="#dbe4ee"
-          />
-          <rect
-            x={barrelX + barrelWidth + 9}
-            y="82"
-            width="52"
-            height="13"
-            rx="6.5"
-            fill="#fb923c"
-          />
-          <circle cx="522" cy="88.5" r="25" fill="#fb923c" />
-          <circle cx="513" cy="79" r="7" fill="#fdba74" opacity="0.7" />
-          <rect x="480" y="79" width="20" height="19" rx="4" fill="#fdba74" />
+            {majorTicks
+              .filter((tick) => tick > 0)
+              .map((tick) => {
+                const x = barrelX + (tick / safeCapacity) * barrelWidth;
+                return (
+                  <text
+                    key={`label-${tick}`}
+                    x={x}
+                    y="132"
+                    textAnchor="middle"
+                    className="fill-slate-700 text-[13px] font-semibold"
+                  >
+                    {tick}
+                  </text>
+                );
+              })}
+            <line
+              x1={markerX}
+              x2={markerX}
+              y1="54"
+              y2="122"
+              stroke={tooLarge ? "#92400e" : "#0369a1"}
+              strokeWidth="4.5"
+              strokeLinecap="round"
+            />
+            <rect
+              x={barrelX + barrelWidth}
+              y="58"
+              width="9"
+              height="62"
+              rx="4.5"
+              fill="#dbe4ee"
+            />
+            <rect
+              x={barrelX + barrelWidth + 9}
+              y="82"
+              width="52"
+              height="13"
+              rx="6.5"
+              fill="url(#guide-plunger)"
+            />
+            <rect x="480" y="79" width="20" height="19" rx="4" fill="#fdba74" />
+            <circle cx="522" cy="88.5" r="25" fill="url(#guide-plunger)" />
+            <circle cx="513" cy="79" r="7" fill="#fed7aa" opacity="0.7" />
+            <path d="M491 84h20" stroke="#fed7aa" strokeLinecap="round" strokeWidth="2" opacity="0.8" />
+          </g>
         </svg>
       </div>
     </section>
