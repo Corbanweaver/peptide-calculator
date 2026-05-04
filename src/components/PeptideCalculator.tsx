@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   FileText,
   FlaskConical,
-  Search,
   UserCircle2,
   AlertTriangle,
 } from "lucide-react";
@@ -24,58 +23,6 @@ const doseOptionsByUnit: Record<DoseInputUnit, Choice[]> = {
   iu: [1, 2, 5, 10, 20, "other"],
 };
 
-const searchItems = [
-  {
-    label: "Syringe size",
-    eyebrow: "Step 1",
-    detail: "Choose 0.3, 0.5, or 1.0 mL",
-    href: "#syringe-size",
-    keywords: "syringe needle injection size units u100",
-  },
-  {
-    label: "Total MG's in your vial",
-    eyebrow: "Step 2",
-    detail: "Pick the total peptide amount",
-    href: "#vial-total",
-    keywords: "vial mg peptide powder quantity amount",
-  },
-  {
-    label: "BAC water",
-    eyebrow: "Step 3",
-    detail: "Choose how much BAC water to add",
-    href: "#bac-water",
-    keywords: "water bacteriostatic bac diluent ml",
-  },
-  {
-    label: "Dose",
-    eyebrow: "Step 4",
-    detail: "Choose MCG or IU dose",
-    href: "#dose-target",
-    keywords: "dose dosage mcg iu amount target",
-  },
-  {
-    label: "What to do",
-    eyebrow: "Result",
-    detail: "See where to pull the syringe",
-    href: "#what-to-do",
-    keywords: "result guide pull syringe units marker",
-  },
-  {
-    label: "Customer profile",
-    eyebrow: "Account",
-    detail: "Sign in or create an account",
-    href: "/account",
-    keywords: "account profile sign in login customer saved protocols",
-  },
-  {
-    label: "Disclaimer",
-    eyebrow: "Legal",
-    detail: "Read important safety information",
-    href: "/disclaimer",
-    keywords: "legal disclaimer safety prescription",
-  },
-];
-
 export function PeptideCalculator() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -84,7 +31,6 @@ export function PeptideCalculator() {
     [searchParams],
   );
   const [syringeMl, setSyringeMl] = useState(initialPreset.syringeMl);
-  const [searchQuery, setSearchQuery] = useState("");
   const [loadedPresetName] = useState(initialPreset.compoundName);
   const [loadedPresetDetail] = useState(initialPreset.presetDetail);
 
@@ -141,39 +87,14 @@ export function PeptideCalculator() {
   const tooLargeForSyringe = Boolean(
     result && result.syringeUnits > syringeCapacity,
   );
+  const hasReadyCalculation = Boolean(result && !tooLargeForSyringe);
   const doseAsMg = result ? result.doseMcg / 1000 : null;
   const syringeMarkLabel = formatSyringeMark(result?.syringeUnits);
-  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
-  const filteredSearchItems = useMemo(() => {
-    if (!normalizedSearchQuery) {
-      return [];
-    }
-
-    return searchItems
-      .filter((item) =>
-        `${item.label} ${item.eyebrow} ${item.detail} ${item.keywords}`
-          .toLowerCase()
-          .includes(normalizedSearchQuery),
-      )
-      .slice(0, 5);
-  }, [normalizedSearchQuery]);
-
-  function handleSearchSelect(href: string) {
-    if (href.startsWith("#")) {
-      document
-        .querySelector(href)
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      window.location.assign(href);
-    }
-
-    setSearchQuery("");
-  }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,#f8fbff_0%,#eef9ff_38%,#fff7fb_70%,#fffaf1_100%)] text-slate-900">
+    <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,#cbeaf8_0%,#b9e0f0_36%,#d9e6f2_62%,#efe1d5_100%)] text-slate-900">
       <div className="mx-auto flex min-w-0 max-w-[1440px]">
-        <aside className="hidden min-h-screen w-[86px] shrink-0 border-r border-sky-100 bg-white/70 py-5 shadow-[12px_0_45px_rgba(14,165,233,0.06)] backdrop-blur md:flex md:flex-col md:items-center md:gap-3">
+        <aside className="hidden min-h-screen w-[86px] shrink-0 border-r border-sky-100 bg-white/72 py-5 shadow-[12px_0_45px_rgba(14,165,233,0.09)] backdrop-blur md:flex md:flex-col md:items-center md:gap-3">
           <IconTab
             icon={<FlaskConical size={20} />}
             href="/peptides"
@@ -195,58 +116,7 @@ export function PeptideCalculator() {
         </aside>
 
         <div className="min-w-0 w-full px-4 pb-10 pt-4 sm:px-6">
-          <header id="home" className="flex items-center gap-3">
-            <div className="relative min-w-0 flex-1">
-              <div className="flex h-12 min-w-0 items-center gap-3 rounded-full bg-white/80 px-4 shadow-[0_14px_45px_rgba(14,165,233,0.09)] ring-1 ring-sky-100 backdrop-blur">
-                <Search size={18} className="text-sky-800" aria-hidden="true" />
-                <input
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && filteredSearchItems[0]) {
-                      event.preventDefault();
-                      handleSearchSelect(filteredSearchItems[0].href);
-                    }
-
-                    if (event.key === "Escape") {
-                      setSearchQuery("");
-                    }
-                  }}
-                  placeholder="Search calculator"
-                  aria-label="Search peptide calculator"
-                  className="min-w-0 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-500"
-                />
-              </div>
-              {normalizedSearchQuery ? (
-                <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-30 rounded-3xl border border-sky-100 bg-white/95 p-2 shadow-[0_22px_65px_rgba(15,23,42,0.14)] backdrop-blur">
-                  {filteredSearchItems.length ? (
-                    filteredSearchItems.map((item) => (
-                      <button
-                        key={item.label}
-                        type="button"
-                        onClick={() => handleSearchSelect(item.href)}
-                        onMouseDown={(event) => event.preventDefault()}
-                        className="grid w-full gap-0.5 rounded-2xl px-4 py-3 text-left transition hover:bg-sky-50"
-                      >
-                        <span className="text-xs font-semibold uppercase tracking-[0.08em] text-sky-800">
-                          {item.eyebrow}
-                        </span>
-                        <span className="text-sm font-semibold text-slate-950">
-                          {item.label}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {item.detail}
-                        </span>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="rounded-2xl px-4 py-3 text-sm text-slate-500">
-                      No calculator match yet. Try dose, vial, water, or account.
-                    </div>
-                  )}
-                </div>
-              ) : null}
-            </div>
+          <header id="home" className="flex items-center justify-end">
             <a
               href="/account"
               className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#ffffff_0%,#e0f2fe_58%,#fff7ed_100%)] text-slate-800 shadow-[0_12px_35px_rgba(14,165,233,0.12)] ring-1 ring-sky-100 transition hover:-translate-y-0.5 hover:shadow-[0_16px_45px_rgba(14,165,233,0.18)]"
@@ -289,7 +159,7 @@ export function PeptideCalculator() {
               </div>
 
               {loadedPresetName ? (
-                <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3 text-sm leading-6 text-emerald-950">
+                <div className="preset-loaded-banner mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/90 p-3 text-sm leading-6 text-emerald-950 shadow-[0_18px_55px_rgba(16,185,129,0.16)]">
                   <span className="font-semibold">Reference preset loaded:</span>{" "}
                   {loadedPresetName}
                   {loadedPresetDetail ? ` - ${loadedPresetDetail}` : ""}. Vial
@@ -298,10 +168,12 @@ export function PeptideCalculator() {
                 </div>
               ) : null}
 
-              <GuideStrip doseInputUnit={doseInputUnit} />
-
               <div className="mt-6 grid gap-4">
-                <SoftPanel id="syringe-size" title="What syringe size do you have?">
+                <SoftPanel
+                  id="syringe-size"
+                  step={1}
+                  title="What syringe size do you have?"
+                >
                   <SyringeSizePicker
                     options={syringeOptions}
                     value={syringeMl}
@@ -311,6 +183,7 @@ export function PeptideCalculator() {
 
                 <SoftPanel
                   id="vial-total"
+                  step={2}
                   title="Total MG's in your vial"
                   visual={<VialIllustration tone="amber" />}
                 >
@@ -333,6 +206,7 @@ export function PeptideCalculator() {
 
                 <SoftPanel
                   id="bac-water"
+                  step={3}
                   title="How much BAC water do you want to add?"
                   visual={<WaterIllustration />}
                 >
@@ -355,6 +229,7 @@ export function PeptideCalculator() {
 
                 <SoftPanel
                   id="dose-target"
+                  step={4}
                   title="What dose are you taking?"
                   visual={<DoseIllustration />}
                 >
@@ -382,7 +257,11 @@ export function PeptideCalculator() {
 
             <aside
               id="what-to-do"
-              className="min-w-0 rounded-[28px] border border-sky-100 bg-white/95 p-5 shadow-[0_24px_80px_rgba(14,165,233,0.09)] ring-1 ring-white/70 sm:p-6"
+              className={`min-w-0 rounded-[28px] border bg-white/95 p-5 ring-1 ring-white/70 sm:p-6 ${
+                hasReadyCalculation
+                  ? "calculation-ready-panel border-cyan-200 shadow-[0_28px_95px_rgba(14,165,233,0.24)]"
+                  : "border-sky-100 shadow-[0_24px_80px_rgba(14,165,233,0.09)]"
+              }`}
             >
               <h2 className="text-lg font-semibold">What to do</h2>
               <p className="mt-1 text-sm text-slate-600">
@@ -404,7 +283,7 @@ export function PeptideCalculator() {
 
               {result && !tooLargeForSyringe ? (
                 <Notice tone="ok">
-                  Ready: draw the syringe to the {syringeMarkLabel}.
+                  Ready!
                 </Notice>
               ) : null}
 
@@ -425,22 +304,29 @@ export function PeptideCalculator() {
                 tooLarge={tooLargeForSyringe}
               />
 
-              <div className="mt-4 grid gap-2 rounded-2xl border border-slate-200 bg-white p-3">
+              <div className="mt-5 text-sm font-semibold text-slate-950">
+                Dosage breakdown
+              </div>
+              <div className="mt-2 grid gap-2 rounded-2xl border border-slate-200 bg-white p-3">
                 <MetricRow
-                  label="Dose volume"
+                  label="Amount of liquid to draw"
                   value={`${formatNumber(result?.doseMl, 4)} mL`}
+                  description="This is the liquid volume for one dose."
                 />
                 <MetricRow
-                  label="Concentration"
-                  value={`${formatNumber(result?.concentrationMcgMl)} mcg/mL`}
+                  label="Strength in the vial"
+                  value={`${formatNumber(result?.concentrationMcgMl)} mcg per mL`}
+                  description="This is how much compound is in each mL after mixing."
                 />
                 <MetricRow
-                  label="Dose amount"
-                  value={`${formatNumber(result?.doseMcg, 2)} mcg / ${formatNumber(doseAsMg, 4)} mg`}
+                  label="Dose you entered"
+                  value={`${formatNumber(result?.doseMcg, 2)} mcg (${formatNumber(doseAsMg, 4)} mg)`}
+                  description="This is the target dose used for the syringe guide."
                 />
                 <MetricRow
-                  label="mcg per unit"
+                  label="Each syringe mark equals"
                   value={`${formatNumber(result?.mcgPerSyringeUnit, 3)} mcg`}
+                  description="This helps explain what each U-100 mark represents."
                 />
               </div>
             </aside>
@@ -544,11 +430,13 @@ function DoseUnitSelector({
 
 function SoftPanel({
   id,
+  step,
   title,
   visual,
   children,
 }: {
   id?: string;
+  step: number;
   title: string;
   visual?: ReactNode;
   children: ReactNode;
@@ -571,7 +459,12 @@ function SoftPanel({
           </div>
         ) : null}
         <div>
-          <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] px-3 py-1 text-xs font-semibold text-white shadow-sm">
+              Step {step}
+            </span>
+            <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+          </div>
           <div className="mt-3">{children}</div>
         </div>
       </div>
@@ -999,101 +892,6 @@ function DoseSyringeGuide({
   );
 }
 
-function GuideStrip({ doseInputUnit }: { doseInputUnit: DoseInputUnit }) {
-  const steps = [
-    {
-      label: "Syringe",
-      href: "#syringe-size",
-      visual: <GuideSyringeIcon />,
-    },
-    {
-      label: "Vial",
-      href: "#vial-total",
-      visual: <VialIllustration tone="amber" />,
-    },
-    { label: "BAC water", href: "#bac-water", visual: <WaterIllustration /> },
-    {
-      label: "Dose",
-      href: "#dose-target",
-      visual: <DoseIllustration />,
-    },
-  ];
-
-  function scrollToStep(href: string) {
-    document
-      .querySelector(href)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  return (
-    <section className="mt-5 rounded-[22px] border border-sky-100 bg-[linear-gradient(135deg,#eef9ff_0%,#fff7fb_56%,#fffaf1_100%)] p-3 shadow-[0_16px_45px_rgba(14,165,233,0.08)]">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <div className="text-xs font-bold uppercase tracking-[0.12em] text-sky-900">
-          Steps
-        </div>
-        <div className="text-xs font-semibold text-slate-500">
-          {doseInputUnit === "mcg" ? "MCG mode" : "IU mode"}
-        </div>
-      </div>
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        {steps.map((step, index) => (
-          <button
-            key={step.label}
-            type="button"
-            onClick={() => scrollToStep(step.href)}
-            className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-3 py-2 shadow-[0_10px_25px_rgba(15,23,42,0.06)] ring-1 ring-sky-50"
-            aria-label={`Go to ${step.label} selection`}
-          >
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] text-xs font-semibold text-white shadow-sm">
-              {index + 1}
-            </span>
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white shadow-sm ring-1 ring-sky-100">
-              {step.visual}
-            </span>
-            <span className="min-w-0">
-              <span className="block text-base font-semibold leading-5 text-slate-900">
-                {step.label}
-              </span>
-            </span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function GuideSyringeIcon() {
-  return (
-    <svg viewBox="0 0 48 48" role="img" aria-label="Syringe" className="h-8 w-8">
-      <line
-        x1="6"
-        x2="16"
-        y1="24"
-        y2="24"
-        stroke="#94a3b8"
-        strokeLinecap="round"
-        strokeWidth="2"
-      />
-      <rect
-        x="15"
-        y="18"
-        width="20"
-        height="12"
-        rx="3"
-        fill="#ffffff"
-        stroke="#111827"
-        strokeWidth="2"
-      />
-      <path d="M15 18h9v12h-9z" fill="#38bdf8" opacity="0.9" />
-      <line x1="23" x2="23" y1="19" y2="29" stroke="#111827" strokeWidth="1.3" />
-      <line x1="28" x2="28" y1="19" y2="27" stroke="#111827" strokeWidth="1.3" />
-      <rect x="35" y="20" width="2.5" height="8" rx="1.2" fill="#cbd5e1" />
-      <rect x="37" y="22" width="6" height="4" rx="2" fill="#fb923c" />
-      <circle cx="43" cy="24" r="4" fill="#fb923c" />
-    </svg>
-  );
-}
-
 function VialIllustration({ tone }: { tone: "amber" | "sky" }) {
   const powder = tone === "amber" ? "#e2e8f0" : "#dbeafe";
   const glassGradientId = `vial-glass-${tone}`;
@@ -1324,7 +1122,15 @@ function NumberField({
   );
 }
 
-function MetricRow({ label, value }: { label: string; value: string }) {
+function MetricRow({
+  label,
+  value,
+  description,
+}: {
+  label: string;
+  value: string;
+  description: string;
+}) {
   return (
     <div className="grid gap-1 rounded-2xl bg-[linear-gradient(135deg,#ffffff_0%,#f4f9ff_100%)] px-3 py-2 text-sm ring-1 ring-sky-100">
       <span className="text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">
@@ -1333,6 +1139,7 @@ function MetricRow({ label, value }: { label: string; value: string }) {
       <span className="text-lg font-semibold leading-7 tracking-normal text-slate-950 tabular-nums">
         {value}
       </span>
+      <span className="text-xs leading-5 text-slate-500">{description}</span>
     </div>
   );
 }
