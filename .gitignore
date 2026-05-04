@@ -16,12 +16,12 @@
 # next.js
 /.next/
 /out/
+/.next-cache
 
 # production
 /build
 
 # misc
-.DS_Store
 *.pem
 
 # debug
@@ -35,12 +35,17 @@ dev-server*.log
 peptide-calculator-*.png
 .edge-profile*/
 .chrome-cdp*/
+.chrome-cdp*.log
 
 # env files (can opt-in for committing if needed)
 .env*
 
 # vercel
 .vercel
+
+# local macOS + windows artifacts
+*.DS_Store
+Thumbs.db
 
 # typescript
 *.tsbuildinfo

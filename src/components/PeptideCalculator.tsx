@@ -13,6 +13,8 @@ import {
   Info,
   Search,
   ShieldCheck,
+  ShieldAlert,
+  FileText,
 } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import {
@@ -127,7 +129,7 @@ export function PeptideCalculator() {
     <main className="min-h-screen bg-[#f8f6f0] text-slate-950">
       <section className="border-b border-slate-200 bg-[#f2efe7]">
         <header className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <a href="#calculator" className="flex items-center gap-3">
+            <a href="#calculator" className="flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-lg bg-slate-950 text-white">
               <FlaskConical size={20} aria-hidden="true" />
             </span>
@@ -145,6 +147,12 @@ export function PeptideCalculator() {
             <NavLink href="#protocol">Protocol</NavLink>
             <NavLink href="#library">Library</NavLink>
             <NavLink href="#compliance">Compliance</NavLink>
+            <a
+              href="/disclaimer"
+              className="rounded-md px-3 py-2 transition hover:bg-white hover:text-slate-950"
+            >
+              Disclaimer
+            </a>
           </nav>
         </header>
 
@@ -568,6 +576,31 @@ export function PeptideCalculator() {
                 </a>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-4 rounded-lg border border-slate-200 bg-slate-50 p-6 md:grid-cols-[auto_1fr]">
+          <div className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-[#175e65] text-white">
+            <ShieldAlert size={22} aria-hidden="true" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold text-slate-950">
+              Medical legal posture
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-slate-700">
+              This site does not provide medical advice or personalize treatment
+              decisions. Protocols are generated only from values you enter and are
+              not a substitute for clinician review.
+            </p>
+            <a
+              href="/disclaimer"
+              className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#175e65] hover:text-slate-950"
+            >
+              Read full disclaimer
+              <FileText size={16} aria-hidden="true" />
+            </a>
           </div>
         </div>
       </section>

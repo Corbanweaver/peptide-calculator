@@ -16,6 +16,43 @@ export const metadata: Metadata = {
   title: "PeptiCalc | Peptide Calculator",
   description:
     "A prescription-aware peptide calculator for concentration, syringe volume, IU conversion, and protocol schedules.",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://peptide-calculator.vercel.app",
+  ),
+  keywords: [
+    "peptide calculator",
+    "dose conversion",
+    "mcg per ml",
+    "IU conversion",
+    "compound protocol",
+  ],
+  authors: [{ name: "PeptiCalc team" }],
+  openGraph: {
+    type: "website",
+    title: "PeptiCalc | Peptide Calculator",
+    description:
+      "A prescription-aware peptide calculator for concentration, syringe volume, IU conversion, and protocol schedules.",
+    locale: "en_US",
+    siteName: "PeptiCalc",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: false,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PeptiCalc | Peptide Calculator",
+    description:
+      "A prescription-aware peptide calculator for concentration, syringe volume, IU conversion, and protocol schedules.",
+  },
 };
 
 export default function RootLayout({
