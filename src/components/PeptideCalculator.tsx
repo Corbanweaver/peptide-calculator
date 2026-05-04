@@ -78,7 +78,7 @@ export function PeptideCalculator() {
   const doseAsMg = result ? result.doseMcg / 1000 : null;
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#f2f3f5] text-slate-900">
+    <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,#f8fafc_0%,#eef7ff_42%,#fff7ed_100%)] text-slate-900">
       <div className="mx-auto flex min-w-0 max-w-[1440px]">
         <aside className="hidden min-h-screen w-[86px] shrink-0 border-r border-slate-200 bg-[#f7f7f7] py-5 md:flex md:flex-col md:items-center md:gap-3">
           <IconTab icon={<FlaskConical size={20} />} href="#home" active />
@@ -112,7 +112,7 @@ export function PeptideCalculator() {
             id="calculator"
             className="mt-5 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]"
           >
-            <div className="min-w-0 rounded-[28px] border border-slate-200 bg-white p-5 sm:p-6">
+            <div className="min-w-0 rounded-[28px] border border-slate-200 bg-white/95 p-5 shadow-[0_22px_70px_rgba(15,23,42,0.06)] sm:p-6">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
                   <h1 className="text-3xl font-semibold sm:text-4xl">
@@ -145,7 +145,7 @@ export function PeptideCalculator() {
                 </SoftPanel>
 
                 <SoftPanel
-                  title="Total mg in vial"
+                  title="Total MG's in your vial"
                   visual={<VialIllustration tone="amber" />}
                 >
                   <ChipRow
@@ -211,7 +211,7 @@ export function PeptideCalculator() {
               </div>
             </div>
 
-            <aside className="min-w-0 rounded-[28px] border border-slate-200 bg-white p-5 sm:p-6">
+            <aside className="min-w-0 rounded-[28px] border border-slate-200 bg-white/95 p-5 shadow-[0_22px_70px_rgba(15,23,42,0.06)] sm:p-6">
               <h2 className="text-lg font-semibold">What to do</h2>
               <p className="mt-1 text-sm text-slate-600">
                 Follow the blue marker on the syringe guide.
@@ -348,7 +348,7 @@ function SoftPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl bg-[#f4f5f7] p-4">
+    <section className="rounded-2xl bg-[linear-gradient(145deg,#f8fafc_0%,#f1f7ff_100%)] p-4">
       <div
         className={
           visual
@@ -412,7 +412,7 @@ function MiniSyringe({
   selected: boolean;
   capacityMl: number;
 }) {
-  const fillWidth = 18 + capacityMl * 24;
+  const fillWidth = 18 + capacityMl * 23;
 
   return (
     <svg
@@ -422,19 +422,20 @@ function MiniSyringe({
       className="h-11 w-full min-w-0"
     >
       <line
-        x1="6"
+        x1="8"
         x2="43"
         y1="26"
         y2="26"
-        stroke="#94a3b8"
+        stroke="#9aa7b7"
         strokeLinecap="round"
-        strokeWidth="2"
+        strokeWidth="1.8"
       />
-      <rect x="43" y="20" width="10" height="12" rx="2" fill="#111827" />
-      <rect x="53" y="14" width="146" height="24" rx="6" fill="#ffffff" />
-      <path d="M58 18h134" stroke="#e2e8f0" strokeLinecap="round" />
+      <rect x="38" y="21" width="14" height="10" rx="2" fill="#111827" />
+      <rect x="52" y="14" width="148" height="24" rx="6" fill="#f8fbff" />
+      <path d="M58 18h134" stroke="#ffffff" strokeLinecap="round" strokeWidth="2" />
+      <path d="M58 35h132" stroke="#dbe4ee" strokeLinecap="round" strokeWidth="1.2" />
       <rect
-        x="53"
+        x="52"
         y="14"
         width={fillWidth}
         height="24"
@@ -443,9 +444,9 @@ function MiniSyringe({
         opacity={selected ? "0.88" : "0.34"}
       />
       <rect
-        x="53"
+        x="52"
         y="14"
-        width="146"
+        width="148"
         height="24"
         rx="6"
         fill="none"
@@ -453,7 +454,7 @@ function MiniSyringe({
         strokeWidth="2.5"
       />
       {Array.from({ length: 12 }, (_, index) => {
-        const x = 66 + index * 10.5;
+        const x = 65 + index * 10.5;
         const longTick = index % 5 === 0;
         return (
           <line
@@ -467,10 +468,11 @@ function MiniSyringe({
           />
         );
       })}
-      <rect x="198" y="10" width="7" height="32" rx="3.5" fill="#dbe4ee" />
-      <rect x="205" y="22" width="29" height="8" rx="4" fill="#fb923c" />
+      <rect x="199" y="9" width="7" height="34" rx="3.5" fill="#dbe4ee" />
+      <rect x="206" y="22" width="29" height="8" rx="4" fill="#fb923c" />
       <circle cx="244" cy="26" r="14" fill="#fb923c" />
       <rect x="229" y="21" width="8" height="10" rx="2" fill="#fdba74" />
+      <path d="M214 23h14" stroke="#fed7aa" strokeLinecap="round" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -646,46 +648,50 @@ function GuideStrip({ doseInputUnit }: { doseInputUnit: DoseInputUnit }) {
   const steps = [
     {
       label: "Syringe",
-      hint: "Pick syringe size",
       visual: <GuideSyringeIcon />,
     },
     {
       label: "Vial",
-      hint: "Total mg",
       visual: <VialIllustration tone="amber" />,
     },
-    { label: "BAC water", hint: "Add mL", visual: <WaterIllustration /> },
+    { label: "BAC water", visual: <WaterIllustration /> },
     {
       label: "Dose",
-      hint: `Choose ${doseInputUnit === "mcg" ? "MCG" : "IU"}`,
       visual: <DoseIllustration />,
     },
   ];
 
   return (
-    <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-      {steps.map((step, index) => (
-        <div
-          key={step.label}
-          className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-[#fbfbfc] px-3 py-2"
-        >
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-900 text-xs font-semibold text-white">
-            {index + 1}
-          </span>
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
-            {step.visual}
-          </span>
-          <span className="min-w-0">
-            <span className="block text-base font-semibold leading-5 text-slate-900">
-              {step.label}
-            </span>
-            <span className="block text-sm font-medium leading-5 text-slate-500">
-              {step.hint}
-            </span>
-          </span>
+    <section className="mt-5 rounded-[22px] border border-sky-100 bg-sky-50/45 p-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="text-xs font-bold uppercase tracking-[0.12em] text-sky-900">
+          Steps
         </div>
-      ))}
-    </div>
+        <div className="text-xs font-semibold text-slate-500">
+          {doseInputUnit === "mcg" ? "MCG mode" : "IU mode"}
+        </div>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        {steps.map((step, index) => (
+          <div
+            key={step.label}
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-3 py-2 shadow-sm"
+          >
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-900 text-xs font-semibold text-white">
+              {index + 1}
+            </span>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200">
+              {step.visual}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-base font-semibold leading-5 text-slate-900">
+                {step.label}
+              </span>
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -903,11 +909,11 @@ function NumberField({
 
 function MetricRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid gap-1 rounded-2xl bg-[#f8fafc] px-3 py-2 text-sm ring-1 ring-slate-100">
+    <div className="grid gap-1 rounded-2xl bg-[linear-gradient(135deg,#ffffff_0%,#f4f9ff_100%)] px-3 py-2 text-sm ring-1 ring-sky-100">
       <span className="text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">
         {label}
       </span>
-      <span className="font-mono text-base font-semibold tabular-nums text-slate-950">
+      <span className="text-lg font-semibold leading-7 tracking-normal text-slate-950 tabular-nums">
         {value}
       </span>
     </div>
