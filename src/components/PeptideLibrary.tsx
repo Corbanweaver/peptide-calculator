@@ -815,22 +815,8 @@ export function PeptideLibrary() {
 
   return (
     <section className="grid gap-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-800">
-            Browse profiles
-          </p>
-          <h2 className="mt-1 text-2xl font-semibold text-slate-950">
-            Peptide and compound library
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Reference presets load editable calculator values. They are not
-            personalized recommendations and should be verified against the label
-            or prescriber instructions.
-          </p>
-        </div>
-
-        <div className="flex h-12 min-w-0 items-center gap-3 rounded-full border border-sky-100 bg-white/90 px-4 shadow-sm">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
+        <div className="flex h-12 min-w-0 items-center gap-3 rounded-full border border-sky-100 bg-white/90 px-4 shadow-sm md:w-full md:max-w-md">
           <Search size={18} className="shrink-0 text-sky-800" aria-hidden="true" />
           <input
             value={query}

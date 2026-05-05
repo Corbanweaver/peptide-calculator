@@ -5,7 +5,7 @@ import { PeptideLibrary } from "@/components/PeptideLibrary";
 export const metadata = {
   title: "Peptide Library | PeptiCalc",
   description:
-    "Browse PeptiCalc profile drafts, calculator workflows, and safety review status.",
+    "Choose editable calculator presets for peptide and compound profiles.",
 };
 
 export default function PeptidesPage() {
@@ -31,20 +31,18 @@ export default function PeptidesPage() {
                 Peptide library
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-slate-700">
-                A simple home for compound profiles, calculator links, saved
-                notes, and review status. Protocols stay locked until they are
-                medically and legally reviewed.
+                Choose a pre-loaded dose for compounds. Pick a card, tap Use
+                calculator, and the calculator opens with values ready to edit.
               </p>
             </div>
 
             <div className="rounded-[26px] border border-emerald-100 bg-emerald-50/80 p-4 text-sm leading-6 text-emerald-950">
               <div className="mb-2 flex items-center gap-2 font-semibold">
                 <ShieldCheck size={18} aria-hidden="true" />
-                Safety first
+                Quick note
               </div>
-              The public library can organize information without giving dosing
-              instructions. Anything protocol-related should pass review before
-              launch.
+              Presets are editable examples only. Always verify the vial, water
+              amount, and dose with the product label or your prescriber.
             </div>
           </div>
         </header>

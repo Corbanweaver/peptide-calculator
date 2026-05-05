@@ -58,6 +58,7 @@ const commonSplitCompounds = [
 export function PeptideCalculator() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isCalculatorRoute = pathname === "/" || pathname === "/calculator";
   const initialPreset = useMemo(
     () => readPresetFromSearchParams(searchParams),
     [searchParams],
@@ -265,7 +266,7 @@ export function PeptideCalculator() {
             icon={<Calculator size={20} />}
             href="/calculator"
             label="Calculator"
-            active={pathname === "/calculator"}
+            active={isCalculatorRoute}
           />
           <IconTab
             icon={<FileText size={20} />}
@@ -286,7 +287,10 @@ export function PeptideCalculator() {
             </a>
           </header>
 
-          <MobileTopNav pathname={pathname} />
+          <MobileTopNav
+            pathname={pathname}
+            isCalculatorRoute={isCalculatorRoute}
+          />
 
           <section
             id="calculator"
@@ -529,7 +533,13 @@ export function PeptideCalculator() {
   );
 }
 
-function MobileTopNav({ pathname }: { pathname: string }) {
+function MobileTopNav({
+  pathname,
+  isCalculatorRoute,
+}: {
+  pathname: string;
+  isCalculatorRoute: boolean;
+}) {
   return (
     <nav
       aria-label="Primary mobile navigation"
@@ -545,7 +555,7 @@ function MobileTopNav({ pathname }: { pathname: string }) {
         icon={<Calculator size={20} />}
         href="/calculator"
         label="Calculator"
-        active={pathname === "/calculator"}
+        active={isCalculatorRoute}
       />
       <IconTab
         icon={<FileText size={20} />}

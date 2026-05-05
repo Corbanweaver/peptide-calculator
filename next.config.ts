@@ -28,10 +28,6 @@ const securityHeaders = [
       "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=()",
   },
   {
-    key: "Cache-Control",
-    value: "public, max-age=60, stale-while-revalidate=300",
-  },
-  {
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
@@ -55,15 +51,6 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: securityHeaders,
-      },
-      {
-        source: "/_next/static/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
       },
       {
         source: "/favicon.ico",
