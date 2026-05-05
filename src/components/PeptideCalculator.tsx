@@ -2,10 +2,12 @@
 
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
+  BookmarkPlus,
   Calculator,
   CheckCircle2,
   FileText,
   FlaskConical,
+  LoaderCircle,
   Plus,
   UserCircle2,
   AlertTriangle,
@@ -14,6 +16,13 @@ import {
 import { usePathname, useSearchParams } from "next/navigation";
 import { trackEvent } from "@/lib/analytics";
 import { calculateDose, formatNumber } from "@/lib/calculations";
+import {
+  createSavedCalculationDraft,
+  savePendingCalculationDraft,
+  toSavedProtocolInsert,
+} from "@/lib/saved-calculations";
+import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 type Choice = number | "other";
 type DoseInputUnit = "mcg" | "iu";
@@ -31,6 +40,12 @@ type SplitBreakdownItem = {
   doseMg: number;
   doseIu: number;
   mcgPerSyringeUnit: number;
+};
+type SaveBanner = {
+  tone: "success" | "info" | "error";
+  text: string;
+  actionHref?: string;
+  actionLabel?: string;
 };
 
 const syringeOptions = [0.3, 0.5, 1.0];
@@ -94,6 +109,8 @@ export function PeptideCalculator() {
   const [splitParts, setSplitParts] = useState<SplitPart[]>(
     initialPreset.split.parts,
   );
+  const [savingCalculation, setSavingCalculation] = useState(false);
+  const [saveBanner, setSaveBanner] = useState<SaveBanner | null>(null);
 
   const vialMg = Number(vialChoice === "other" ? vialOther : vialChoice);
   const waterMl = Number(waterChoice === "other" ? waterOther : waterChoice);
@@ -342,6 +359,103 @@ export function PeptideCalculator() {
     });
   }
 
+  async function handleSaveCalculation() {
+    if (!result || tooLargeForSyringe || savingCalculation) {
+      return;
+    }
+
+    setSavingCalculation(true);
+    setSaveBanner(null);
+
+    const draft = createSavedCalculationDraft({
+      compoundName: loadedPresetName,
+      presetDetail: loadedPresetDetail,
+      presetType: loadedPresetName ? loadedPresetType : "manual",
+      doseLabel,
+      syringeMarkLabel,
+      syringeMl,
+      vialMg,
+      waterMl,
+      doseInputUnit,
+      doseInputAmount,
+      doseMcg: result.doseMcg,
+      doseMl: result.doseMl,
+      concentrationMcgMl: result.concentrationMcgMl,
+      syringeUnits: result.syringeUnits,
+      mcgPerSyringeUnit: result.mcgPerSyringeUnit,
+      splitParts,
+      splitBreakdown,
+    });
+
+    if (!isSupabaseConfigured()) {
+      savePendingCalculationDraft(draft);
+      setSaveBanner({
+        tone: "info",
+        text: "Saved as a draft on this device. Add Supabase env vars to store it in an account.",
+        actionHref: "/account",
+        actionLabel: "Account setup",
+      });
+      setSavingCalculation(false);
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        throw userError;
+      }
+
+      if (!user) {
+        savePendingCalculationDraft(draft);
+        setSaveBanner({
+          tone: "info",
+          text: "Saved as a draft. Sign in or create an account to store it.",
+          actionHref: "/account",
+          actionLabel: "Sign in",
+        });
+        trackEvent("save_calculation_auth_prompt", {
+          preset_type: loadedPresetName ? loadedPresetType : "manual",
+        });
+        setSavingCalculation(false);
+        return;
+      }
+
+      const { error } = await supabase
+        .from("saved_protocols")
+        .insert(toSavedProtocolInsert(user.id, draft));
+
+      if (error) {
+        throw error;
+      }
+
+      setSaveBanner({
+        tone: "success",
+        text: "Saved to your account.",
+        actionHref: "/account",
+        actionLabel: "View saved",
+      });
+      trackEvent("calculation_saved", {
+        preset_type: loadedPresetName ? loadedPresetType : "manual",
+        split_enabled: advancedSplitEnabled,
+      });
+    } catch (error) {
+      setSaveBanner({
+        tone: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Could not save this calculation. Please try again.",
+      });
+    } finally {
+      setSavingCalculation(false);
+    }
+  }
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,#9ed6e7_0%,#86c6dc_36%,#abc9dc_62%,#d6bfaa_100%)] text-slate-900">
       <div className="mx-auto flex min-w-0 max-w-[1440px]">
@@ -583,6 +697,13 @@ export function PeptideCalculator() {
                 doseLabel={doseLabel}
                 markLabel={syringeMarkLabel}
                 tooLarge={tooLargeForSyringe}
+              />
+
+              <SaveCalculationPanel
+                ready={hasReadyCalculation}
+                saving={savingCalculation}
+                banner={saveBanner}
+                onSave={handleSaveCalculation}
               />
 
               <div className="mt-5 text-sm font-semibold text-slate-950">
@@ -1696,6 +1817,68 @@ function NumberField({
         className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
       />
     </label>
+  );
+}
+
+function SaveCalculationPanel({
+  ready,
+  saving,
+  banner,
+  onSave,
+}: {
+  ready: boolean;
+  saving: boolean;
+  banner: SaveBanner | null;
+  onSave: () => void;
+}) {
+  return (
+    <section className="mt-4 rounded-3xl border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0fbff_62%,#fff7ed_100%)] p-4 shadow-[0_18px_55px_rgba(14,165,233,0.08)]">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-950">
+            Save this calculation
+          </h3>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            Keep this math snapshot in your account so you can come back to it.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={!ready || saving}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+        >
+          {saving ? (
+            <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
+          ) : (
+            <BookmarkPlus size={16} aria-hidden="true" />
+          )}
+          {saving ? "Saving" : "Save"}
+        </button>
+      </div>
+
+      {banner ? (
+        <div
+          className={`mt-3 rounded-2xl border p-3 text-sm leading-6 ${
+            banner.tone === "success"
+              ? "border-emerald-300 bg-emerald-50 text-emerald-950"
+              : banner.tone === "info"
+                ? "border-sky-300 bg-sky-50 text-sky-950"
+                : "border-rose-300 bg-rose-50 text-rose-950"
+          }`}
+        >
+          <span>{banner.text}</span>
+          {banner.actionHref && banner.actionLabel ? (
+            <a
+              href={banner.actionHref}
+              className="ml-2 inline-flex font-semibold underline-offset-4 hover:underline"
+            >
+              {banner.actionLabel}
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+    </section>
   );
 }
 
