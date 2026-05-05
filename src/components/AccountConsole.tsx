@@ -30,6 +30,7 @@ export function AccountConsole() {
   const [banner, setBanner] = useState<Banner | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showCreateAccount, setShowCreateAccount] = useState(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -84,6 +85,12 @@ export function AccountConsole() {
   }
 
   const resetBanner = () => setBanner(null);
+
+  const switchAuthMode = (nextShowCreateAccount: boolean) => {
+    resetBanner();
+    setPassword("");
+    setShowCreateAccount(nextShowCreateAccount);
+  };
 
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -214,86 +221,102 @@ export function AccountConsole() {
       ) : null}
 
       {!loadingUser && !user ? (
-        <div className="grid gap-6 md:grid-cols-2">
-          <form
-            onSubmit={handleSignIn}
-            className="grid gap-3 rounded-3xl bg-slate-50/80 p-4 ring-1 ring-slate-100"
-          >
-            <h2 className="text-lg font-semibold text-slate-950">Sign in</h2>
-            <label className="grid gap-1 text-sm font-medium text-slate-700">
-              Email
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-              />
-            </label>
-            <label className="grid gap-1 text-sm font-medium text-slate-700">
-              Password
-              <input
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-              />
-            </label>
-            <button
-              type="submit"
-              disabled={busyAction === "sign_in"}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+        <div className="mx-auto grid max-w-xl gap-4">
+          {!showCreateAccount ? (
+            <form
+              onSubmit={handleSignIn}
+              className="grid gap-3 rounded-3xl bg-slate-50/80 p-4 ring-1 ring-slate-100"
             >
-              {busyAction === "sign_in" ? (
-                <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
-              ) : (
-                <LogIn size={16} aria-hidden="true" />
-              )}
-              Sign in
-            </button>
-          </form>
-
-          <form
-            onSubmit={handleSignUp}
-            className="grid gap-3 rounded-3xl bg-[linear-gradient(135deg,#f0f9ff_0%,#fff7ed_100%)] p-4 ring-1 ring-sky-100"
-          >
-            <h2 className="text-lg font-semibold text-slate-950">Create account</h2>
-            <label className="grid gap-1 text-sm font-medium text-slate-700">
-              Email
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-              />
-            </label>
-            <label className="grid gap-1 text-sm font-medium text-slate-700">
-              Password
-              <input
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-              />
-            </label>
-            <button
-              type="submit"
-              disabled={busyAction === "sign_up"}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-sky-800 px-4 text-sm font-semibold text-white transition hover:bg-slate-950 disabled:cursor-not-allowed disabled:bg-slate-400"
+              <h2 className="text-lg font-semibold text-slate-950">Sign in</h2>
+              <label className="grid gap-1 text-sm font-medium text-slate-700">
+                Email
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                />
+              </label>
+              <label className="grid gap-1 text-sm font-medium text-slate-700">
+                Password
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={busyAction === "sign_in"}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+              >
+                {busyAction === "sign_in" ? (
+                  <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
+                ) : (
+                  <LogIn size={16} aria-hidden="true" />
+                )}
+                Sign in
+              </button>
+              <button
+                type="button"
+                onClick={() => switchAuthMode(true)}
+                className="mx-auto w-fit text-sm font-semibold text-sky-800 underline-offset-4 transition hover:text-slate-950 hover:underline"
+              >
+                Or create an account
+              </button>
+            </form>
+          ) : (
+            <form
+              onSubmit={handleSignUp}
+              className="grid gap-3 rounded-3xl bg-[linear-gradient(135deg,#f0f9ff_0%,#fff7ed_100%)] p-4 ring-1 ring-sky-100"
             >
-              {busyAction === "sign_up" ? (
-                <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
-              ) : (
-                <UserPlus size={16} aria-hidden="true" />
-              )}
-              Create account
-            </button>
-          </form>
+              <h2 className="text-lg font-semibold text-slate-950">Create account</h2>
+              <label className="grid gap-1 text-sm font-medium text-slate-700">
+                Email
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                />
+              </label>
+              <label className="grid gap-1 text-sm font-medium text-slate-700">
+                Password
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={busyAction === "sign_up"}
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-sky-800 px-4 text-sm font-semibold text-white transition hover:bg-slate-950 disabled:cursor-not-allowed disabled:bg-slate-400"
+              >
+                {busyAction === "sign_up" ? (
+                  <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
+                ) : (
+                  <UserPlus size={16} aria-hidden="true" />
+                )}
+                Create account
+              </button>
+              <button
+                type="button"
+                onClick={() => switchAuthMode(false)}
+                className="mx-auto w-fit text-sm font-semibold text-sky-800 underline-offset-4 transition hover:text-slate-950 hover:underline"
+              >
+                Already have an account? Sign in
+              </button>
+            </form>
+          )}
         </div>
       ) : null}
 
