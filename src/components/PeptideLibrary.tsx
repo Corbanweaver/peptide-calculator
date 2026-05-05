@@ -47,6 +47,16 @@ const categories = [
 const profileGuideSlugs: Record<string, string> = {
   Semaglutide: "semaglutide-calculator",
   Tirzepatide: "tirzepatide-calculator",
+  Liraglutide: "liraglutide-calculator",
+  Dulaglutide: "dulaglutide-calculator",
+  Exenatide: "exenatide-calculator",
+  "Exenatide ER": "exenatide-er-calculator",
+  Tesamorelin: "tesamorelin-calculator",
+  "Bremelanotide / PT-141": "bremelanotide-pt-141-calculator",
+  "Octreotide acetate": "octreotide-calculator",
+  "Desmopressin acetate": "desmopressin-calculator",
+  Teriparatide: "teriparatide-calculator",
+  Abaloparatide: "abaloparatide-calculator",
 };
 
 const editableMathPreset: CalculatorPreset = {

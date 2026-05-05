@@ -18,21 +18,22 @@ const siteUrl =
 export const metadata: Metadata = {
   title: "PeptiCalc | Peptide Calculator",
   description:
-    "A prescription-aware peptide calculator for concentration, syringe volume, IU conversion, and protocol schedules.",
+    "A simple peptide calculator for concentration, syringe marks, mg to mcg conversion, BAC water math, and editable reference presets.",
   metadataBase: new URL(siteUrl),
   keywords: [
     "peptide calculator",
     "dose conversion",
     "mcg per ml",
-    "IU conversion",
-    "compound protocol",
+    "U-100 syringe units",
+    "BAC water calculator",
+    "peptide reconstitution",
   ],
   authors: [{ name: "PeptiCalc team" }],
   openGraph: {
     type: "website",
     title: "PeptiCalc | Peptide Calculator",
     description:
-      "A prescription-aware peptide calculator for concentration, syringe volume, IU conversion, and protocol schedules.",
+      "A simple peptide calculator for concentration, syringe marks, mg to mcg conversion, BAC water math, and editable reference presets.",
     locale: "en_US",
     siteName: "PeptiCalc",
   },
@@ -52,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "PeptiCalc | Peptide Calculator",
     description:
-      "A prescription-aware peptide calculator for concentration, syringe volume, IU conversion, and protocol schedules.",
+      "A simple peptide calculator for concentration, syringe marks, mg to mcg conversion, BAC water math, and editable reference presets.",
   },
 };
 
