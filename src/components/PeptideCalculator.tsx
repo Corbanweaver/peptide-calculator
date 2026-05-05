@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
   Calculator,
   CheckCircle2,
@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { trackEvent } from "@/lib/analytics";
 import { calculateDose, formatNumber } from "@/lib/calculations";
 
 type Choice = number | "other";
@@ -58,6 +59,8 @@ const commonSplitCompounds = [
 export function PeptideCalculator() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const trackedCalculationKey = useRef("");
+  const trackedPresetKey = useRef("");
   const isCalculatorRoute = pathname === "/" || pathname === "/calculator";
   const initialPreset = useMemo(
     () => readPresetFromSearchParams(searchParams),
@@ -132,6 +135,11 @@ export function PeptideCalculator() {
     if (unit === doseInputUnit) {
       return;
     }
+
+    trackEvent("dose_unit_changed", {
+      selected_unit: unit,
+      previous_unit: doseInputUnit,
+    });
 
     const convertedDoseAmount =
       unit === "iu" ? result?.syringeUnits : result?.doseMcg;
@@ -209,6 +217,70 @@ export function PeptideCalculator() {
     [advancedSplitEnabled, result, splitParts],
   );
 
+  useEffect(() => {
+    if (!loadedPresetName) {
+      return;
+    }
+
+    const presetKey = `${loadedPresetName}|${loadedPresetDetail}|${loadedPresetType}`;
+
+    if (trackedPresetKey.current === presetKey) {
+      return;
+    }
+
+    trackedPresetKey.current = presetKey;
+    trackEvent("calculator_preset_loaded", {
+      compound_name: loadedPresetName,
+      preset_detail: loadedPresetDetail,
+      preset_type: loadedPresetType,
+    });
+  }, [loadedPresetDetail, loadedPresetName, loadedPresetType]);
+
+  useEffect(() => {
+    if (!hasReadyCalculation || !result) {
+      return;
+    }
+
+    const calculationKey = [
+      syringeMl,
+      vialMg,
+      waterMl,
+      doseInputUnit,
+      doseInputAmount,
+      result.syringeUnits.toFixed(3),
+      advancedSplitEnabled ? splitParts.length : 0,
+    ].join("|");
+
+    if (trackedCalculationKey.current === calculationKey) {
+      return;
+    }
+
+    trackedCalculationKey.current = calculationKey;
+    trackEvent("calculator_ready", {
+      dose_unit_mode: doseInputUnit,
+      syringe_ml: syringeMl,
+      vial_mg: vialMg,
+      water_ml: waterMl,
+      dose_mcg: Number(result.doseMcg.toFixed(3)),
+      syringe_mark: Number(result.syringeUnits.toFixed(3)),
+      preset_type: loadedPresetName ? loadedPresetType : "manual",
+      split_enabled: advancedSplitEnabled,
+      split_count: advancedSplitEnabled ? splitParts.length : 0,
+    });
+  }, [
+    advancedSplitEnabled,
+    doseInputAmount,
+    doseInputUnit,
+    hasReadyCalculation,
+    loadedPresetName,
+    loadedPresetType,
+    result,
+    splitParts.length,
+    syringeMl,
+    vialMg,
+    waterMl,
+  ]);
+
   function updateSplitPart(index: number, nextPart: Partial<SplitPart>) {
     setSplitParts((currentParts) =>
       currentParts.map((part, currentIndex) =>
@@ -218,11 +290,26 @@ export function PeptideCalculator() {
   }
 
   function applySplitTemplate(parts: SplitPart[]) {
+    trackEvent("split_template_selected", {
+      split_count: parts.length,
+      split_names: parts.map((part) => part.name).join(","),
+    });
     setAdvancedSplitEnabled(true);
     setSplitParts(parts);
   }
 
+  function handleAdvancedSplitToggle(enabled: boolean) {
+    trackEvent("advanced_split_toggled", {
+      enabled,
+      split_count: splitParts.length,
+    });
+    setAdvancedSplitEnabled(enabled);
+  }
+
   function addSplitPart() {
+    trackEvent("split_part_added", {
+      current_split_count: splitParts.length,
+    });
     setAdvancedSplitEnabled(true);
     setSplitParts((currentParts) => {
       if (currentParts.length >= 6) {
@@ -239,6 +326,9 @@ export function PeptideCalculator() {
   }
 
   function removeSplitPart(index: number) {
+    trackEvent("split_part_removed", {
+      current_split_count: splitParts.length,
+    });
     setSplitParts((currentParts) => {
       if (currentParts.length <= 2) {
         return currentParts;
@@ -431,7 +521,7 @@ export function PeptideCalculator() {
                   parts={splitParts}
                   totalPercent={splitTotalPercent}
                   baseCompoundName={loadedPresetName}
-                  onToggle={setAdvancedSplitEnabled}
+                  onToggle={handleAdvancedSplitToggle}
                   onPartChange={updateSplitPart}
                   onAddPart={addSplitPart}
                   onRemovePart={removeSplitPart}

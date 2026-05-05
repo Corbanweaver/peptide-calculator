@@ -12,6 +12,7 @@ import {
   Search,
   ShieldCheck,
 } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 type CalculatorPreset = {
   vialMg: number;
@@ -849,7 +850,12 @@ export function PeptideLibrary() {
           <button
             key={category}
             type="button"
-            onClick={() => setActiveCategory(category)}
+            onClick={() => {
+              trackEvent("library_category_selected", {
+                category,
+              });
+              setActiveCategory(category);
+            }}
             className={`h-10 shrink-0 rounded-full px-4 text-sm font-semibold transition ${
               activeCategory === category
                 ? "bg-slate-950 text-white shadow-[0_14px_35px_rgba(15,23,42,0.16)]"
@@ -916,6 +922,13 @@ export function PeptideLibrary() {
             <div className="mt-5 flex flex-wrap items-center gap-2">
               <Link
                 href={buildCalculatorHref(profile)}
+                onClick={() =>
+                  trackEvent("library_use_calculator", {
+                    compound_name: profile.name,
+                    category: profile.category,
+                    preset_type: profile.calculatorPreset ? "reference" : "math",
+                  })
+                }
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-900"
               >
                 <Calculator size={16} aria-hidden="true" />
@@ -925,6 +938,12 @@ export function PeptideLibrary() {
               {profileGuideSlugs[profile.name] ? (
                 <Link
                   href={`/peptides/${profileGuideSlugs[profile.name]}`}
+                  onClick={() =>
+                    trackEvent("library_guide_opened", {
+                      compound_name: profile.name,
+                      slug: profileGuideSlugs[profile.name],
+                    })
+                  }
                   className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-3 text-xs font-semibold text-sky-800 ring-1 ring-sky-100 transition hover:bg-sky-50 hover:text-slate-950"
                 >
                   <BookOpenCheck size={14} aria-hidden="true" />
@@ -937,6 +956,12 @@ export function PeptideLibrary() {
                   href={profile.sourceUrl}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() =>
+                    trackEvent("library_source_opened", {
+                      compound_name: profile.name,
+                      source_label: profile.sourceLabel,
+                    })
+                  }
                   className="inline-flex h-10 items-center justify-center gap-1 rounded-full px-3 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 hover:text-slate-950"
                 >
                   {profile.sourceLabel}

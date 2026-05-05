@@ -79,6 +79,14 @@ Setup:
    - Environments: Production and Preview
 8. Redeploy the site.
 9. In Google Analytics, open **Reports** > **Realtime** and visit the site in another tab to confirm your visit appears.
+10. After a few visits, check for these useful events:
+   - `calculator_ready`
+   - `calculator_preset_loaded`
+   - `library_use_calculator`
+   - `library_guide_opened`
+   - `library_category_selected`
+   - `advanced_split_toggled`
+   - `split_template_selected`
 
 ## 7. Monetization order
 
