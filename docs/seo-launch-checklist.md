@@ -59,7 +59,28 @@ Every week:
 4. Keep all medical content math-focused and source-backed.
 5. Avoid personalized dosing advice, protocols, or unsupported research-compound directions.
 
-## 6. Monetization order
+## 6. Add Google Analytics
+
+Official Google setup doc:
+
+- https://support.google.com/analytics/answer/9304153
+
+Setup:
+
+1. Open https://analytics.google.com.
+2. Create an Analytics account if you do not already have one.
+3. Create a GA4 property for `PeptiCalc`.
+4. Add a **Web** data stream for `https://peptidecalculator.co`.
+5. Copy the **Measurement ID**. It should start with `G-`.
+6. In Vercel, open the PeptiCalc project > **Settings** > **Environment Variables**.
+7. Add:
+   - Name: `NEXT_PUBLIC_GA_MEASUREMENT_ID`
+   - Value: your `G-...` Measurement ID
+   - Environments: Production and Preview
+8. Redeploy the site.
+9. In Google Analytics, open **Reports** > **Realtime** and visit the site in another tab to confirm your visit appears.
+
+## 7. Monetization order
 
 Best order for this site:
 
