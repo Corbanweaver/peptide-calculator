@@ -6,8 +6,10 @@ import {
   CheckCircle2,
   FileText,
   FlaskConical,
+  Plus,
   UserCircle2,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { calculateDose, formatNumber } from "@/lib/calculations";
@@ -36,6 +38,21 @@ const doseOptionsByUnit: Record<DoseInputUnit, Choice[]> = {
   mcg: [50, 100, 250, 500, 1000, "other"],
   iu: [1, 2, 5, 10, 20, "other"],
 };
+const commonSplitCompounds = [
+  "CJC-1295",
+  "Ipamorelin",
+  "Sermorelin",
+  "Tesamorelin",
+  "GHRP-2",
+  "GHRP-6",
+  "BPC-157",
+  "TB-500",
+  "GHK-Cu",
+  "NAD+",
+  "Glutathione",
+  "L-carnitine",
+  "MIC / B12",
+];
 
 export function PeptideCalculator() {
   const pathname = usePathname();
@@ -140,8 +157,38 @@ export function PeptideCalculator() {
     setSplitParts(parts);
   }
 
+  function addSplitPart() {
+    setAdvancedSplitEnabled(true);
+    setSplitParts((currentParts) => {
+      if (currentParts.length >= 6) {
+        return currentParts;
+      }
+
+      return createSplitParts(
+        currentParts.length + 1,
+        currentParts
+          .map((part) => part.name)
+          .concat(`Compound ${currentParts.length + 1}`),
+      );
+    });
+  }
+
+  function removeSplitPart(index: number) {
+    setSplitParts((currentParts) => {
+      if (currentParts.length <= 2) {
+        return currentParts;
+      }
+
+      const remainingNames = currentParts
+        .filter((_, currentIndex) => currentIndex !== index)
+        .map((part) => part.name);
+
+      return createSplitParts(remainingNames.length, remainingNames);
+    });
+  }
+
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,#cbeaf8_0%,#b9e0f0_36%,#d9e6f2_62%,#efe1d5_100%)] text-slate-900">
+    <main className="min-h-screen overflow-x-hidden bg-[linear-gradient(135deg,#9ed6e7_0%,#86c6dc_36%,#abc9dc_62%,#d6bfaa_100%)] text-slate-900">
       <div className="mx-auto flex min-w-0 max-w-[1440px]">
         <aside className="hidden min-h-screen w-[86px] shrink-0 border-r border-sky-100 bg-white/72 py-5 shadow-[12px_0_45px_rgba(14,165,233,0.09)] backdrop-blur md:flex md:flex-col md:items-center md:gap-3">
           <IconTab
@@ -313,6 +360,8 @@ export function PeptideCalculator() {
                   baseCompoundName={loadedPresetName}
                   onToggle={setAdvancedSplitEnabled}
                   onPartChange={updateSplitPart}
+                  onAddPart={addSplitPart}
+                  onRemovePart={removeSplitPart}
                   onApplyTemplate={applySplitTemplate}
                 />
               </div>
@@ -503,6 +552,8 @@ function AdvancedSplitPanel({
   baseCompoundName,
   onToggle,
   onPartChange,
+  onAddPart,
+  onRemovePart,
   onApplyTemplate,
 }: {
   enabled: boolean;
@@ -511,6 +562,8 @@ function AdvancedSplitPanel({
   baseCompoundName: string;
   onToggle: (enabled: boolean) => void;
   onPartChange: (index: number, nextPart: Partial<SplitPart>) => void;
+  onAddPart: () => void;
+  onRemovePart: (index: number) => void;
   onApplyTemplate: (parts: SplitPart[]) => void;
 }) {
   return (
@@ -524,8 +577,8 @@ function AdvancedSplitPanel({
             Split the dose between compounds
           </h3>
           <p className="mt-1 max-w-xl text-sm leading-6 text-slate-600">
-            Use this for mixed vials, like 50/50 CJC and Ipamorelin. The syringe
-            mark stays the same, and the breakdown shows each compound amount.
+            Use this for mixed vials. Pick or type each compound, set its
+            percentage, and the breakdown will show each compound amount.
           </p>
         </div>
 
@@ -551,55 +604,66 @@ function AdvancedSplitPanel({
 
       {enabled ? (
         <div className="mt-4 grid gap-3">
-          <div className="flex flex-wrap gap-2">
-            <SplitTemplateButton
-              label="50 / 50"
-              onClick={() =>
-                onApplyTemplate(
-                  createSplitParts(2, [
-                    baseCompoundName || "Compound 1",
-                    "Compound 2",
-                  ]),
-                )
-              }
-            />
-            <SplitTemplateButton
-              label="CJC / Ipamorelin"
-              onClick={() =>
-                onApplyTemplate([
-                  { name: "CJC-1295", percent: "50" },
-                  { name: "Ipamorelin", percent: "50" },
-                ])
-              }
-            />
-            <SplitTemplateButton
-              label="33 / 33 / 34"
-              onClick={() => onApplyTemplate(createSplitParts(3))}
-            />
-            <SplitTemplateButton
-              label="4-way"
-              onClick={() => onApplyTemplate(createSplitParts(4))}
-            />
+          <datalist id="compound-split-options">
+            {commonSplitCompounds.map((compound) => (
+              <option key={compound} value={compound} />
+            ))}
+          </datalist>
+
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-2">
+              <SplitTemplateButton
+                label="2-way equal"
+                onClick={() =>
+                  onApplyTemplate(
+                    createSplitParts(2, [
+                      baseCompoundName || "Compound 1",
+                      "Compound 2",
+                    ]),
+                  )
+                }
+              />
+              <SplitTemplateButton
+                label="3-way equal"
+                onClick={() => onApplyTemplate(createSplitParts(3))}
+              />
+              <SplitTemplateButton
+                label="4-way equal"
+                onClick={() => onApplyTemplate(createSplitParts(4))}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={onAddPart}
+              disabled={parts.length >= 6}
+              className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] px-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
+            >
+              <Plus size={15} aria-hidden="true" />
+              Add Compound Split
+            </button>
           </div>
 
           <div className="grid gap-2">
             {parts.map((part, index) => (
               <div
                 key={`split-${index}`}
-                className="grid gap-2 rounded-2xl bg-white/85 p-3 ring-1 ring-sky-100 sm:grid-cols-[minmax(0,1fr)_112px]"
+                className="grid min-w-0 gap-2 rounded-2xl bg-white/85 p-3 ring-1 ring-sky-100 sm:grid-cols-[minmax(0,1fr)_96px_auto]"
               >
-                <label className="grid gap-1 text-xs font-semibold text-slate-500">
+                <label className="grid min-w-0 gap-1 text-xs font-semibold text-slate-500">
                   Compound {index + 1}
                   <input
+                    list="compound-split-options"
                     value={part.name}
+                    placeholder="Search or type compound"
                     onChange={(event) =>
                       onPartChange(index, { name: event.target.value })
                     }
-                    className="h-10 min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
+                    className="h-10 w-full min-w-0 max-w-full truncate rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
                   />
                 </label>
 
-                <label className="grid gap-1 text-xs font-semibold text-slate-500">
+                <label className="grid min-w-0 gap-1 text-xs font-semibold text-slate-500">
                   Split %
                   <input
                     type="number"
@@ -609,9 +673,22 @@ function AdvancedSplitPanel({
                     onChange={(event) =>
                       onPartChange(index, { percent: event.target.value })
                     }
-                    className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
+                    className="h-10 w-full max-w-full rounded-xl border border-slate-200 bg-white px-2 text-center text-sm font-semibold tabular-nums text-slate-900 outline-none focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
                   />
                 </label>
+
+                {parts.length > 2 ? (
+                  <button
+                    type="button"
+                    onClick={() => onRemovePart(index)}
+                    aria-label={`Remove compound ${index + 1}`}
+                    className="grid h-10 w-10 place-items-center self-end rounded-xl bg-white text-slate-500 ring-1 ring-slate-200 transition hover:bg-rose-50 hover:text-rose-700 hover:ring-rose-100"
+                  >
+                    <X size={16} aria-hidden="true" />
+                  </button>
+                ) : (
+                  <span className="hidden sm:block" aria-hidden="true" />
+                )}
               </div>
             ))}
           </div>
@@ -823,17 +900,15 @@ function MiniSyringe({
 }
 
 function createSplitParts(count: number, names: string[] = []) {
-  const safeCount = Math.min(Math.max(Math.round(count), 2), 4);
-  const percents =
-    safeCount === 2
-      ? ["50", "50"]
-      : safeCount === 3
-        ? ["33", "33", "34"]
-        : ["25", "25", "25", "25"];
+  const safeCount = Math.min(Math.max(Math.round(count), 2), 6);
+  const basePercent = Math.floor(100 / safeCount);
+  const extraPercentCount = 100 - basePercent * safeCount;
 
   return Array.from({ length: safeCount }, (_, index) => ({
     name: names[index] || `Compound ${index + 1}`,
-    percent: percents[index] ?? "0",
+    percent: String(
+      basePercent + (index >= safeCount - extraPercentCount ? 1 : 0),
+    ),
   }));
 }
 
