@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
+import { compoundSeoPages, toolSeoPages } from "@/lib/seo-pages";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://peptidecalculator.co";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -34,5 +36,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.6,
     },
+    ...compoundSeoPages.map((page) => ({
+      url: `${siteUrl}/peptides/${page.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.82,
+    })),
+    ...toolSeoPages.map((page) => ({
+      url: `${siteUrl}/tools/${page.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.84,
+    })),
   ];
 }

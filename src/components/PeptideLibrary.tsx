@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import {
+  BookOpenCheck,
   Calculator,
   CheckCircle2,
   ExternalLink,
@@ -42,6 +43,11 @@ const categories = [
   "Wellness",
   "Research/blocked",
 ];
+
+const profileGuideSlugs: Record<string, string> = {
+  Semaglutide: "semaglutide-calculator",
+  Tirzepatide: "tirzepatide-calculator",
+};
 
 const editableMathPreset: CalculatorPreset = {
   vialMg: 5,
@@ -905,6 +911,16 @@ export function PeptideLibrary() {
                 <Calculator size={16} aria-hidden="true" />
                 Use calculator
               </Link>
+
+              {profileGuideSlugs[profile.name] ? (
+                <Link
+                  href={`/peptides/${profileGuideSlugs[profile.name]}`}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-3 text-xs font-semibold text-sky-800 ring-1 ring-sky-100 transition hover:bg-sky-50 hover:text-slate-950"
+                >
+                  <BookOpenCheck size={14} aria-hidden="true" />
+                  Guide
+                </Link>
+              ) : null}
 
               {profile.sourceUrl ? (
                 <a
