@@ -12,13 +12,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
+
 export const metadata: Metadata = {
   title: "PeptiCalc | Peptide Calculator",
   description:
     "A prescription-aware peptide calculator for concentration, syringe volume, IU conversion, and protocol schedules.",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://peptidecalculator.co",
-  ),
+  metadataBase: new URL(siteUrl),
   keywords: [
     "peptide calculator",
     "dose conversion",
