@@ -16,6 +16,7 @@ import {
 import { usePathname, useSearchParams } from "next/navigation";
 import { trackEvent } from "@/lib/analytics";
 import { calculateDose, formatNumber } from "@/lib/calculations";
+import { WaitlistCapture } from "@/components/WaitlistCapture";
 import {
   createSavedCalculationDraft,
   savePendingCalculationDraft,
@@ -232,6 +233,34 @@ export function PeptideCalculator() {
           )
         : [],
     [advancedSplitEnabled, result, splitParts],
+  );
+  const waitlistMetadata = useMemo(
+    () => ({
+      compound_name: loadedPresetName || null,
+      preset_detail: loadedPresetDetail || null,
+      preset_type: loadedPresetName ? loadedPresetType : "manual",
+      dose_unit_mode: doseInputUnit,
+      syringe_ml: syringeMl,
+      vial_mg: vialMg,
+      water_ml: waterMl,
+      dose_label: doseLabel,
+      ready: hasReadyCalculation,
+      split_enabled: advancedSplitEnabled,
+      split_count: advancedSplitEnabled ? splitParts.length : 0,
+    }),
+    [
+      advancedSplitEnabled,
+      doseInputUnit,
+      doseLabel,
+      hasReadyCalculation,
+      loadedPresetDetail,
+      loadedPresetName,
+      loadedPresetType,
+      splitParts.length,
+      syringeMl,
+      vialMg,
+      waterMl,
+    ],
   );
 
   useEffect(() => {
@@ -704,6 +733,11 @@ export function PeptideCalculator() {
                 saving={savingCalculation}
                 banner={saveBanner}
                 onSave={handleSaveCalculation}
+              />
+
+              <WaitlistCapture
+                source="calculator"
+                metadata={waitlistMetadata}
               />
 
               <div className="mt-5 text-sm font-semibold text-slate-950">

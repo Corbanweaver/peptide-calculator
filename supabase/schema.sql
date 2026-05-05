@@ -1,5 +1,5 @@
 -- Run this in the Supabase SQL editor.
--- It creates a basic account profile and a saved protocol table.
+-- It creates account profiles, saved calculator results, and a launch waitlist.
 
 create extension if not exists "pgcrypto";
 
@@ -25,6 +25,21 @@ create table if not exists public.saved_protocols (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+create table if not exists public.waitlist_signups (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  email text not null check (
+    email ~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$'
+  ),
+  interest text not null default 'reminders',
+  source text not null default 'calculator',
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists waitlist_signups_email_interest_idx
+on public.waitlist_signups (lower(email), interest);
 
 create or replace function public.handle_profile_updated_at()
 returns trigger
@@ -67,6 +82,7 @@ for each row execute function public.handle_profile_updated_at();
 
 alter table public.profiles enable row level security;
 alter table public.saved_protocols enable row level security;
+alter table public.waitlist_signups enable row level security;
 
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
@@ -118,3 +134,17 @@ on public.saved_protocols
 for delete
 to authenticated
 using (auth.uid() = user_id);
+
+drop policy if exists "waitlist_insert_public" on public.waitlist_signups;
+create policy "waitlist_insert_public"
+on public.waitlist_signups
+for insert
+to anon, authenticated
+with check (user_id is null or (select auth.uid()) = user_id);
+
+drop policy if exists "waitlist_select_own" on public.waitlist_signups;
+create policy "waitlist_select_own"
+on public.waitlist_signups
+for select
+to authenticated
+using ((select auth.uid()) = user_id);

@@ -8,6 +8,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { AccountConsole } from "@/components/AccountConsole";
+import { WaitlistCapture } from "@/components/WaitlistCapture";
 
 export const metadata = {
   title: "Account | PeptiCalc",
@@ -89,6 +90,12 @@ export default function AccountPage() {
             </article>
           ))}
         </section>
+
+        <WaitlistCapture
+          source="account"
+          title="Get early reminder access"
+          description="Tell us which paid feature you want first: reminders, emailed calculation results, or Pro tools."
+        />
 
         <AccountConsole />
       </div>
