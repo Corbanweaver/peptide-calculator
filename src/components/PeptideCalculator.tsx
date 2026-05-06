@@ -17,6 +17,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { trackEvent } from "@/lib/analytics";
 import { calculateDose, formatNumber } from "@/lib/calculations";
 import { WaitlistCapture } from "@/components/WaitlistCapture";
+import { PopularCalculators } from "@/components/PopularCalculators";
 import {
   createSavedCalculationDraft,
   savePendingCalculationDraft,
@@ -772,6 +773,8 @@ export function PeptideCalculator() {
               </div>
             </aside>
           </section>
+
+          <PopularCalculators className="mt-5" />
         </div>
       </div>
     </main>

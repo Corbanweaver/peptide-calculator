@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, BookOpenCheck, ShieldCheck } from "lucide-react";
 import { PeptideLibrary } from "@/components/PeptideLibrary";
+import { PopularCalculators } from "@/components/PopularCalculators";
 
 export const metadata = {
   title: "Peptide Library | PeptiCalc",
@@ -46,6 +47,8 @@ export default function PeptidesPage() {
             </div>
           </div>
         </header>
+
+        <PopularCalculators />
 
         <PeptideLibrary />
       </div>

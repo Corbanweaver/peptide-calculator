@@ -58,6 +58,18 @@ const profileGuideSlugs: Record<string, string> = {
   "Desmopressin acetate": "desmopressin-calculator",
   Teriparatide: "teriparatide-calculator",
   Abaloparatide: "abaloparatide-calculator",
+  "NAD+": "nad-plus-calculator",
+  Glutathione: "glutathione-calculator",
+  "L-carnitine": "l-carnitine-injection-calculator",
+  "BPC-157": "bpc-157-calculator",
+  "TB-500": "tb-500-calculator",
+  "GHK-Cu": "ghk-cu-calculator",
+  "MOTS-c": "mots-c-calculator",
+  Semax: "semax-calculator",
+  Epitalon: "epitalon-calculator",
+  KPV: "kpv-calculator",
+  "Thymosin alpha-1": "thymosin-alpha-1-calculator",
+  "AOD-9604": "aod-9604-calculator",
 };
 
 const editableMathPreset: CalculatorPreset = {
