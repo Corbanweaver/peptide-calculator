@@ -58,6 +58,25 @@ type CompoundSeoSeed = {
   }[];
 };
 
+type MathOnlyCompoundSeoSeed = {
+  slug: string;
+  name: string;
+  description: string;
+  sourceLabel: string;
+  sourceUrl: string;
+  regulatoryNote: string;
+  searchAngle: string;
+  related?: {
+    label: string;
+    href: string;
+  }[];
+};
+
+const fda503aBulkListUrl =
+  "https://www.fda.gov/media/94155/download?attachment=";
+const fdaCompoundingSafetyUrl =
+  "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks";
+
 const additionalCompoundSeoSeeds: CompoundSeoSeed[] = [
   {
     slug: "liraglutide-calculator",
@@ -211,6 +230,214 @@ const additionalCompoundSeoSeeds: CompoundSeoSeed[] = [
   },
 ];
 
+const mathOnlyCompoundSeoSeeds: MathOnlyCompoundSeoSeed[] = [
+  {
+    slug: "bpc-157-calculator",
+    name: "BPC-157",
+    description:
+      "Open a math-only BPC-157 calculator page for vial amount, BAC water, dose math, and syringe-mark conversion.",
+    sourceLabel: "FDA 503A bulk substance update",
+    sourceUrl: fda503aBulkListUrl,
+    regulatoryNote:
+      "FDA's April 22, 2026 503A update says BPC-157 was removed from category 2 because nominations were withdrawn and that PCAC consultation is planned for July 23, 2026. This page is not legal clearance, a product claim, or a use protocol.",
+    searchAngle:
+      "People search for BPC-157 calculator, BPC-157 reconstitution, and BPC-157 units when they need simple measurement math. This page gives that search a calculator path without recommending a dose.",
+  },
+  {
+    slug: "tb-500-calculator",
+    name: "TB-500",
+    description:
+      "Open a math-only TB-500 calculator page for vial, BAC water, concentration, and U-100 syringe marks.",
+    sourceLabel: "FDA 503A bulk substance update",
+    sourceUrl: fda503aBulkListUrl,
+    regulatoryNote:
+      "FDA's April 22, 2026 503A update says TB-500 was removed from category 2 because the nomination was withdrawn and that PCAC consultation is planned for July 23, 2026. This page does not say TB-500 is approved or appropriate for use.",
+    searchAngle:
+      "TB-500 calculator and TB-500 reconstitution searches are high-intent because users are usually trying to translate vial math into syringe marks.",
+  },
+  {
+    slug: "ghk-cu-calculator",
+    name: "GHK-Cu",
+    description:
+      "Open a math-only GHK-Cu calculator page for concentration, dose amount, and syringe mark planning.",
+    sourceLabel: "FDA 503A bulk substance update",
+    sourceUrl: fda503aBulkListUrl,
+    regulatoryNote:
+      "FDA's April 22, 2026 503A update says GHK-Cu nominations were withdrawn and FDA intends to consult PCAC before the end of February 2027. This page stays limited to measurement math.",
+    searchAngle:
+      "GHK-Cu calculator searches often overlap with mixed-vial and cosmetic peptide math. The page can capture that intent while keeping the calculator values editable.",
+  },
+  {
+    slug: "cjc-1295-calculator",
+    name: "CJC-1295",
+    description:
+      "Open a math-only CJC-1295 calculator page for vial math, BAC water, and split-dose planning.",
+    sourceLabel: "FDA compounding safety review",
+    sourceUrl: fdaCompoundingSafetyUrl,
+    regulatoryNote:
+      "FDA's compounding safety review discusses safety concerns and limited clinical data for CJC-1295. This page is only a calculator entry point and does not provide a CJC-1295 protocol.",
+    searchAngle:
+      "CJC-1295 calculator searches often include split-vial math with ipamorelin, making this a strong internal link target for the split compound calculator.",
+    related: [
+      { label: "CJC / ipamorelin split calculator", href: "/tools/cjc-ipamorelin-split-calculator" },
+      { label: "Ipamorelin calculator", href: "/peptides/ipamorelin-calculator" },
+      { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+    ],
+  },
+  {
+    slug: "ipamorelin-calculator",
+    name: "Ipamorelin",
+    description:
+      "Open a math-only ipamorelin calculator page for syringe marks, concentration, and split-vial math.",
+    sourceLabel: "FDA compounding safety review",
+    sourceUrl: fdaCompoundingSafetyUrl,
+    regulatoryNote:
+      "FDA's compounding safety review discusses safety concerns and limited safety information for ipamorelin acetate. This page does not recommend a dose or route.",
+    searchAngle:
+      "Ipamorelin calculator searches commonly need microgram-to-syringe conversion and mixed-compound math, which fits the calculator and split breakdown features.",
+    related: [
+      { label: "CJC / ipamorelin split calculator", href: "/tools/cjc-ipamorelin-split-calculator" },
+      { label: "CJC-1295 calculator", href: "/peptides/cjc-1295-calculator" },
+      { label: "Reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
+    ],
+  },
+  {
+    slug: "mots-c-calculator",
+    name: "MOTs-C",
+    description:
+      "Open a math-only MOTs-C calculator page for editable vial, BAC water, and syringe mark conversion.",
+    sourceLabel: "FDA 503A bulk substance update",
+    sourceUrl: fda503aBulkListUrl,
+    regulatoryNote:
+      "FDA's April 22, 2026 503A update says MOTs-C was removed from category 2 because the nomination was withdrawn and that PCAC consultation is planned for July 23, 2026. This page is not a recommendation to use MOTs-C.",
+    searchAngle:
+      "MOTs-C calculator searches are usually conversion-focused. A math-only page can rank for those searches while avoiding protocol language.",
+  },
+  {
+    slug: "kpv-calculator",
+    name: "KPV",
+    description:
+      "Open a math-only KPV calculator page for reconstitution math, concentration, and U-100 syringe marks.",
+    sourceLabel: "FDA 503A bulk substance update",
+    sourceUrl: fda503aBulkListUrl,
+    regulatoryNote:
+      "FDA's April 22, 2026 503A update says KPV was removed from category 2 because the nomination was withdrawn and that PCAC consultation is planned for July 23, 2026. This page is measurement support only.",
+    searchAngle:
+      "KPV calculator and KPV units searches can be served by a simple page that opens directly into editable calculator math.",
+  },
+  {
+    slug: "semax-calculator",
+    name: "Semax",
+    description:
+      "Open a math-only Semax calculator page for vial concentration, dose math, and syringe guide support.",
+    sourceLabel: "FDA 503A bulk substance update",
+    sourceUrl: fda503aBulkListUrl,
+    regulatoryNote:
+      "FDA's April 22, 2026 503A update says Semax was removed from category 2 because nominations were withdrawn and that PCAC consultation is planned for July 24, 2026. This page does not provide use instructions.",
+    searchAngle:
+      "Semax calculator searches often need quick unit conversion. This page gives the site a focused search landing page without giving a protocol.",
+  },
+  {
+    slug: "epitalon-calculator",
+    name: "Epitalon",
+    description:
+      "Open a math-only Epitalon calculator page for editable vial, BAC water, dose, and syringe mark math.",
+    sourceLabel: "FDA 503A bulk substance update",
+    sourceUrl: fda503aBulkListUrl,
+    regulatoryNote:
+      "FDA's April 22, 2026 503A update says Epitalon was removed from category 2 because nominations were withdrawn and that PCAC consultation is planned for July 24, 2026. This page is not a dosing guide.",
+    searchAngle:
+      "Epitalon calculator and reconstitution searches are a practical SEO target because they point to measurement math rather than broad informational browsing.",
+  },
+  {
+    slug: "thymosin-alpha-1-calculator",
+    name: "Thymosin alpha-1",
+    description:
+      "Open a math-only thymosin alpha-1 calculator page for concentration, syringe marks, and split-dose math.",
+    sourceLabel: "FDA compounding safety review",
+    sourceUrl: fdaCompoundingSafetyUrl,
+    regulatoryNote:
+      "FDA's compounding safety review notes inadequate safety-related information for thymosin alpha-1 compounded drug products. This page stays limited to calculator math.",
+    searchAngle:
+      "Thymosin alpha-1 calculator searches can be captured with a page that sends users to editable measurements instead of unsupported protocols.",
+  },
+  {
+    slug: "nad-plus-calculator",
+    name: "NAD+",
+    description:
+      "Open an NAD+ calculator page for vial math, concentration, mL volume, and syringe marks.",
+    sourceLabel: "FDA 503A bulk substance list",
+    sourceUrl: fda503aBulkListUrl,
+    regulatoryNote:
+      "FDA's April 22, 2026 503A bulk substance document lists Nicotinamide Adenine Dinucleotide (NAD) in category 1, meaning it is under evaluation. Calculator values still need to match the label, pharmacy, or prescriber instructions.",
+    searchAngle:
+      "NAD injection calculator and NAD units searches are common in wellness traffic. This page keeps that traffic focused on math and verification.",
+  },
+  {
+    slug: "glutathione-calculator",
+    name: "Glutathione",
+    description:
+      "Open a glutathione calculator page for concentration math, mL volume, and U-100 syringe marks.",
+    sourceLabel: "FDA glutathione sterile injectable notice",
+    sourceUrl:
+      "https://www.fda.gov/drugs/human-drug-compounding/fda-highlights-concerns-using-dietary-ingredient-glutathione-compound-sterile-injectables",
+    regulatoryNote:
+      "FDA has highlighted concerns with using dietary ingredient glutathione to compound sterile injectables. This page should only be used for math from verified professional instructions.",
+    searchAngle:
+      "Glutathione injection calculator searches are high-intent, but the page needs strong safety language because sterile injectable preparation has added risk.",
+  },
+  {
+    slug: "l-carnitine-injection-calculator",
+    name: "L-Carnitine injection",
+    description:
+      "Open an L-Carnitine injection calculator page for mg, mL, concentration, and syringe mark math.",
+    sourceLabel: "DailyMed Carnitor label",
+    sourceUrl:
+      "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=cf801cc4-775e-433d-9d32-e5d9a98981d3",
+    regulatoryNote:
+      "DailyMed labeling for Carnitor identifies levocarnitine injection products such as 1 g per 5 mL. Use the exact product label and prescribed instructions before calculating.",
+    searchAngle:
+      "L-Carnitine injection calculator searches can bring non-peptide wellness traffic into the same clean syringe-math workflow.",
+  },
+  {
+    slug: "vitamin-b12-injection-calculator",
+    name: "Vitamin B12 injection",
+    description:
+      "Open a vitamin B12 injection calculator page for mcg per mL, dose volume, and syringe marks.",
+    sourceLabel: "DailyMed cyanocobalamin label",
+    sourceUrl:
+      "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=4cbc05f6-4b31-4a5f-e063-6394a90a676c",
+    regulatoryNote:
+      "DailyMed cyanocobalamin labeling includes 1,000 mcg/mL injection products. The calculator should be matched to the actual vial concentration and instructions.",
+    searchAngle:
+      "B12 injection calculator searches are broad and beginner-friendly, which makes this a useful traffic page for people learning syringe measurement basics.",
+  },
+  {
+    slug: "methylcobalamin-calculator",
+    name: "Methylcobalamin",
+    description:
+      "Open a methylcobalamin calculator page for editable concentration, dose amount, and syringe mark math.",
+    sourceLabel: "FDA 503A bulk substance list",
+    sourceUrl: fda503aBulkListUrl,
+    regulatoryNote:
+      "FDA's April 22, 2026 503A bulk substance document lists methylcobalamin in category 1 under evaluation. Use this page only with verified product-specific instructions.",
+    searchAngle:
+      "Methylcobalamin calculator searches overlap with B12 injection traffic, giving the site another useful calculator landing page.",
+  },
+  {
+    slug: "aod-9604-calculator",
+    name: "AOD-9604",
+    description:
+      "Open a math-only AOD-9604 calculator page for vial strength, BAC water, concentration, and syringe marks.",
+    sourceLabel: "FDA compounding safety review",
+    sourceUrl: fdaCompoundingSafetyUrl,
+    regulatoryNote:
+      "FDA's compounding safety review discusses significant safety concerns and limited safety information for AOD-9604. This page does not provide a dose, protocol, or approval claim.",
+    searchAngle:
+      "AOD-9604 calculator searches can be served with a clearly limited calculator page that avoids treatment claims.",
+  },
+];
+
 export const compoundSeoPages: SeoPage[] = [
   {
     slug: "semaglutide-calculator",
@@ -299,6 +526,7 @@ export const compoundSeoPages: SeoPage[] = [
     ],
   },
   ...additionalCompoundSeoSeeds.map(makeCompoundSeoPage),
+  ...mathOnlyCompoundSeoSeeds.map(makeMathOnlyCompoundSeoPage),
 ];
 
 export const toolSeoPages: SeoPage[] = [
@@ -616,6 +844,55 @@ function makeCompoundSeoPage(seed: CompoundSeoSeed): SeoPage {
         question: `What ${seed.name} value is preloaded?`,
         answer:
           `The preset loads ${seed.doseLabel}. It is editable and should be verified against the actual product label or prescription instructions.`,
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related:
+      seed.related ?? [
+        { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+        { label: "Reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
+        { label: "Peptide library", href: "/peptides" },
+      ],
+  };
+}
+
+function makeMathOnlyCompoundSeoPage(seed: MathOnlyCompoundSeoSeed): SeoPage {
+  return {
+    slug: seed.slug,
+    title: `${seed.name} Calculator`,
+    shortTitle: seed.name,
+    eyebrow: "Math-only calculator page",
+    description: seed.description,
+    calculatorHref: `/calculator?compound=${encodeURIComponent(
+      seed.name,
+    )}&preset=${encodeURIComponent("Custom math only")}&presetType=math`,
+    sourceLabel: seed.sourceLabel,
+    sourceUrl: seed.sourceUrl,
+    sections: [
+      {
+        title: "What this page does",
+        body:
+          `This page opens a ${seed.name} calculator template. You can enter the vial amount, BAC water amount, and dose amount from your own verified instructions, then PeptiCalc shows concentration, liquid volume, and syringe marks.`,
+      },
+      {
+        title: "Important safety limit",
+        body: seed.regulatoryNote,
+      },
+      {
+        title: "Why it can rank",
+        body: seed.searchAngle,
+      },
+    ],
+    faqs: [
+      {
+        question: `Does this recommend a ${seed.name} dose?`,
+        answer:
+          "No. It opens editable calculator math only. Dose, route, timing, and whether a product is appropriate must come from the product label, pharmacy, or licensed prescriber.",
+      },
+      {
+        question: "Can I use this for research-only products?",
+        answer:
+          "The calculator only handles measurement math. It does not decide whether a product is legal, approved, safe, sterile, or appropriate for human use.",
       },
       ...sharedCalculatorFaqs,
     ],
