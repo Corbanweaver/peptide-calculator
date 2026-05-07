@@ -10,13 +10,17 @@ import {
 } from "react";
 import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 import {
+  Bell,
   BookmarkCheck,
   Calculator,
   CircleAlert,
   CircleCheckBig,
+  FileText,
   LoaderCircle,
   LogIn,
   LogOut,
+  Printer,
+  Save,
   Trash2,
   UserPlus,
 } from "lucide-react";
@@ -41,9 +45,34 @@ type SavedCalculationRow = {
   dose_mcg: number | string;
   dose_ml: number | string;
   frequency: string;
+  start_date: string | null;
   schedule: unknown;
   created_at: string;
 };
+
+type ProtocolDetailDraft = {
+  notes: string;
+  reminderEnabled: boolean;
+  reminderDate: string;
+  reminderTime: string;
+  reminderFrequency: string;
+};
+
+const defaultProtocolDetailDraft: ProtocolDetailDraft = {
+  notes: "",
+  reminderEnabled: false,
+  reminderDate: "",
+  reminderTime: "09:00",
+  reminderFrequency: "weekly",
+};
+
+const reminderFrequencyOptions = [
+  { value: "daily", label: "Daily" },
+  { value: "every_other_day", label: "Every other day" },
+  { value: "twice_weekly", label: "Twice weekly" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+];
 
 export function AccountConsole() {
   const configured = isSupabaseConfigured();
@@ -64,6 +93,10 @@ export function AccountConsole() {
   const [savedError, setSavedError] = useState("");
   const [importingPending, setImportingPending] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [updatingDetailsId, setUpdatingDetailsId] = useState<string | null>(null);
+  const [detailDrafts, setDetailDrafts] = useState<
+    Record<string, ProtocolDetailDraft>
+  >({});
 
   useEffect(() => {
     if (!supabase) {
@@ -111,7 +144,7 @@ export function AccountConsole() {
 
     const { data, error } = await supabase
       .from("saved_protocols")
-      .select("id, compound_id, plan_name, dose_mcg, dose_ml, frequency, schedule, created_at")
+      .select("id, compound_id, plan_name, dose_mcg, dose_ml, frequency, start_date, schedule, created_at")
       .order("created_at", { ascending: false })
       .limit(20);
 
@@ -297,6 +330,101 @@ export function AccountConsole() {
     setDeletingId(null);
   };
 
+  const updateDetailDraft = (
+    id: string,
+    nextDetail: Partial<ProtocolDetailDraft>,
+  ) => {
+    setDetailDrafts((currentDrafts) => ({
+      ...currentDrafts,
+      [id]: {
+        ...(currentDrafts[id] ?? defaultProtocolDetailDraft),
+        ...nextDetail,
+      },
+    }));
+  };
+
+  const handleSaveProtocolDetails = async (id: string) => {
+    if (!supabase) {
+      return;
+    }
+
+    const calculation = savedCalculations.find((row) => row.id === id);
+
+    if (!calculation) {
+      return;
+    }
+
+    resetBanner();
+    setUpdatingDetailsId(id);
+
+    const detail = detailDrafts[id] ?? getProtocolDetailDraft(calculation);
+    const updatedSchedule = buildScheduleWithProtocolDetails(
+      calculation.schedule,
+      detail,
+    );
+
+    const { error } = await supabase
+      .from("saved_protocols")
+      .update({
+        schedule: updatedSchedule,
+        frequency: detail.reminderEnabled
+          ? detail.reminderFrequency
+          : "Saved calculator result",
+        start_date:
+          detail.reminderEnabled && detail.reminderDate
+            ? detail.reminderDate
+            : null,
+      })
+      .eq("id", id);
+
+    if (error) {
+      setBanner({ tone: "error", text: error.message });
+      setUpdatingDetailsId(null);
+      return;
+    }
+
+    setSavedCalculations((currentRows) =>
+      currentRows.map((row) =>
+        row.id === id
+          ? {
+              ...row,
+              schedule: updatedSchedule,
+              frequency: detail.reminderEnabled
+                ? detail.reminderFrequency
+                : "Saved calculator result",
+              start_date:
+                detail.reminderEnabled && detail.reminderDate
+                  ? detail.reminderDate
+                  : null,
+            }
+          : row,
+      ),
+    );
+    setBanner({ tone: "success", text: "Saved notes and reminder plan." });
+    trackEvent("saved_protocol_details_updated", {
+      reminder_enabled: detail.reminderEnabled,
+      reminder_frequency: detail.reminderFrequency,
+    });
+    setUpdatingDetailsId(null);
+  };
+
+  const handlePrintProtocolSheet = (
+    calculation: SavedCalculationRow,
+    detail: ProtocolDetailDraft,
+  ) => {
+    const printed = printProtocolSheet(calculation, detail);
+
+    if (!printed) {
+      setBanner({
+        tone: "error",
+        text: "The print window was blocked. Allow popups for this site and try again.",
+      });
+      return;
+    }
+
+    trackEvent("protocol_sheet_printed");
+  };
+
   return (
     <section className="rounded-[28px] border border-sky-100 bg-white/95 p-6 shadow-[0_24px_80px_rgba(14,165,233,0.09)] ring-1 ring-white/70">
       {loadingUser ? (
@@ -390,6 +518,9 @@ export function AccountConsole() {
               <div className="mt-4 grid gap-3">
                 {savedCalculations.map((calculation) => {
                   const snapshot = getFirstScheduleRecord(calculation.schedule);
+                  const detailDraft =
+                    detailDrafts[calculation.id] ??
+                    getProtocolDetailDraft(calculation);
                   const markLabel =
                     getStringValue(snapshot, "syringeMarkLabel") || "Saved mark";
                   const doseLabel =
@@ -424,6 +555,16 @@ export function AccountConsole() {
                           </a>
                           <button
                             type="button"
+                            onClick={() =>
+                              handlePrintProtocolSheet(calculation, detailDraft)
+                            }
+                            className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-white px-3 text-sm font-semibold text-sky-800 ring-1 ring-sky-100 transition hover:bg-sky-50 hover:text-slate-950"
+                          >
+                            <Printer size={15} aria-hidden="true" />
+                            Print
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => handleDeleteSavedCalculation(calculation.id)}
                             disabled={deletingId === calculation.id}
                             className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-white px-3 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-rose-50 hover:text-rose-800 disabled:cursor-not-allowed disabled:text-slate-400"
@@ -440,6 +581,114 @@ export function AccountConsole() {
                             Delete
                           </button>
                         </div>
+                      </div>
+                      <div className="mt-4 grid gap-3 rounded-2xl bg-[linear-gradient(135deg,#f8fbff_0%,#fff7ed_100%)] p-3 ring-1 ring-sky-100">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
+                          <FileText size={16} aria-hidden="true" />
+                          Protocol notes
+                        </div>
+                        <label className="grid gap-1 text-xs font-semibold text-slate-500">
+                          Notes
+                          <textarea
+                            value={detailDraft.notes}
+                            onChange={(event) =>
+                              updateDetailDraft(calculation.id, {
+                                notes: event.target.value,
+                              })
+                            }
+                            rows={3}
+                            placeholder="Add label details, timing notes, or anything you want on the printable sheet."
+                            className="min-h-20 resize-y rounded-2xl border border-sky-100 bg-white px-3 py-2 text-sm font-medium leading-6 text-slate-800 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                          />
+                        </label>
+
+                        <div className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr]">
+                          <label className="flex items-center gap-2 rounded-2xl bg-white p-3 text-sm font-semibold text-slate-700 ring-1 ring-sky-100">
+                            <input
+                              type="checkbox"
+                              checked={detailDraft.reminderEnabled}
+                              onChange={(event) =>
+                                updateDetailDraft(calculation.id, {
+                                  reminderEnabled: event.target.checked,
+                                })
+                              }
+                              className="h-4 w-4 accent-sky-800"
+                            />
+                            <Bell size={15} aria-hidden="true" />
+                            Reminder plan
+                          </label>
+                          <label className="grid gap-1 text-xs font-semibold text-slate-500">
+                            Start date
+                            <input
+                              type="date"
+                              value={detailDraft.reminderDate}
+                              onChange={(event) =>
+                                updateDetailDraft(calculation.id, {
+                                  reminderDate: event.target.value,
+                                })
+                              }
+                              className="h-10 rounded-2xl border border-sky-100 bg-white px-3 text-sm font-semibold text-slate-800 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                            />
+                          </label>
+                          <label className="grid gap-1 text-xs font-semibold text-slate-500">
+                            Time
+                            <input
+                              type="time"
+                              value={detailDraft.reminderTime}
+                              onChange={(event) =>
+                                updateDetailDraft(calculation.id, {
+                                  reminderTime: event.target.value,
+                                })
+                              }
+                              className="h-10 rounded-2xl border border-sky-100 bg-white px-3 text-sm font-semibold text-slate-800 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                            />
+                          </label>
+                        </div>
+
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                          <label className="grid gap-1 text-xs font-semibold text-slate-500 sm:min-w-52">
+                            Repeat
+                            <select
+                              value={detailDraft.reminderFrequency}
+                              onChange={(event) =>
+                                updateDetailDraft(calculation.id, {
+                                  reminderFrequency: event.target.value,
+                                })
+                              }
+                              className="h-10 rounded-2xl border border-sky-100 bg-white px-3 text-sm font-semibold text-slate-800 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                            >
+                              {reminderFrequencyOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                  {option.label}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleSaveProtocolDetails(calculation.id)
+                            }
+                            disabled={updatingDetailsId === calculation.id}
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                          >
+                            {updatingDetailsId === calculation.id ? (
+                              <LoaderCircle
+                                className="animate-spin"
+                                size={16}
+                                aria-hidden="true"
+                              />
+                            ) : (
+                              <Save size={16} aria-hidden="true" />
+                            )}
+                            Save notes
+                          </button>
+                        </div>
+                        <p className="text-xs leading-5 text-slate-500">
+                          Reminder plans are saved with the calculation. Browser
+                          push notifications can be added later when the app
+                          moves into the paid reminder feature.
+                        </p>
                       </div>
                     </article>
                   );
@@ -598,7 +847,6 @@ function buildCalculatorHref(calculation: SavedCalculationRow) {
   params.set("compound", compoundName);
   params.set("preset", presetDetail);
   params.set("syringeMl", String(getNumberValue(snapshot, "syringeMl") ?? 1));
-  params.set("vialMg", String(getNumberValue(snapshot, "vialMg") ?? 10));
   params.set("waterMl", String(getNumberValue(snapshot, "waterMl") ?? 2));
 
   if (presetType === "math") {
@@ -607,6 +855,7 @@ function buildCalculatorHref(calculation: SavedCalculationRow) {
 
   if (doseInputUnit === "iu") {
     params.set("doseUnit", "iu");
+    params.set("vialIu", String(getNumberValue(snapshot, "vialMg") ?? 5000));
     params.set(
       "doseIu",
       String(
@@ -616,6 +865,7 @@ function buildCalculatorHref(calculation: SavedCalculationRow) {
       ),
     );
   } else {
+    params.set("vialMg", String(getNumberValue(snapshot, "vialMg") ?? 10));
     params.set("doseMcg", String(getNumberValue(snapshot, "doseMcg") ?? 250));
   }
 
@@ -624,6 +874,207 @@ function buildCalculatorHref(calculation: SavedCalculationRow) {
   }
 
   return `/calculator?${params.toString()}#what-to-do`;
+}
+
+function getProtocolDetailDraft(
+  calculation: SavedCalculationRow,
+): ProtocolDetailDraft {
+  const snapshot = getFirstScheduleRecord(calculation.schedule);
+  const savedFrequency =
+    getStringValue(snapshot, "reminderFrequency") || calculation.frequency;
+  const reminderFrequency = reminderFrequencyOptions.some(
+    (option) => option.value === savedFrequency,
+  )
+    ? savedFrequency
+    : defaultProtocolDetailDraft.reminderFrequency;
+
+  return {
+    notes: getStringValue(snapshot, "protocolNotes"),
+    reminderEnabled: getBooleanValue(snapshot, "reminderEnabled"),
+    reminderDate:
+      getStringValue(snapshot, "reminderStartDate") ||
+      calculation.start_date ||
+      "",
+    reminderTime:
+      getStringValue(snapshot, "reminderTime") ||
+      defaultProtocolDetailDraft.reminderTime,
+    reminderFrequency,
+  };
+}
+
+function buildScheduleWithProtocolDetails(
+  schedule: unknown,
+  detail: ProtocolDetailDraft,
+) {
+  const scheduleItems = Array.isArray(schedule) ? schedule : [];
+  const firstItem = isRecord(scheduleItems[0]) ? scheduleItems[0] : {};
+  const updatedFirstItem = {
+    ...firstItem,
+    protocolNotes: detail.notes.trim(),
+    reminderEnabled: detail.reminderEnabled,
+    reminderStartDate: detail.reminderEnabled ? detail.reminderDate : "",
+    reminderTime: detail.reminderEnabled ? detail.reminderTime : "",
+    reminderFrequency: detail.reminderEnabled ? detail.reminderFrequency : "",
+  };
+
+  return [updatedFirstItem, ...scheduleItems.slice(1)];
+}
+
+function printProtocolSheet(
+  calculation: SavedCalculationRow,
+  detail: ProtocolDetailDraft,
+) {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const printWindow = window.open("", "_blank", "width=900,height=720");
+
+  if (!printWindow) {
+    return false;
+  }
+
+  const snapshot = getFirstScheduleRecord(calculation.schedule);
+  const doseInputUnit = getStringValue(snapshot, "doseInputUnit");
+  const doseLabel =
+    getStringValue(snapshot, "doseLabel") ||
+    `${formatSavedNumber(calculation.dose_mcg, 3)} mcg`;
+  const markLabel =
+    getStringValue(snapshot, "syringeMarkLabel") || "Saved mark";
+  const vialValue = getNumberValue(snapshot, "vialMg") ?? 0;
+  const vialLabel =
+    doseInputUnit === "iu"
+      ? `${formatSavedNumber(vialValue, 0)} IU`
+      : `${formatSavedNumber(vialValue, 3)} mg`;
+  const waterLabel = `${formatSavedNumber(
+    getNumberValue(snapshot, "waterMl") ?? 0,
+    3,
+  )} mL`;
+  const liquidLabel = `${formatSavedNumber(calculation.dose_ml, 4)} mL`;
+  const savedDate = formatSavedDate(calculation.created_at);
+  const reminderLabel = detail.reminderEnabled
+    ? `${formatReminderFrequency(detail.reminderFrequency)} starting ${
+        detail.reminderDate || "not set"
+      } at ${detail.reminderTime || "not set"}`
+    : "No reminder plan saved";
+
+  printWindow.document.open();
+  printWindow.document.write(`<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${escapeHtml(calculation.plan_name)} | PeptiCalc</title>
+    <style>
+      body {
+        margin: 0;
+        color: #0f172a;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f8fbff;
+      }
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 32px;
+      }
+      header {
+        border-bottom: 2px solid #bae6fd;
+        padding-bottom: 18px;
+      }
+      .eyebrow {
+        color: #0369a1;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 8px 0 0;
+        font-size: 32px;
+        line-height: 1.1;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 22px;
+      }
+      .card {
+        border: 1px solid #dbeafe;
+        border-radius: 18px;
+        background: #fff;
+        padding: 14px;
+      }
+      .label {
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+      .value {
+        margin-top: 6px;
+        font-size: 19px;
+        font-weight: 750;
+      }
+      .notes {
+        margin-top: 22px;
+        border: 1px solid #dbeafe;
+        border-radius: 18px;
+        background: #fff;
+        padding: 16px;
+        white-space: pre-wrap;
+      }
+      .fine {
+        margin-top: 22px;
+        color: #64748b;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+      @media print {
+        body { background: #fff; }
+        main { padding: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="eyebrow">PeptiCalc printable calculation sheet</div>
+        <h1>${escapeHtml(calculation.plan_name)}</h1>
+        <p>Saved ${escapeHtml(savedDate)}</p>
+      </header>
+      <section class="grid">
+        ${printCard("Dose", doseLabel)}
+        ${printCard("Pull syringe to", markLabel)}
+        ${printCard("Vial amount", vialLabel)}
+        ${printCard("BAC water", waterLabel)}
+        ${printCard("Liquid volume", liquidLabel)}
+        ${printCard("Reminder", reminderLabel)}
+      </section>
+      <section class="notes">
+        <div class="label">Protocol notes</div>
+        <p>${escapeHtml(detail.notes || "No notes saved.")}</p>
+      </section>
+      <p class="fine">
+        This sheet is calculator math only. It does not prescribe treatment,
+        diagnose, or replace the product label, pharmacy instructions, or
+        prescriber directions.
+      </p>
+    </main>
+  </body>
+</html>`);
+  printWindow.document.close();
+  printWindow.focus();
+  window.setTimeout(() => printWindow.print(), 250);
+
+  return true;
+}
+
+function printCard(label: string, value: string) {
+  return `<div class="card"><div class="label">${escapeHtml(
+    label,
+  )}</div><div class="value">${escapeHtml(value)}</div></div>`;
 }
 
 function buildSplitParam(snapshot: Record<string, unknown>) {
@@ -670,6 +1121,14 @@ function getStringValue(record: Record<string, unknown> | null, key: string) {
   return typeof value === "string" ? value : "";
 }
 
+function getBooleanValue(record: Record<string, unknown> | null, key: string) {
+  if (!record) {
+    return false;
+  }
+
+  return record[key] === true;
+}
+
 function getNumberValue(record: Record<string, unknown> | null, key: string) {
   if (!record) {
     return null;
@@ -680,6 +1139,13 @@ function getNumberValue(record: Record<string, unknown> | null, key: string) {
     typeof value === "number" || typeof value === "string" ? Number(value) : NaN;
 
   return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
+}
+
+function formatReminderFrequency(value: string) {
+  return (
+    reminderFrequencyOptions.find((option) => option.value === value)?.label ??
+    value
+  );
 }
 
 function formatSavedNumber(value: number | string, maximumFractionDigits: number) {
@@ -706,6 +1172,15 @@ function formatSavedDate(value: string) {
     day: "numeric",
     year: "numeric",
   }).format(date);
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

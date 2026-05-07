@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import type { Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { GoogleAnalyticsPageView } from "@/components/GoogleAnalyticsPageView";
+import { PwaRegistration } from "@/components/PwaRegistration";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,6 +21,8 @@ const siteUrl =
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
 
 export const metadata: Metadata = {
+  applicationName: "PeptiCalc",
+  manifest: "/manifest.webmanifest",
   title: "PeptiCalc | Peptide Calculator",
   description:
     "A simple peptide calculator for concentration, syringe marks, mg to mcg conversion, BAC water math, and editable reference presets.",
@@ -32,6 +36,21 @@ export const metadata: Metadata = {
     "peptide reconstitution",
   ],
   authors: [{ name: "PeptiCalc team" }],
+  appleWebApp: {
+    capable: true,
+    title: "PeptiCalc",
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "48x48" },
+    ],
+    apple: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
   openGraph: {
     type: "website",
     title: "PeptiCalc | Peptide Calculator",
@@ -60,6 +79,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#075985",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -72,6 +97,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
+        <PwaRegistration />
         {gaMeasurementId ? (
           <>
             <Script
