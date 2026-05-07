@@ -34,6 +34,18 @@ type SplitPart = {
   percent: string;
 };
 
+type CalculatorResult = {
+  vialMcg: number;
+  doseMcg: number;
+  concentrationMcgMl: number;
+  concentrationMgMl: number;
+  doseMl: number;
+  syringeUnits: number;
+  dosesPerVial: number;
+  mcgPerSyringeUnit: number;
+  warnings: string[];
+};
+
 type SplitBreakdownItem = {
   name: string;
   inputPercent: number;
@@ -51,11 +63,14 @@ type SaveBanner = {
 };
 
 const syringeOptions = [0.3, 0.5, 1.0];
-const vialOptions: Choice[] = [5, 10, 15, 20, "other"];
-const waterOptions: Choice[] = [1, 2, 3, 5, "other"];
+const vialOptionsByUnit: Record<DoseInputUnit, Choice[]> = {
+  mcg: [5, 10, 15, 20, "other"],
+  iu: [5, 10, 15, 5000, 10000, 15000, "other"],
+};
+const waterOptions: Choice[] = [0.5, 1, 2, 3, 5, 10, "other"];
 const doseOptionsByUnit: Record<DoseInputUnit, Choice[]> = {
   mcg: [50, 100, 250, 500, 1000, "other"],
-  iu: [1, 2, 5, 10, 20, "other"],
+  iu: [1, 2, 3, 4, 250, 500, "other"],
 };
 const commonSplitCompounds = [
   "CJC-1295",
@@ -114,41 +129,46 @@ export function PeptideCalculator() {
   const [savingCalculation, setSavingCalculation] = useState(false);
   const [saveBanner, setSaveBanner] = useState<SaveBanner | null>(null);
 
-  const vialMg = Number(vialChoice === "other" ? vialOther : vialChoice);
+  const vialAmount = Number(vialChoice === "other" ? vialOther : vialChoice);
+  const vialMg = doseInputUnit === "iu" ? 0 : vialAmount;
+  const vialIu = doseInputUnit === "iu" ? vialAmount : 0;
   const waterMl = Number(waterChoice === "other" ? waterOther : waterChoice);
   const doseInputAmount = Number(doseChoice === "other" ? doseOther : doseChoice);
   const isIuMode = doseInputUnit === "iu";
-  const concentrationMcgMl =
-    vialMg > 0 && waterMl > 0 ? (vialMg * 1000) / waterMl : 0;
-  const doseMcg = isIuMode
-    ? doseInputAmount * (concentrationMcgMl / 100)
-    : doseInputAmount;
   const doseLabel = isIuMode
     ? `${formatNumber(doseInputAmount, 2)} IU`
     : `${formatNumber(doseInputAmount, 0)} mcg`;
   const doseModeCopy = isIuMode
-    ? "IU mode uses U-100 syringe marks: 1 IU = 1 mark = 0.01 mL."
+    ? "IU mode uses total IU in the vial and target IU per dose. It does not convert IU to mcg."
     : "MCG mode uses the amount of compound in the dose.";
   const vialStepTitle = isIuMode
-    ? "Total MG's in your vial for IU math"
+    ? "Total IU in your vial"
     : "Total MG's in your vial";
   const doseStepTitle = isIuMode
-    ? "What IU / mark are you taking?"
+    ? "How many IU do you want in each dose?"
     : "What dose are you taking?";
+  const vialOptionUnitLabel = isIuMode ? "IU" : "mg";
   const doseOptionUnitLabel = isIuMode ? "IU" : "mcg";
+  const vialOptions = vialOptionsByUnit[doseInputUnit];
   const doseOptions = doseOptionsByUnit[doseInputUnit];
 
-  const result = useMemo(
-    () =>
-      calculateDose({
-        vialAmount: vialMg,
-        vialUnit: "mg",
+  const result = useMemo<CalculatorResult | null>(() => {
+    if (isIuMode) {
+      return calculateIuDose({
+        vialIu,
         diluentMl: waterMl,
-        doseAmount: doseMcg,
-        doseUnit: "mcg",
-      }),
-    [doseMcg, vialMg, waterMl],
-  );
+        doseIu: doseInputAmount,
+      });
+    }
+
+    return calculateDose({
+      vialAmount,
+      vialUnit: "mg",
+      diluentMl: waterMl,
+      doseAmount: doseInputAmount,
+      doseUnit: "mcg",
+    });
+  }, [doseInputAmount, isIuMode, vialAmount, vialIu, waterMl]);
 
   function handleDoseInputUnitChange(unit: DoseInputUnit) {
     if (unit === doseInputUnit) {
@@ -160,15 +180,20 @@ export function PeptideCalculator() {
       previous_unit: doseInputUnit,
     });
 
-    const convertedDoseAmount =
-      unit === "iu" ? result?.syringeUnits : result?.doseMcg;
+    const nextVial = resolveNumericChoice(
+      unit === "iu" ? 5000 : 10,
+      vialOptionsByUnit[unit],
+      unit === "iu" ? 5000 : 10,
+    );
     const nextDose = resolveNumericChoice(
-      convertedDoseAmount ?? (unit === "iu" ? 5 : 250),
+      unit === "iu" ? 1 : 250,
       doseOptionsByUnit[unit],
-      unit === "iu" ? 5 : 250,
+      unit === "iu" ? 1 : 250,
     );
 
     setDoseInputUnit(unit);
+    setVialChoice(nextVial.choice);
+    setVialOther(nextVial.other);
     setDoseChoice(nextDose.choice);
     setDoseOther(nextDose.other);
   }
@@ -178,47 +203,43 @@ export function PeptideCalculator() {
     result && result.syringeUnits > syringeCapacity,
   );
   const hasReadyCalculation = Boolean(result && !tooLargeForSyringe);
-  const doseAsMg = result ? result.doseMcg / 1000 : null;
+  const doseAsMg = !isIuMode && result ? result.doseMcg / 1000 : null;
   const syringeMarkLabel = formatSyringeMark(result?.syringeUnits);
   const doseDisplayValue = result
     ? isIuMode
-      ? `${formatNumber(result.syringeUnits, 2)} IU (${syringeMarkLabel})`
+      ? `${formatNumber(result.doseMcg, 2)} IU`
       : `${formatNumber(result.doseMcg, 2)} mcg (${formatNumber(doseAsMg, 4)} mg)`
     : "-";
   const doseDisplayDescription = isIuMode
-    ? `Based on the vial strength, that equals ${formatNumber(result?.doseMcg, 2)} mcg (${formatNumber(doseAsMg, 4)} mg).`
+    ? "This is the target IU amount used for the syringe guide."
     : "This is the target dose used for the syringe guide.";
   const concentrationDisplayValue = isIuMode
-    ? "100 IU per mL"
+    ? `${formatNumber(result?.concentrationMcgMl)} IU per mL`
     : `${formatNumber(result?.concentrationMcgMl)} mcg per mL`;
   const concentrationDisplayDescription = isIuMode
-    ? "On a U-100 syringe, each 1 mL contains 100 IU/marks."
+    ? "This is how many IU are in each mL after mixing."
     : "This is how much compound is in each mL after mixing.";
   const concentrationDisplayLabel = isIuMode
-    ? "U-100 syringe scale"
+    ? "Strength after mixing"
     : "Strength in the vial";
   const markDisplayValue = isIuMode
-    ? "1 IU per mark"
+    ? `${formatNumber(result?.mcgPerSyringeUnit, 3)} IU`
     : `${formatNumber(result?.mcgPerSyringeUnit, 3)} mcg`;
   const markDisplayDescription = isIuMode
-    ? `Each IU/mark equals ${formatNumber(result?.mcgPerSyringeUnit, 3)} mcg with this vial setup.`
+    ? "This is how many IU are in each U-100 syringe mark."
     : "This helps explain what each U-100 mark represents.";
   const liquidDisplayLabel = isIuMode
-    ? "IU / mark draw"
+    ? "Amount of liquid to draw"
     : "Amount of liquid to draw";
   const liquidDisplayValue = result
     ? isIuMode
-      ? `${formatNumber(result.syringeUnits, 2)} IU (${formatNumber(result.doseMl, 4)} mL)`
+      ? `${formatNumber(result.doseMl, 4)} mL`
       : `${formatNumber(result.doseMl, 4)} mL`
     : "-";
   const liquidDisplayDescription = isIuMode
-    ? "On a U-100 syringe, IU and syringe marks match one-for-one."
+    ? "This is the liquid volume for the IU dose you entered."
     : "This is the liquid volume for one dose.";
-  const drawTargetLabel = result
-    ? isIuMode
-      ? `${formatNumber(result.syringeUnits, 2)} IU`
-      : syringeMarkLabel
-    : syringeMarkLabel;
+  const drawTargetLabel = syringeMarkLabel;
   const splitTotalPercent = useMemo(
     () => splitParts.reduce((total, part) => total + parseSplitPercent(part.percent), 0),
     [splitParts],
@@ -229,11 +250,11 @@ export function PeptideCalculator() {
         ? buildSplitBreakdown(
             splitParts,
             result.doseMcg,
-            result.syringeUnits,
+            isIuMode ? doseInputAmount : result.syringeUnits,
             result.mcgPerSyringeUnit,
           )
         : [],
-    [advancedSplitEnabled, result, splitParts],
+    [advancedSplitEnabled, doseInputAmount, isIuMode, result, splitParts],
   );
   const waitlistMetadata = useMemo(
     () => ({
@@ -242,7 +263,10 @@ export function PeptideCalculator() {
       preset_type: loadedPresetName ? loadedPresetType : "manual",
       dose_unit_mode: doseInputUnit,
       syringe_ml: syringeMl,
+      vial_unit: isIuMode ? "iu" : "mg",
+      vial_amount: vialAmount,
       vial_mg: vialMg,
+      vial_iu: vialIu,
       water_ml: waterMl,
       dose_label: doseLabel,
       ready: hasReadyCalculation,
@@ -254,11 +278,14 @@ export function PeptideCalculator() {
       doseInputUnit,
       doseLabel,
       hasReadyCalculation,
+      isIuMode,
       loadedPresetDetail,
       loadedPresetName,
       loadedPresetType,
       splitParts.length,
       syringeMl,
+      vialAmount,
+      vialIu,
       vialMg,
       waterMl,
     ],
@@ -290,7 +317,7 @@ export function PeptideCalculator() {
 
     const calculationKey = [
       syringeMl,
-      vialMg,
+      vialAmount,
       waterMl,
       doseInputUnit,
       doseInputAmount,
@@ -306,9 +333,13 @@ export function PeptideCalculator() {
     trackEvent("calculator_ready", {
       dose_unit_mode: doseInputUnit,
       syringe_ml: syringeMl,
+      vial_unit: isIuMode ? "iu" : "mg",
+      vial_amount: Number(vialAmount.toFixed(3)),
       vial_mg: vialMg,
+      vial_iu: Number(vialIu.toFixed(3)),
       water_ml: waterMl,
-      dose_mcg: Number(result.doseMcg.toFixed(3)),
+      dose_mcg: isIuMode ? null : Number(result.doseMcg.toFixed(3)),
+      dose_iu: isIuMode ? Number(result.doseMcg.toFixed(3)) : null,
       syringe_mark: Number(result.syringeUnits.toFixed(3)),
       preset_type: loadedPresetName ? loadedPresetType : "manual",
       split_enabled: advancedSplitEnabled,
@@ -319,11 +350,14 @@ export function PeptideCalculator() {
     doseInputAmount,
     doseInputUnit,
     hasReadyCalculation,
+    isIuMode,
     loadedPresetName,
     loadedPresetType,
     result,
     splitParts.length,
     syringeMl,
+    vialAmount,
+    vialIu,
     vialMg,
     waterMl,
   ]);
@@ -404,7 +438,7 @@ export function PeptideCalculator() {
       doseLabel,
       syringeMarkLabel,
       syringeMl,
-      vialMg,
+      vialMg: isIuMode ? vialIu : vialMg,
       waterMl,
       doseInputUnit,
       doseInputAmount,
@@ -600,12 +634,12 @@ export function PeptideCalculator() {
                     value={vialChoice}
                     onChange={(value) => setVialChoice(value as Choice)}
                     formatLabel={(value) =>
-                      value === "other" ? "Other" : `${value} mg`
+                      value === "other" ? "Other" : `${formatNumber(value, 0)} ${vialOptionUnitLabel}`
                     }
                   />
                   {vialChoice === "other" ? (
                     <NumberField
-                      label="Custom vial amount (mg)"
+                      label={`Custom vial amount (${vialOptionUnitLabel})`}
                       value={vialOther}
                       onChange={setVialOther}
                     />
@@ -1300,19 +1334,74 @@ function findClosestChoice(value: number, options: number[]) {
   );
 }
 
+function calculateIuDose({
+  vialIu,
+  diluentMl,
+  doseIu,
+}: {
+  vialIu: number;
+  diluentMl: number;
+  doseIu: number;
+}): CalculatorResult | null {
+  if (
+    !Number.isFinite(vialIu) ||
+    !Number.isFinite(diluentMl) ||
+    !Number.isFinite(doseIu) ||
+    vialIu <= 0 ||
+    diluentMl <= 0 ||
+    doseIu <= 0
+  ) {
+    return null;
+  }
+
+  const concentrationIuMl = vialIu / diluentMl;
+  const doseMl = doseIu / concentrationIuMl;
+  const syringeUnits = doseMl * 100;
+  const warnings: string[] = [];
+
+  if (doseMl > 1) {
+    warnings.push("Calculated injection volume is over 1 mL. Verify concentration and route with a clinician.");
+  }
+
+  if (doseMl > 0 && doseMl < 0.03) {
+    warnings.push("Calculated volume is very small. Confirm syringe type and measurement precision.");
+  }
+
+  if (syringeUnits > 0 && syringeUnits < 1) {
+    warnings.push("Calculated U-100 syringe volume is below 1 mark.");
+  }
+
+  return {
+    vialMcg: vialIu,
+    doseMcg: doseIu,
+    concentrationMcgMl: concentrationIuMl,
+    concentrationMgMl: concentrationIuMl,
+    doseMl,
+    syringeUnits,
+    dosesPerVial: vialIu / doseIu,
+    mcgPerSyringeUnit: concentrationIuMl / 100,
+    warnings,
+  };
+}
+
 function readPresetFromSearchParams(params: { get: (name: string) => string | null }) {
   const syringeParam = parsePositiveNumber(params.get("syringeMl"));
-  const vialParam = parsePositiveNumber(params.get("vialMg"));
   const waterParam = parsePositiveNumber(params.get("waterMl"));
   const requestedDoseUnit = (params.get("doseUnit") ?? params.get("unit") ?? "")
     .toLowerCase()
     .trim();
   const doseInputUnit: DoseInputUnit =
     requestedDoseUnit === "iu" ? "iu" : "mcg";
+  const vialParam = parsePositiveNumber(
+    doseInputUnit === "iu"
+      ? params.get("vialIu") ?? params.get("vialMg")
+      : params.get("vialMg"),
+  );
   const doseParam = parsePositiveNumber(
     doseInputUnit === "iu" ? params.get("doseIu") : params.get("doseMcg"),
   );
-  const defaultDose = doseInputUnit === "iu" ? 5 : 250;
+  const defaultDose = doseInputUnit === "iu" ? 1 : 250;
+  const defaultVial = doseInputUnit === "iu" ? 5000 : 10;
   const compoundName = params.get("compound") ?? "";
   const presetType: PresetType =
     params.get("presetType") === "math" ? "math" : "reference";
@@ -1322,7 +1411,11 @@ function readPresetFromSearchParams(params: { get: (name: string) => string | nu
     presetDetail: params.get("preset") ?? "",
     presetType,
     syringeMl: syringeParam ? findClosestChoice(syringeParam, syringeOptions) : 1,
-    vial: resolveNumericChoice(vialParam, vialOptions, 10),
+    vial: resolveNumericChoice(
+      vialParam,
+      vialOptionsByUnit[doseInputUnit],
+      defaultVial,
+    ),
     water: resolveNumericChoice(waterParam, waterOptions, 2),
     dose: resolveNumericChoice(
       doseParam,
@@ -1992,13 +2085,13 @@ function CompoundSplitBreakdown({
                 : `${formatNumber(item.doseMcg, 2)} mcg`}{" "}
               <span className="text-sm font-medium text-slate-500">
                 {isIuMode
-                  ? `(${formatNumber(item.doseMcg, 2)} mcg / ${formatNumber(item.doseMg, 4)} mg)`
+                  ? `(${formatNumber(item.normalizedPercent, 2)}% of dose)`
                   : `(${formatNumber(item.doseMg, 4)} mg)`}
               </span>
             </div>
             <p className="mt-1 text-xs leading-5 text-slate-500">
               {isIuMode
-                ? `This compound is ${formatNumber(item.normalizedPercent, 2)}% of the total IU draw.`
+                ? `This compound contributes ${formatNumber(item.mcgPerSyringeUnit, 3)} IU per syringe mark.`
                 : `This compound contributes ${formatNumber(item.mcgPerSyringeUnit, 3)} mcg per syringe mark.`}
             </p>
           </div>
