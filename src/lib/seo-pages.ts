@@ -10,6 +10,8 @@ export type SeoPage = {
   description: string;
   eyebrow: string;
   calculatorHref: string;
+  searchPhrase?: string;
+  ctaLabel?: string;
   sourceLabel?: string;
   sourceUrl?: string;
   sections: {
@@ -441,11 +443,13 @@ const mathOnlyCompoundSeoSeeds: MathOnlyCompoundSeoSeed[] = [
 export const compoundSeoPages: SeoPage[] = [
   {
     slug: "semaglutide-calculator",
-    title: "Semaglutide Calculator",
+    title: "Free Semaglutide Calculator: Syringe Units",
     shortTitle: "Semaglutide",
-    eyebrow: "Preloaded reference calculator",
+    eyebrow: "Free syringe mark calculator",
     description:
-      "Open an editable semaglutide calculator preset for vial amount, BAC water, dose math, and U-100 syringe marks.",
+      "Enter vial amount, BAC water, and dose to calculate semaglutide concentration, mL to draw, and U-100 syringe marks. Editable math only.",
+    searchPhrase: "semaglutide calculator",
+    ctaLabel: "Calculate semaglutide syringe mark",
     calculatorHref:
       "/calculator?compound=Semaglutide&preset=0.25+mg+starter+dose&presetType=reference&vialMg=5&waterMl=2&doseMcg=250",
     sourceLabel: "DailyMed Wegovy label",
@@ -455,7 +459,7 @@ export const compoundSeoPages: SeoPage[] = [
       {
         title: "What this page does",
         body:
-          "This page opens a semaglutide calculator preset using an editable 0.25 mg reference dose. The calculator shows the liquid volume, concentration, and syringe mark after you confirm your vial and BAC water amounts.",
+          "This semaglutide calculator opens an editable 0.25 mg reference preset. It shows the liquid volume, concentration, and U-100 syringe mark after you confirm your vial and BAC water amounts.",
       },
       {
         title: "How to use it safely",
@@ -465,7 +469,7 @@ export const compoundSeoPages: SeoPage[] = [
       {
         title: "Why it can rank",
         body:
-          "People search for semaglutide calculator, semaglutide units, and semaglutide reconstitution math when they need a simple conversion tool. This page gives that search a direct calculator path.",
+          "People search for semaglutide calculator, semaglutide units, and semaglutide reconstitution math when they need a simple conversion tool. This page gives that search a direct, free calculator path.",
       },
     ],
     faqs: [
@@ -484,11 +488,13 @@ export const compoundSeoPages: SeoPage[] = [
   },
   {
     slug: "tirzepatide-calculator",
-    title: "Tirzepatide Calculator",
+    title: "Free Tirzepatide Calculator: Syringe Units",
     shortTitle: "Tirzepatide",
-    eyebrow: "Preloaded reference calculator",
+    eyebrow: "Free syringe mark calculator",
     description:
-      "Open an editable tirzepatide calculator preset for vial amount, BAC water, dose math, and U-100 syringe marks.",
+      "Enter vial amount, BAC water, and dose to calculate tirzepatide concentration, mL to draw, and U-100 syringe marks. Editable math only.",
+    searchPhrase: "tirzepatide calculator",
+    ctaLabel: "Calculate tirzepatide syringe mark",
     calculatorHref:
       "/calculator?compound=Tirzepatide&preset=2.5+mg+starter+dose&presetType=reference&vialMg=10&waterMl=2&doseMcg=2500",
     sourceLabel: "DailyMed Zepbound label",
@@ -498,7 +504,7 @@ export const compoundSeoPages: SeoPage[] = [
       {
         title: "What this page does",
         body:
-          "This page opens a tirzepatide calculator preset using an editable 2.5 mg reference dose. The calculator turns vial strength and BAC water into concentration, volume, and syringe mark math.",
+          "This tirzepatide calculator opens an editable 2.5 mg reference preset. It turns vial strength and BAC water into concentration, liquid volume, and U-100 syringe mark math.",
       },
       {
         title: "How to use it safely",
@@ -508,7 +514,7 @@ export const compoundSeoPages: SeoPage[] = [
       {
         title: "Why it can rank",
         body:
-          "Searches around tirzepatide units and vial math are high-intent because users want a quick answer. This page gives them a focused calculator entry point.",
+          "Searches around tirzepatide calculator, tirzepatide units, and vial math are high-intent because users want a quick answer. This page gives them a focused, free calculator entry point.",
       },
     ],
     faqs: [
@@ -532,17 +538,19 @@ export const compoundSeoPages: SeoPage[] = [
 export const toolSeoPages: SeoPage[] = [
   {
     slug: "mcg-to-units-calculator",
-    title: "MCG to Units Calculator",
+    title: "Free MCG to Units Calculator: U-100 Converter",
     shortTitle: "MCG to units",
-    eyebrow: "Peptide calculator tool",
+    eyebrow: "Free U-100 syringe converter",
     description:
-      "Convert a selected mcg amount into U-100 syringe marks after entering vial strength and BAC water.",
+      "Enter vial amount, BAC water, and dose to convert mcg into mL and U-100 syringe marks. Simple peptide reconstitution math.",
+    searchPhrase: "MCG to units calculator",
+    ctaLabel: "Convert MCG to syringe units",
     calculatorHref: "/calculator",
     sections: [
       {
         title: "What this tool solves",
         body:
-          "MCG and syringe units are not the same thing. The calculator uses vial amount and BAC water to find concentration, then converts the selected mcg dose into U-100 syringe marks.",
+          "This MCG to units calculator makes the conversion easier: mcg and syringe units are not the same thing. It uses vial amount and BAC water to find concentration, then converts the selected mcg dose into U-100 syringe marks.",
       },
       {
         title: "When to use it",
@@ -571,11 +579,13 @@ export const toolSeoPages: SeoPage[] = [
   },
   {
     slug: "peptide-reconstitution-calculator",
-    title: "Peptide Reconstitution Calculator",
+    title: "Free Peptide Reconstitution Calculator",
     shortTitle: "Reconstitution",
-    eyebrow: "Peptide calculator tool",
+    eyebrow: "BAC water and syringe math",
     description:
-      "Calculate peptide concentration and syringe volume after adding BAC water to a vial.",
+      "Calculate peptide concentration, dose volume, and U-100 syringe marks after adding BAC water to a vial. Editable calculator math only.",
+    searchPhrase: "peptide reconstitution calculator",
+    ctaLabel: "Calculate reconstitution math",
     calculatorHref: "/calculator",
     sections: [
       {
@@ -610,11 +620,13 @@ export const toolSeoPages: SeoPage[] = [
   },
   {
     slug: "cjc-ipamorelin-split-calculator",
-    title: "CJC Ipamorelin Split Calculator",
+    title: "Free CJC Ipamorelin Split Calculator",
     shortTitle: "CJC / Ipamorelin split",
     eyebrow: "Split compound math template",
     description:
-      "Open a 50/50 split-compound calculator template for mixed-vial math and per-compound dose breakdowns.",
+      "Open a 50/50 split-compound calculator template for mixed-vial math, syringe marks, and per-compound dose breakdowns.",
+    searchPhrase: "CJC ipamorelin split calculator",
+    ctaLabel: "Open split dose calculator",
     calculatorHref:
       "/calculator?preset=50%2F50+split+math&presetType=math&vialMg=5&waterMl=2&doseMcg=100&split=CJC-1295%3A50%2CIpamorelin%3A50",
     sections: [
@@ -650,11 +662,13 @@ export const toolSeoPages: SeoPage[] = [
   },
   {
     slug: "u100-syringe-units-calculator",
-    title: "U-100 Syringe Units Calculator",
+    title: "Free U-100 Syringe Units Calculator",
     shortTitle: "U-100 units",
-    eyebrow: "Peptide calculator tool",
+    eyebrow: "Syringe mark calculator",
     description:
-      "Convert peptide dose math into U-100 syringe marks after entering vial strength and BAC water.",
+      "Convert peptide dose math into U-100 syringe marks after entering vial strength, BAC water, and target dose.",
+    searchPhrase: "U-100 syringe units calculator",
+    ctaLabel: "Calculate U-100 syringe marks",
     calculatorHref: "/calculator",
     sections: [
       {
@@ -689,11 +703,13 @@ export const toolSeoPages: SeoPage[] = [
   },
   {
     slug: "mg-to-mcg-calculator",
-    title: "MG to MCG Calculator",
+    title: "Free MG to MCG Calculator",
     shortTitle: "MG to MCG",
-    eyebrow: "Peptide calculator tool",
+    eyebrow: "Simple unit conversion",
     description:
-      "Convert between mg and mcg while preparing peptide calculator values for vial and dose math.",
+      "Convert mg to mcg and prepare peptide calculator values for vial strength, dose math, and syringe mark conversion.",
+    searchPhrase: "MG to MCG calculator",
+    ctaLabel: "Convert MG to MCG",
     calculatorHref: "/calculator",
     sections: [
       {
@@ -728,11 +744,13 @@ export const toolSeoPages: SeoPage[] = [
   },
   {
     slug: "bac-water-calculator",
-    title: "BAC Water Calculator",
+    title: "Free BAC Water Calculator",
     shortTitle: "BAC water",
-    eyebrow: "Peptide calculator tool",
+    eyebrow: "BAC water concentration math",
     description:
-      "See how BAC water amount changes concentration, dose volume, and syringe marks.",
+      "See how BAC water amount changes peptide concentration, dose volume, and U-100 syringe marks before you draw.",
+    searchPhrase: "BAC water calculator",
+    ctaLabel: "Calculate BAC water math",
     calculatorHref: "/calculator",
     sections: [
       {
@@ -767,11 +785,13 @@ export const toolSeoPages: SeoPage[] = [
   },
   {
     slug: "peptide-dosage-calculator",
-    title: "Peptide Dosage Calculator",
+    title: "Free Peptide Dosage Calculator",
     shortTitle: "Dosage math",
-    eyebrow: "Peptide calculator tool",
+    eyebrow: "Dose to syringe mark math",
     description:
-      "Use peptide dosage math to translate known instructions into concentration, volume, and syringe marks.",
+      "Translate known peptide instructions into concentration, dose volume, and U-100 syringe marks. Calculator math only.",
+    searchPhrase: "peptide dosage calculator",
+    ctaLabel: "Calculate peptide syringe mark",
     calculatorHref: "/calculator",
     sections: [
       {
@@ -811,10 +831,13 @@ function makeCompoundSeoPage(seed: CompoundSeoSeed): SeoPage {
 
   return {
     slug: seed.slug,
-    title: `${seed.name} Calculator`,
+    title: `Free ${seed.name} Calculator: Syringe Units`,
     shortTitle: seed.name,
-    eyebrow: "Preloaded reference calculator",
-    description: seed.description,
+    eyebrow: "Free syringe mark calculator",
+    description:
+      `Enter vial amount, BAC water, and dose to calculate ${seed.name} concentration, mL to draw, and U-100 syringe marks. Editable math only.`,
+    searchPhrase: `${seed.name} calculator`,
+    ctaLabel: `Calculate ${seed.name} syringe mark`,
     calculatorHref: `/calculator?compound=${encodeURIComponent(
       seed.name,
     )}&preset=${encodeURIComponent(seed.doseLabel)}&presetType=reference&vialMg=${
@@ -826,7 +849,7 @@ function makeCompoundSeoPage(seed: CompoundSeoSeed): SeoPage {
       {
         title: "What this page does",
         body:
-          `This page opens a ${seed.name} calculator preset using an editable ${doseLabel}. The calculator turns vial strength and BAC water into concentration, liquid volume, and a U-100 syringe mark.`,
+          `This ${seed.name} calculator opens an editable ${doseLabel}. It turns vial strength and BAC water into concentration, liquid volume, and a U-100 syringe mark.`,
       },
       {
         title: "How to use it safely",
@@ -836,7 +859,7 @@ function makeCompoundSeoPage(seed: CompoundSeoSeed): SeoPage {
       {
         title: "Why it can rank",
         body:
-          `People search for ${seed.name.toLowerCase()} calculator, units, reconstitution, and syringe math when they need a simple conversion tool. This page gives that search a direct calculator path.`,
+          `People search for ${seed.name.toLowerCase()} calculator, units, reconstitution, and syringe math when they need a simple conversion tool. This page gives that search a direct, free calculator path.`,
       },
     ],
     faqs: [
@@ -859,10 +882,13 @@ function makeCompoundSeoPage(seed: CompoundSeoSeed): SeoPage {
 function makeMathOnlyCompoundSeoPage(seed: MathOnlyCompoundSeoSeed): SeoPage {
   return {
     slug: seed.slug,
-    title: `${seed.name} Calculator`,
+    title: `Free ${seed.name} Calculator: Syringe Units`,
     shortTitle: seed.name,
-    eyebrow: "Math-only calculator page",
-    description: seed.description,
+    eyebrow: "Free reconstitution calculator",
+    description:
+      `Enter vial amount, BAC water, and dose to calculate ${seed.name} concentration, mL to draw, and U-100 syringe marks. Math-only, not a protocol.`,
+    searchPhrase: `${seed.name} calculator`,
+    ctaLabel: `Calculate ${seed.name} syringe mark`,
     calculatorHref: `/calculator?compound=${encodeURIComponent(
       seed.name,
     )}&preset=${encodeURIComponent("Custom math only")}&presetType=math`,
@@ -872,7 +898,7 @@ function makeMathOnlyCompoundSeoPage(seed: MathOnlyCompoundSeoSeed): SeoPage {
       {
         title: "What this page does",
         body:
-          `This page opens a ${seed.name} calculator template. You can enter the vial amount, BAC water amount, and dose amount from your own verified instructions, then PeptiCalc shows concentration, liquid volume, and syringe marks.`,
+          `This ${seed.name} calculator opens an editable math template. Enter the vial amount, BAC water amount, and dose amount from your verified instructions, then PeptiCalc shows concentration, liquid volume, and U-100 syringe marks.`,
       },
       {
         title: "Important safety limit",

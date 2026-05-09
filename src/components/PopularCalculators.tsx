@@ -4,27 +4,27 @@ import { ArrowRight, Calculator, Sparkles } from "lucide-react";
 const popularCalculators = [
   {
     label: "Semaglutide calculator",
-    detail: "Label-reference starter math",
+    detail: "Free syringe mark calculator",
     href: "/peptides/semaglutide-calculator",
   },
   {
     label: "Tirzepatide calculator",
-    detail: "Label-reference starter math",
+    detail: "Free syringe mark calculator",
     href: "/peptides/tirzepatide-calculator",
   },
   {
     label: "BPC-157 calculator",
-    detail: "Math-only template",
+    detail: "BAC water and U-100 marks",
     href: "/peptides/bpc-157-calculator",
   },
   {
     label: "TB-500 calculator",
-    detail: "Math-only template",
+    detail: "BAC water and U-100 marks",
     href: "/peptides/tb-500-calculator",
   },
   {
     label: "NAD+ calculator",
-    detail: "Editable syringe math",
+    detail: "mL to draw and syringe marks",
     href: "/peptides/nad-plus-calculator",
   },
   {

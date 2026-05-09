@@ -69,13 +69,29 @@ export function SeoLandingPage({
                 <p className="mt-3 max-w-2xl text-base leading-7 text-slate-700">
                   {page.description}
                 </p>
+                {page.searchPhrase ? (
+                  <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-sky-900">
+                    Free {page.searchPhrase} for BAC water, dose volume, and
+                    U-100 syringe mark math.
+                  </p>
+                ) : null}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {["U-100 marks", "BAC water math", "mL to draw"].map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-900 ring-1 ring-sky-100"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link
                     href={page.calculatorHref}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-sky-900"
                   >
                     <Calculator size={17} aria-hidden="true" />
-                    Open calculator
+                    {page.ctaLabel ?? "Open calculator"}
                   </Link>
                   {page.sourceUrl ? (
                     <a
