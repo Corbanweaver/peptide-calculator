@@ -3,6 +3,16 @@ export type SeoFaq = {
   answer: string;
 };
 
+export type SeoExample = {
+  title: string;
+  intro: string;
+  rows: {
+    label: string;
+    value: string;
+  }[];
+  result: string;
+};
+
 export type SeoPage = {
   slug: string;
   title: string;
@@ -14,6 +24,7 @@ export type SeoPage = {
   ctaLabel?: string;
   sourceLabel?: string;
   sourceUrl?: string;
+  example?: SeoExample;
   sections: {
     title: string;
     body: string;
@@ -68,6 +79,9 @@ type MathOnlyCompoundSeoSeed = {
   sourceUrl: string;
   regulatoryNote: string;
   searchAngle: string;
+  exampleVialMg?: number;
+  exampleWaterMl?: number;
+  exampleDoseMcg?: number;
   related?: {
     label: string;
     href: string;
@@ -244,6 +258,9 @@ const mathOnlyCompoundSeoSeeds: MathOnlyCompoundSeoSeed[] = [
       "FDA's April 22, 2026 503A update says BPC-157 was removed from category 2 because nominations were withdrawn and that PCAC consultation is planned for July 23, 2026. This page is not legal clearance, a product claim, or a use protocol.",
     searchAngle:
       "People search for BPC-157 calculator, BPC-157 reconstitution, and BPC-157 units when they need simple measurement math. This page gives that search a calculator path without recommending a dose.",
+    exampleVialMg: 5,
+    exampleWaterMl: 2,
+    exampleDoseMcg: 250,
   },
   {
     slug: "tb-500-calculator",
@@ -256,6 +273,9 @@ const mathOnlyCompoundSeoSeeds: MathOnlyCompoundSeoSeed[] = [
       "FDA's April 22, 2026 503A update says TB-500 was removed from category 2 because the nomination was withdrawn and that PCAC consultation is planned for July 23, 2026. This page does not say TB-500 is approved or appropriate for use.",
     searchAngle:
       "TB-500 calculator and TB-500 reconstitution searches are high-intent because users are usually trying to translate vial math into syringe marks.",
+    exampleVialMg: 10,
+    exampleWaterMl: 2,
+    exampleDoseMcg: 500,
   },
   {
     slug: "ghk-cu-calculator",
@@ -374,6 +394,9 @@ const mathOnlyCompoundSeoSeeds: MathOnlyCompoundSeoSeed[] = [
       "FDA's April 22, 2026 503A bulk substance document lists Nicotinamide Adenine Dinucleotide (NAD) in category 1, meaning it is under evaluation. Calculator values still need to match the label, pharmacy, or prescriber instructions.",
     searchAngle:
       "NAD injection calculator and NAD units searches are common in wellness traffic. This page keeps that traffic focused on math and verification.",
+    exampleVialMg: 500,
+    exampleWaterMl: 5,
+    exampleDoseMcg: 50000,
   },
   {
     slug: "glutathione-calculator",
@@ -413,6 +436,9 @@ const mathOnlyCompoundSeoSeeds: MathOnlyCompoundSeoSeed[] = [
       "DailyMed cyanocobalamin labeling includes 1,000 mcg/mL injection products. The calculator should be matched to the actual vial concentration and instructions.",
     searchAngle:
       "B12 injection calculator searches are broad and beginner-friendly, which makes this a useful traffic page for people learning syringe measurement basics.",
+    exampleVialMg: 1,
+    exampleWaterMl: 1,
+    exampleDoseMcg: 1000,
   },
   {
     slug: "methylcobalamin-calculator",
@@ -440,6 +466,91 @@ const mathOnlyCompoundSeoSeeds: MathOnlyCompoundSeoSeed[] = [
   },
 ];
 
+function formatNumber(value: number, maximumFractionDigits = 3) {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits,
+  }).format(value);
+}
+
+function formatMl(value: number) {
+  return `${formatNumber(value, value < 1 ? 3 : 2)} mL`;
+}
+
+function formatMcg(value: number) {
+  if (value >= 1000) {
+    return `${formatNumber(value)} mcg / ${formatNumber(value / 1000, 3)} mg`;
+  }
+
+  return `${formatNumber(value)} mcg`;
+}
+
+function getOrdinalSuffix(value: number) {
+  const lastTwo = value % 100;
+
+  if (lastTwo >= 11 && lastTwo <= 13) {
+    return "th";
+  }
+
+  switch (value % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
+}
+
+function formatSyringeMark(value: number) {
+  const rounded = Math.round(value * 10) / 10;
+
+  if (Number.isInteger(rounded)) {
+    return `${rounded}${getOrdinalSuffix(rounded)} mark`;
+  }
+
+  return `${rounded.toFixed(1)} mark`;
+}
+
+function makeSeoExample({
+  name,
+  vialMg,
+  waterMl,
+  doseMcg,
+  context,
+}: {
+  name: string;
+  vialMg: number;
+  waterMl: number;
+  doseMcg: number;
+  context: string;
+}): SeoExample {
+  const concentrationMcgMl = (vialMg * 1000) / waterMl;
+  const doseVolumeMl = doseMcg / concentrationMcgMl;
+  const syringeMark = doseVolumeMl * 100;
+
+  return {
+    title: `${name} calculator example`,
+    intro: context,
+    rows: [
+      { label: "Vial amount", value: `${formatNumber(vialMg, 3)} mg total` },
+      { label: "BAC water added", value: formatMl(waterMl) },
+      { label: "Example dose", value: formatMcg(doseMcg) },
+      {
+        label: "Concentration",
+        value: `${formatNumber(concentrationMcgMl)} mcg/mL`,
+      },
+      { label: "Liquid to draw", value: formatMl(doseVolumeMl) },
+      { label: "U-100 syringe", value: formatSyringeMark(syringeMark) },
+    ],
+    result:
+      `In this example, the visual syringe guide would point to the ${formatSyringeMark(
+        syringeMark,
+      )}. Change the vial, water, or dose values in the calculator to match the exact instructions you are using.`,
+  };
+}
+
 export const compoundSeoPages: SeoPage[] = [
   {
     slug: "semaglutide-calculator",
@@ -455,6 +566,14 @@ export const compoundSeoPages: SeoPage[] = [
     sourceLabel: "DailyMed Wegovy label",
     sourceUrl:
       "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=ee06186f-2aa3-4990-a760-757579d8f77b",
+    example: makeSeoExample({
+      name: "Semaglutide",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example uses the editable starter reference values already loaded by the calculator. It is shown so users can understand how vial strength and BAC water become a syringe mark.",
+    }),
     sections: [
       {
         title: "What this page does",
@@ -500,6 +619,14 @@ export const compoundSeoPages: SeoPage[] = [
     sourceLabel: "DailyMed Zepbound label",
     sourceUrl:
       "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=487cd7e7-434c-4925-99fa-aa80b1cc776b",
+    example: makeSeoExample({
+      name: "Tirzepatide",
+      vialMg: 10,
+      waterMl: 2,
+      doseMcg: 2500,
+      context:
+        "This example uses the editable starter reference values already loaded by the calculator. It is shown so users can see how mg, mcg, mL, and U-100 marks connect.",
+    }),
     sections: [
       {
         title: "What this page does",
@@ -546,6 +673,14 @@ export const toolSeoPages: SeoPage[] = [
     searchPhrase: "MCG to units calculator",
     ctaLabel: "Convert MCG to syringe units",
     calculatorHref: "/calculator",
+    example: makeSeoExample({
+      name: "MCG to units",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example shows why mcg and syringe units are not interchangeable. The dose only becomes a syringe mark after vial strength and BAC water are included.",
+    }),
     sections: [
       {
         title: "What this tool solves",
@@ -587,6 +722,14 @@ export const toolSeoPages: SeoPage[] = [
     searchPhrase: "peptide reconstitution calculator",
     ctaLabel: "Calculate reconstitution math",
     calculatorHref: "/calculator",
+    example: makeSeoExample({
+      name: "Peptide reconstitution",
+      vialMg: 10,
+      waterMl: 2,
+      doseMcg: 500,
+      context:
+        "This reconstitution example shows how total mg in the vial and BAC water determine the concentration before any syringe mark is calculated.",
+    }),
     sections: [
       {
         title: "What this tool solves",
@@ -629,6 +772,14 @@ export const toolSeoPages: SeoPage[] = [
     ctaLabel: "Open split dose calculator",
     calculatorHref:
       "/calculator?preset=50%2F50+split+math&presetType=math&vialMg=5&waterMl=2&doseMcg=100&split=CJC-1295%3A50%2CIpamorelin%3A50",
+    example: makeSeoExample({
+      name: "CJC ipamorelin split",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 100,
+      context:
+        "This split-vial example keeps the syringe mark calculation separate from the compound split. The total draw stays the same, then the app breaks the dose into each compound share.",
+    }),
     sections: [
       {
         title: "What this tool solves",
@@ -670,6 +821,14 @@ export const toolSeoPages: SeoPage[] = [
     searchPhrase: "U-100 syringe units calculator",
     ctaLabel: "Calculate U-100 syringe marks",
     calculatorHref: "/calculator",
+    example: makeSeoExample({
+      name: "U-100 syringe units",
+      vialMg: 5,
+      waterMl: 1,
+      doseMcg: 250,
+      context:
+        "This example shows how a U-100 mark is a volume marker. The amount at that mark depends on the concentration created by the vial and BAC water values.",
+    }),
     sections: [
       {
         title: "What this tool solves",
@@ -711,6 +870,14 @@ export const toolSeoPages: SeoPage[] = [
     searchPhrase: "MG to MCG calculator",
     ctaLabel: "Convert MG to MCG",
     calculatorHref: "/calculator",
+    example: makeSeoExample({
+      name: "MG to MCG",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example uses 0.25 mg as 250 mcg so users can see how the mg-to-mcg conversion fits into the larger syringe calculation.",
+    }),
     sections: [
       {
         title: "Simple conversion",
@@ -752,6 +919,14 @@ export const toolSeoPages: SeoPage[] = [
     searchPhrase: "BAC water calculator",
     ctaLabel: "Calculate BAC water math",
     calculatorHref: "/calculator",
+    example: makeSeoExample({
+      name: "BAC water",
+      vialMg: 10,
+      waterMl: 5,
+      doseMcg: 500,
+      context:
+        "This example shows how adding more BAC water lowers concentration, which changes the mL to draw and the U-100 syringe mark.",
+    }),
     sections: [
       {
         title: "What BAC water changes",
@@ -793,6 +968,14 @@ export const toolSeoPages: SeoPage[] = [
     searchPhrase: "peptide dosage calculator",
     ctaLabel: "Calculate peptide syringe mark",
     calculatorHref: "/calculator",
+    example: makeSeoExample({
+      name: "Peptide dosage",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example translates a known dose into calculator math. It does not choose the dose; it only shows how a known dose becomes liquid volume and a syringe mark.",
+    }),
     sections: [
       {
         title: "What this calculator does",
@@ -845,6 +1028,14 @@ function makeCompoundSeoPage(seed: CompoundSeoSeed): SeoPage {
     }&waterMl=${seed.waterMl}&doseMcg=${seed.doseMcg}`,
     sourceLabel: seed.sourceLabel,
     sourceUrl: seed.sourceUrl,
+    example: makeSeoExample({
+      name: seed.name,
+      vialMg: seed.vialMg,
+      waterMl: seed.waterMl,
+      doseMcg: seed.doseMcg,
+      context:
+        `This example uses the editable ${seed.doseLabel.toLowerCase()} preset so users can see how the calculator turns a reference amount into concentration, volume, and a syringe mark.`,
+    }),
     sections: [
       {
         title: "What this page does",
@@ -880,6 +1071,10 @@ function makeCompoundSeoPage(seed: CompoundSeoSeed): SeoPage {
 }
 
 function makeMathOnlyCompoundSeoPage(seed: MathOnlyCompoundSeoSeed): SeoPage {
+  const exampleVialMg = seed.exampleVialMg ?? 5;
+  const exampleWaterMl = seed.exampleWaterMl ?? 2;
+  const exampleDoseMcg = seed.exampleDoseMcg ?? 250;
+
   return {
     slug: seed.slug,
     title: `Free ${seed.name} Calculator: Syringe Units`,
@@ -894,6 +1089,14 @@ function makeMathOnlyCompoundSeoPage(seed: MathOnlyCompoundSeoSeed): SeoPage {
     )}&preset=${encodeURIComponent("Custom math only")}&presetType=math`,
     sourceLabel: seed.sourceLabel,
     sourceUrl: seed.sourceUrl,
+    example: makeSeoExample({
+      name: seed.name,
+      vialMg: exampleVialMg,
+      waterMl: exampleWaterMl,
+      doseMcg: exampleDoseMcg,
+      context:
+        `This is a sample ${seed.name} calculator walkthrough for measurement math only. Replace every example value with the vial, BAC water, and dose values from a verified instruction source.`,
+    }),
     sections: [
       {
         title: "What this page does",

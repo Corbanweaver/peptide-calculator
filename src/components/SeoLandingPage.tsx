@@ -119,6 +119,48 @@ export function SeoLandingPage({
             </div>
           </header>
 
+          {page.example ? (
+            <section className="rounded-[30px] border border-sky-100 bg-white/95 p-5 shadow-[0_22px_70px_rgba(14,165,233,0.08)] sm:p-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-800">
+                    Example calculation
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                    {page.example.title}
+                  </h2>
+                </div>
+                <Link
+                  href={page.calculatorHref}
+                  className="inline-flex h-10 w-fit items-center justify-center gap-2 rounded-full bg-sky-50 px-4 text-sm font-semibold text-sky-900 ring-1 ring-sky-100 transition hover:bg-sky-100"
+                >
+                  Try these values
+                </Link>
+              </div>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+                {page.example.intro}
+              </p>
+              <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {page.example.rows.map((row) => (
+                  <div
+                    key={`${row.label}-${row.value}`}
+                    className="rounded-2xl bg-slate-50/80 p-4 ring-1 ring-slate-100"
+                  >
+                    <dt className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                      {row.label}
+                    </dt>
+                    <dd className="mt-1 text-lg font-semibold text-slate-950">
+                      {row.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-4 rounded-2xl bg-emerald-50/80 p-4 text-sm leading-6 text-emerald-950 ring-1 ring-emerald-100">
+                {page.example.result}
+              </p>
+            </section>
+          ) : null}
+
           <section className="grid gap-4 md:grid-cols-3">
             {page.sections.map((section) => (
               <article
