@@ -59,7 +59,19 @@ Every week:
 4. Keep all medical content math-focused and source-backed.
 5. Avoid personalized dosing advice, protocols, or unsupported research-compound directions.
 
-## 6. Add Google Analytics
+## 6. Build the first backlinks
+
+Use `docs/backlink-outreach-kit.md` after the priority pages are indexed.
+
+Best first targets:
+
+1. GitHub repo README and repo homepage link.
+2. One free web app directory.
+3. One founder/community post asking for feedback.
+
+Do not buy links or mass-submit spam. The first goal is to help Google see that the calculator exists on real pages outside the site.
+
+## 7. Add Google Analytics
 
 Official Google setup doc:
 
@@ -88,7 +100,7 @@ Setup:
    - `advanced_split_toggled`
    - `split_template_selected`
 
-## 7. Monetization order
+## 8. Monetization order
 
 Best order for this site:
 

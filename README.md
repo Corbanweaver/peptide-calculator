@@ -1,5 +1,15 @@
 # PeptiCalc
 
+Live site: [PeptideCalculator.co](https://peptidecalculator.co)
+
+Popular free calculators:
+
+- [Free peptide calculator](https://peptidecalculator.co/calculator)
+- [BPC-157 calculator](https://peptidecalculator.co/peptides/bpc-157-calculator)
+- [TB-500 calculator](https://peptidecalculator.co/peptides/tb-500-calculator)
+- [NAD+ calculator](https://peptidecalculator.co/peptides/nad-plus-calculator)
+- [MCG to units calculator](https://peptidecalculator.co/tools/mcg-to-units-calculator)
+
 Prescription-aware peptide calculator with:
 
 - concentration + syringe math
