@@ -809,6 +809,18 @@ export function PeptideCalculator() {
           </section>
 
           <PopularCalculators className="mt-5" />
+
+          <footer className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs font-medium text-sky-950/75">
+            <a href="/privacy-policy" className="hover:text-slate-950">
+              Privacy Policy
+            </a>
+            <a href="/terms-of-service" className="hover:text-slate-950">
+              Terms of Service
+            </a>
+            <a href="/disclaimer" className="hover:text-slate-950">
+              Safety and legal policy
+            </a>
+          </footer>
         </div>
       </div>
     </main>

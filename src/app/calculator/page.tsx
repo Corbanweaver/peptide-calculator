@@ -10,13 +10,13 @@ export const metadata: Metadata = {
   description:
     "Use PeptiCalc to calculate peptide concentration, BAC water math, mL to draw, MCG-to-units conversion, and U-100 syringe marks.",
   alternates: {
-    canonical: `${siteUrl}/calculator`,
+    canonical: `${siteUrl}/`,
   },
   openGraph: {
     title: "Peptide Calculator: MCG, BAC Water & Syringe Units",
     description:
       "Use PeptiCalc to calculate peptide concentration, BAC water math, mL to draw, MCG-to-units conversion, and U-100 syringe marks.",
-    url: `${siteUrl}/calculator`,
+    url: `${siteUrl}/`,
     type: "website",
   },
 };
