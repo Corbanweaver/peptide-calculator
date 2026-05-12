@@ -1,11 +1,25 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Calculator, FlaskConical } from "lucide-react";
 import { toolSeoPages } from "@/lib/seo-pages";
 
-export const metadata = {
-  title: "Peptide Calculator Tools | PeptiCalc",
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
+
+export const metadata: Metadata = {
+  title: "Free Peptide Calculator Tools: MCG, BAC Water & Units",
   description:
-    "Browse peptide calculator tools for reconstitution, U-100 syringe units, mg to mcg, BAC water, and split-compound math.",
+    "Browse free peptide calculator tools for reconstitution, U-100 syringe units, mg to mcg, BAC water, and split-compound math.",
+  alternates: {
+    canonical: `${siteUrl}/tools`,
+  },
+  openGraph: {
+    title: "Free Peptide Calculator Tools: MCG, BAC Water & Units",
+    description:
+      "Browse free peptide calculator tools for reconstitution, U-100 syringe units, mg to mcg, BAC water, and split-compound math.",
+    url: `${siteUrl}/tools`,
+    type: "website",
+  },
 };
 
 export default function ToolsPage() {

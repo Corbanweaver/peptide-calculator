@@ -1,12 +1,26 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, BookOpenCheck, ShieldCheck } from "lucide-react";
 import { PeptideLibrary } from "@/components/PeptideLibrary";
 import { PopularCalculators } from "@/components/PopularCalculators";
 
-export const metadata = {
-  title: "Peptide Library | PeptiCalc",
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
+
+export const metadata: Metadata = {
+  title: "Peptide Calculator Library: Preloaded Calculator Pages",
   description:
-    "Choose editable calculator presets for peptide and compound profiles.",
+    "Choose preloaded peptide calculator pages for semaglutide, tirzepatide, BPC-157, TB-500, NAD+, B12, and MCG-to-units math.",
+  alternates: {
+    canonical: `${siteUrl}/peptides`,
+  },
+  openGraph: {
+    title: "Peptide Calculator Library: Preloaded Calculator Pages",
+    description:
+      "Choose preloaded peptide calculator pages for semaglutide, tirzepatide, BPC-157, TB-500, NAD+, B12, and MCG-to-units math.",
+    url: `${siteUrl}/peptides`,
+    type: "website",
+  },
 };
 
 export default function PeptidesPage() {

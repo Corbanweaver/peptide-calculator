@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -10,9 +11,13 @@ import {
 import { AccountConsole } from "@/components/AccountConsole";
 import { WaitlistCapture } from "@/components/WaitlistCapture";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Account | PeptiCalc",
   description: "Sign in and manage your PeptiCalc customer profile.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 const accountFeatures = [
