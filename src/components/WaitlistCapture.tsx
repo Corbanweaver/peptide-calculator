@@ -12,18 +12,25 @@ import { trackEvent } from "@/lib/analytics";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
-type WaitlistInterest = "reminders" | "email_calculation" | "pro_tools";
+type WaitlistInterest =
+  | "reminders"
+  | "email_calculation"
+  | "pro_tools"
+  | "pro_monthly_5"
+  | "pro_yearly_49"
+  | "pro_lifetime_founding";
 type WaitlistBanner = {
   tone: "success" | "error" | "info";
   text: string;
 };
 type MetadataValue = string | number | boolean | null;
-
-const interestOptions: Array<{
+type WaitlistOption = {
   value: WaitlistInterest;
   label: string;
   icon: ReactNode;
-}> = [
+};
+
+const defaultInterestOptions: WaitlistOption[] = [
   {
     value: "reminders",
     label: "Reminders",
@@ -46,13 +53,19 @@ export function WaitlistCapture({
   title = "Want reminders next?",
   description = "Join the early list for emailed calculations, calendar reminders, and Pro features.",
   defaultInterest = "reminders",
+  interestOptions = defaultInterestOptions,
   metadata = {},
+  footnote = "No spam and no selling your email. This is only for PeptiCalc feature updates.",
+  submitLabel = "Join list",
 }: {
   source: string;
   title?: string;
   description?: string;
   defaultInterest?: WaitlistInterest;
+  interestOptions?: WaitlistOption[];
   metadata?: Record<string, MetadataValue>;
+  footnote?: string;
+  submitLabel?: string;
 }) {
   const configured = isSupabaseConfigured();
   const [email, setEmail] = useState("");
@@ -182,13 +195,12 @@ export function WaitlistCapture({
           ) : (
             <CheckCircle2 size={16} aria-hidden="true" />
           )}
-          Join list
+          {submitLabel}
         </button>
       </form>
 
       <p className="mt-2 text-[11px] leading-4 text-slate-500">
-        No spam and no selling your email. This is only for PeptiCalc feature
-        updates.
+        {footnote}
       </p>
 
       {banner ? (

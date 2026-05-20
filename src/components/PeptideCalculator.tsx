@@ -16,8 +16,8 @@ import {
 import { usePathname, useSearchParams } from "next/navigation";
 import { trackEvent } from "@/lib/analytics";
 import { calculateDose, formatNumber } from "@/lib/calculations";
-import { WaitlistCapture } from "@/components/WaitlistCapture";
 import { PopularCalculators } from "@/components/PopularCalculators";
+import { ProEarlyAccess } from "@/components/ProEarlyAccess";
 import {
   createSavedCalculationDraft,
   savePendingCalculationDraft,
@@ -770,8 +770,9 @@ export function PeptideCalculator() {
                 onSave={handleSaveCalculation}
               />
 
-              <WaitlistCapture
-                source="calculator"
+              <ProEarlyAccess
+                source="calculator-pro"
+                placement="calculator-result"
                 metadata={waitlistMetadata}
               />
 
