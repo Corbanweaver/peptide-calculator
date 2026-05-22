@@ -16,12 +16,14 @@ Prescription-aware peptide calculator with:
 - protocol schedule builder
 - U.S. status-aware compound library
 - Supabase account authentication foundation
+- Stripe-backed Pro subscription tools
 
 ## Stack
 
 - Next.js 16 (App Router)
 - TypeScript + Tailwind CSS
 - Supabase Auth + Postgres
+- Stripe Checkout + Customer Portal
 - Vercel (primary frontend hosting)
 - Railway (optional app/backend service hosting)
 
@@ -44,6 +46,11 @@ cp .env.example .env.local
 - `NEXT_PUBLIC_SITE_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_PRO_PRICE_ID`
+- `STRIPE_WEBHOOK_SECRET`
+- `NEXT_PUBLIC_PRO_PRICE_LABEL`
 
 4. Start dev server:
 
@@ -60,6 +67,19 @@ npm run dev
    - configure your site URL to `https://peptidecalculator.co`
 4. Add project URL and publishable key into Vercel/Railway environment variables.
 
+## Stripe setup
+
+1. Create a Stripe product and recurring Price for PeptiCalc Pro.
+2. Add the Price ID as `STRIPE_PRO_PRICE_ID`.
+3. Add your Stripe secret key as `STRIPE_SECRET_KEY`.
+4. Configure a webhook endpoint at `/api/stripe/webhook` and subscribe it to:
+   - `checkout.session.completed`
+   - `customer.subscription.created`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+5. Add the webhook signing secret as `STRIPE_WEBHOOK_SECRET`.
+6. Configure the Stripe Customer Portal so Pro users can manage billing.
+
 ## Vercel setup
 
 1. Connect GitHub repo to Vercel.
@@ -67,6 +87,10 @@ npm run dev
    - `NEXT_PUBLIC_SITE_URL=https://peptidecalculator.co`
    - `NEXT_PUBLIC_SUPABASE_URL=...`
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...`
+   - `SUPABASE_SERVICE_ROLE_KEY=...`
+   - `STRIPE_SECRET_KEY=...`
+   - `STRIPE_PRO_PRICE_ID=...`
+   - `STRIPE_WEBHOOK_SECRET=...`
 3. Domains:
    - `peptidecalculator.co` connected to production
    - `www.peptidecalculator.co` as 308 redirect to apex
@@ -88,6 +112,9 @@ Account UI is available at `/account`:
 - create account
 - sign in
 - sign out
+- start a Pro subscription
+- manage Stripe billing
+- use Pro-only saved protocol notes, reminder plans, and printable sheets
 
 If Supabase env vars are missing, the page shows a configuration notice instead of crashing.
 

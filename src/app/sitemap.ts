@@ -43,6 +43,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.74,
     },
     {
+      url: `${siteUrl}/pro`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.72,
+    },
+    {
       url: `${siteUrl}/syringe-measurement-calculator`,
       lastModified: new Date(),
       changeFrequency: "monthly",

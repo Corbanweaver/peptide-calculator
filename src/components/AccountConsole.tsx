@@ -15,16 +15,23 @@ import {
   Calculator,
   CircleAlert,
   CircleCheckBig,
+  CreditCard,
   FileText,
   LoaderCircle,
   LogIn,
   LogOut,
   Printer,
   Save,
+  Sparkles,
   Trash2,
   UserPlus,
 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import {
+  formatBillingStatus,
+  getProPriceLabel,
+  hasProAccess,
+} from "@/lib/billing";
 import {
   clearPendingCalculationDraft,
   readPendingCalculationDraft,
@@ -48,6 +55,15 @@ type SavedCalculationRow = {
   start_date: string | null;
   schedule: unknown;
   created_at: string;
+};
+
+type BillingCustomerRow = {
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  stripe_price_id: string | null;
+  subscription_status: string;
+  subscription_cancel_at_period_end: boolean;
+  subscription_current_period_end: string | null;
 };
 
 type ProtocolDetailDraft = {
@@ -91,12 +107,22 @@ export function AccountConsole() {
   const [savedCalculations, setSavedCalculations] = useState<SavedCalculationRow[]>([]);
   const [loadingSaved, setLoadingSaved] = useState(false);
   const [savedError, setSavedError] = useState("");
+  const [billingStatus, setBillingStatus] = useState<BillingCustomerRow | null>(
+    null,
+  );
+  const [loadingBilling, setLoadingBilling] = useState(false);
+  const [billingError, setBillingError] = useState("");
+  const [billingAction, setBillingAction] = useState<
+    "checkout" | "portal" | null
+  >(null);
   const [importingPending, setImportingPending] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [updatingDetailsId, setUpdatingDetailsId] = useState<string | null>(null);
   const [detailDrafts, setDetailDrafts] = useState<
     Record<string, ProtocolDetailDraft>
   >({});
+  const proEnabled = hasProAccess(billingStatus?.subscription_status);
+  const proPriceLabel = getProPriceLabel();
 
   useEffect(() => {
     if (!supabase) {
@@ -158,6 +184,32 @@ export function AccountConsole() {
     setLoadingSaved(false);
   }, [supabase, user]);
 
+  const loadBillingStatus = useCallback(async () => {
+    if (!supabase || !user) {
+      return;
+    }
+
+    setLoadingBilling(true);
+    setBillingError("");
+
+    const { data, error } = await supabase
+      .from("billing_customers")
+      .select(
+        "stripe_customer_id, stripe_subscription_id, stripe_price_id, subscription_status, subscription_cancel_at_period_end, subscription_current_period_end",
+      )
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      setBillingError(error.message);
+      setBillingStatus(null);
+    } else {
+      setBillingStatus((data ?? null) as BillingCustomerRow | null);
+    }
+
+    setLoadingBilling(false);
+  }, [supabase, user]);
+
   useEffect(() => {
     if (!supabase || !user) {
       pendingImportUserId.current = null;
@@ -210,6 +262,53 @@ export function AccountConsole() {
     };
   }, [loadSavedCalculations, supabase, user]);
 
+  useEffect(() => {
+    if (!supabase || !user) {
+      return;
+    }
+
+    const loadTimer = window.setTimeout(() => {
+      void loadBillingStatus();
+    }, 0);
+
+    return () => window.clearTimeout(loadTimer);
+  }, [loadBillingStatus, supabase, user]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const checkoutStatus = params.get("checkout");
+
+    if (checkoutStatus === "success") {
+      const bannerTimer = window.setTimeout(() => {
+        setBanner({
+          tone: "success",
+          text: "Checkout complete. Stripe will unlock Pro as soon as the webhook finishes.",
+        });
+      }, 0);
+      const refreshTimer = window.setTimeout(() => {
+        void loadBillingStatus();
+      }, 2500);
+      return () => {
+        window.clearTimeout(bannerTimer);
+        window.clearTimeout(refreshTimer);
+      };
+    }
+
+    if (checkoutStatus === "canceled") {
+      const bannerTimer = window.setTimeout(() => {
+        setBanner({
+          tone: "error",
+          text: "Checkout was canceled. Your free account is still active.",
+        });
+      }, 0);
+      return () => window.clearTimeout(bannerTimer);
+    }
+  }, [loadBillingStatus]);
+
   if (!configured) {
     return (
       <div className="rounded-3xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 shadow-sm">
@@ -232,6 +331,57 @@ export function AccountConsole() {
     resetBanner();
     setPassword("");
     setShowCreateAccount(nextShowCreateAccount);
+  };
+
+  const openStripeFlow = async (action: "checkout" | "portal") => {
+    resetBanner();
+    setBillingAction(action);
+
+    try {
+      const response = await fetch(
+        action === "checkout" ? "/api/stripe/checkout" : "/api/stripe/portal",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body:
+            action === "checkout"
+              ? JSON.stringify({
+                  source: "account-console",
+                  placement: "account-billing-panel",
+                })
+              : undefined,
+        },
+      );
+      const data = (await response.json().catch(() => ({}))) as {
+        url?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !data.url) {
+        throw new Error(
+          data.error ||
+            (action === "checkout"
+              ? "Could not open Stripe Checkout."
+              : "Could not open the Stripe customer portal."),
+        );
+      }
+
+      trackEvent(action === "checkout" ? "pro_checkout_started" : "pro_portal_opened", {
+        source: "account-console",
+      });
+      window.location.assign(data.url);
+    } catch (error) {
+      setBanner({
+        tone: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Could not open Stripe billing.",
+      });
+      setBillingAction(null);
+    }
   };
 
   const handleSignIn = async (event: FormEvent<HTMLFormElement>) => {
@@ -304,6 +454,8 @@ export function AccountConsole() {
 
     setBanner({ tone: "success", text: "Signed out." });
     setSavedCalculations([]);
+    setBillingStatus(null);
+    setBillingError("");
     setBusyAction(null);
   };
 
@@ -345,6 +497,11 @@ export function AccountConsole() {
 
   const handleSaveProtocolDetails = async (id: string) => {
     if (!supabase) {
+      return;
+    }
+
+    if (!proEnabled) {
+      await openStripeFlow("checkout");
       return;
     }
 
@@ -412,6 +569,11 @@ export function AccountConsole() {
     calculation: SavedCalculationRow,
     detail: ProtocolDetailDraft,
   ) => {
+    if (!proEnabled) {
+      void openStripeFlow("checkout");
+      return;
+    }
+
     const printed = printProtocolSheet(calculation, detail);
 
     if (!printed) {
@@ -461,11 +623,33 @@ export function AccountConsole() {
                   Premium tools
                 </div>
                 <div className="mt-1 text-base font-semibold text-slate-950">
-                  Ready for launch
+                  {loadingBilling
+                    ? "Checking..."
+                    : proEnabled
+                      ? "Pro active"
+                      : formatBillingStatus(
+                          billingStatus?.subscription_status,
+                        )}
                 </div>
+                {billingStatus?.subscription_current_period_end ? (
+                  <div className="mt-1 text-xs leading-5 text-slate-500">
+                    Renews {formatSavedDate(billingStatus.subscription_current_period_end)}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
+
+          <ProBillingPanel
+            billingStatus={billingStatus}
+            billingError={billingError}
+            loadingBilling={loadingBilling}
+            billingAction={billingAction}
+            proEnabled={proEnabled}
+            proPriceLabel={proPriceLabel}
+            onCheckout={() => openStripeFlow("checkout")}
+            onPortal={() => openStripeFlow("portal")}
+          />
 
           <section className="rounded-3xl border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0fbff_62%,#fff7ed_100%)] p-4 shadow-[0_18px_55px_rgba(14,165,233,0.08)]">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -475,7 +659,8 @@ export function AccountConsole() {
                   Saved calculations
                 </div>
                 <p className="mt-1 text-sm leading-6 text-slate-600">
-                  Math snapshots you can reopen and edit later.
+                  Math snapshots are free. Pro adds notes, reminders, and
+                  printable protocol sheets.
                 </p>
               </div>
               <a
@@ -504,6 +689,35 @@ export function AccountConsole() {
               <div className="mt-4 flex items-center gap-2 text-sm text-slate-600">
                 <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
                 Loading saved calculations...
+              </div>
+            ) : null}
+
+            {!loadingSaved && savedCalculations.length && !proEnabled ? (
+              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-2">
+                  <Sparkles size={17} className="mt-0.5 shrink-0" aria-hidden="true" />
+                  <span>
+                    Upgrade to Pro to add protocol notes, reminder plans, and
+                    print-ready sheets to these saved calculations.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openStripeFlow("checkout")}
+                  disabled={billingAction === "checkout"}
+                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {billingAction === "checkout" ? (
+                    <LoaderCircle
+                      className="animate-spin"
+                      size={16}
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <CreditCard size={16} aria-hidden="true" />
+                  )}
+                  Upgrade
+                </button>
               </div>
             ) : null}
 
@@ -558,10 +772,25 @@ export function AccountConsole() {
                             onClick={() =>
                               handlePrintProtocolSheet(calculation, detailDraft)
                             }
-                            className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-white px-3 text-sm font-semibold text-sky-800 ring-1 ring-sky-100 transition hover:bg-sky-50 hover:text-slate-950"
+                            disabled={billingAction === "checkout"}
+                            className={`inline-flex h-9 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold ring-1 transition disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 ${
+                              proEnabled
+                                ? "bg-white text-sky-800 ring-sky-100 hover:bg-sky-50 hover:text-slate-950"
+                                : "bg-slate-950 text-white ring-slate-900 hover:bg-sky-800"
+                            }`}
                           >
-                            <Printer size={15} aria-hidden="true" />
-                            Print
+                            {billingAction === "checkout" && !proEnabled ? (
+                              <LoaderCircle
+                                className="animate-spin"
+                                size={15}
+                                aria-hidden="true"
+                              />
+                            ) : proEnabled ? (
+                              <Printer size={15} aria-hidden="true" />
+                            ) : (
+                              <Sparkles size={15} aria-hidden="true" />
+                            )}
+                            {proEnabled ? "Print" : "Pro print"}
                           </button>
                           <button
                             type="button"
@@ -582,6 +811,7 @@ export function AccountConsole() {
                           </button>
                         </div>
                       </div>
+                      {proEnabled ? (
                       <div className="mt-4 grid gap-3 rounded-2xl bg-[linear-gradient(135deg,#f8fbff_0%,#fff7ed_100%)] p-3 ring-1 ring-sky-100">
                         <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
                           <FileText size={16} aria-hidden="true" />
@@ -686,10 +916,16 @@ export function AccountConsole() {
                         </div>
                         <p className="text-xs leading-5 text-slate-500">
                           Reminder plans are saved with the calculation. Browser
-                          push notifications can be added later when the app
-                          moves into the paid reminder feature.
+                          push notifications can be added later as Pro reminder
+                          delivery expands.
                         </p>
                       </div>
+                      ) : (
+                        <ProLockedProtocolTools
+                          loading={billingAction === "checkout"}
+                          onCheckout={() => openStripeFlow("checkout")}
+                        />
+                      )}
                     </article>
                   );
                 })}
@@ -825,6 +1061,154 @@ export function AccountConsole() {
         </div>
       ) : null}
     </section>
+  );
+}
+
+function ProBillingPanel({
+  billingStatus,
+  billingError,
+  loadingBilling,
+  billingAction,
+  proEnabled,
+  proPriceLabel,
+  onCheckout,
+  onPortal,
+}: {
+  billingStatus: BillingCustomerRow | null;
+  billingError: string;
+  loadingBilling: boolean;
+  billingAction: "checkout" | "portal" | null;
+  proEnabled: boolean;
+  proPriceLabel: string;
+  onCheckout: () => void;
+  onPortal: () => void;
+}) {
+  const statusLabel = proEnabled
+    ? "Pro active"
+    : formatBillingStatus(billingStatus?.subscription_status);
+  const renewalLabel = billingStatus?.subscription_current_period_end
+    ? `${billingStatus.subscription_cancel_at_period_end ? "Ends" : "Renews"} ${formatSavedDate(
+        billingStatus.subscription_current_period_end,
+      )}`
+    : null;
+
+  return (
+    <section className="rounded-3xl border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#effcff_56%,#fff7ed_100%)] p-5 shadow-[0_18px_55px_rgba(14,165,233,0.08)]">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-950 text-white">
+              <Sparkles size={18} aria-hidden="true" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-slate-950">
+                PeptiCalc Pro
+              </div>
+              <div className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+                {loadingBilling ? "Checking billing" : statusLabel}
+              </div>
+            </div>
+            <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-sky-900 ring-1 ring-sky-100">
+              {proPriceLabel}
+            </span>
+          </div>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+            Pro unlocks printable protocol sheets, saved notes, and reminder
+            planning for repeat calculator workflows.
+          </p>
+          {renewalLabel ? (
+            <p className="mt-1 text-xs font-semibold text-slate-500">
+              {renewalLabel}
+            </p>
+          ) : null}
+          {billingError ? (
+            <p className="mt-2 text-xs font-semibold text-rose-700">
+              Billing status could not load: {billingError}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {proEnabled ? (
+            <button
+              type="button"
+              onClick={onPortal}
+              disabled={billingAction === "portal"}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            >
+              {billingAction === "portal" ? (
+                <LoaderCircle
+                  className="animate-spin"
+                  size={16}
+                  aria-hidden="true"
+                />
+              ) : (
+                <CreditCard size={16} aria-hidden="true" />
+              )}
+              Manage billing
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onCheckout}
+              disabled={billingAction === "checkout"}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            >
+              {billingAction === "checkout" ? (
+                <LoaderCircle
+                  className="animate-spin"
+                  size={16}
+                  aria-hidden="true"
+                />
+              ) : (
+                <CreditCard size={16} aria-hidden="true" />
+              )}
+              Upgrade to Pro
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProLockedProtocolTools({
+  loading,
+  onCheckout,
+}: {
+  loading: boolean;
+  onCheckout: () => void;
+}) {
+  return (
+    <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-2">
+          <Sparkles size={17} className="mt-0.5 shrink-0" aria-hidden="true" />
+          <div>
+            <div className="font-semibold text-slate-950">
+              Pro protocol tools
+            </div>
+            <p className="mt-1 text-sky-950/80">
+              Add notes, reminder plans, and printable protocol sheets to this
+              saved calculation.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onCheckout}
+          disabled={loading}
+          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+        >
+          {loading ? (
+            <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
+          ) : (
+            <CreditCard size={16} aria-hidden="true" />
+          )}
+          Upgrade
+        </button>
+      </div>
+    </div>
   );
 }
 

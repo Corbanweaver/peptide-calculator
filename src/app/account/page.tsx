@@ -24,17 +24,17 @@ const accountFeatures = [
   {
     icon: <FolderCheck size={20} />,
     title: "Saved calculations",
-    text: "Keep calculator setups, vial notes, and protocol drafts together once saving is turned on.",
+    text: "Keep calculator setups in one account and reopen them from any signed-in session.",
   },
   {
     icon: <CreditCard size={20} />,
     title: "Premium access",
-    text: "Billing can live here later for protocol tools, saved profiles, and advanced calculators.",
+    text: "Upgrade with Stripe Checkout and manage your subscription from the customer portal.",
   },
   {
     icon: <Bell size={20} />,
     title: "Reminders",
-    text: "Future reminders can help customers review labels, refill supplies, or revisit saved notes.",
+    text: "Pro accounts can add saved protocol notes, printable sheets, and reminder plans.",
   },
 ];
 
@@ -61,8 +61,8 @@ export default function AccountPage() {
                 Customer profile
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-slate-700">
-                Sign in so saved calculations, premium tools, and future
-                protocol drafts can attach to one secure customer profile.
+                Sign in so saved calculations, premium tools, and billing can
+                attach to one secure customer profile.
               </p>
             </div>
 
@@ -71,8 +71,8 @@ export default function AccountPage() {
                 <ShieldCheck size={18} className="text-sky-800" aria-hidden="true" />
                 Built for staged launch
               </div>
-              Accounts work now. Saving, billing, and premium protocol tools can
-              be added in layers without changing the simple calculator flow.
+              Accounts, billing, and Pro protocol tools are layered around the
+              free calculator so the core math stays quick.
             </div>
           </div>
         </header>

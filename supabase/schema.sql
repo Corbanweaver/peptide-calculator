@@ -41,6 +41,33 @@ create table if not exists public.waitlist_signups (
 create unique index if not exists waitlist_signups_email_interest_idx
 on public.waitlist_signups (lower(email), interest);
 
+create table if not exists public.billing_customers (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  stripe_customer_id text unique,
+  stripe_subscription_id text unique,
+  stripe_price_id text,
+  subscription_status text not null default 'inactive' check (
+    subscription_status in (
+      'inactive',
+      'incomplete',
+      'incomplete_expired',
+      'trialing',
+      'active',
+      'past_due',
+      'canceled',
+      'unpaid',
+      'paused'
+    )
+  ),
+  subscription_cancel_at_period_end boolean not null default false,
+  subscription_current_period_end timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists billing_customers_subscription_status_idx
+on public.billing_customers (subscription_status);
+
 create or replace function public.handle_profile_updated_at()
 returns trigger
 language plpgsql
@@ -80,9 +107,22 @@ create trigger trg_saved_protocols_updated_at
 before update on public.saved_protocols
 for each row execute function public.handle_profile_updated_at();
 
+drop trigger if exists trg_billing_customers_updated_at on public.billing_customers;
+create trigger trg_billing_customers_updated_at
+before update on public.billing_customers
+for each row execute function public.handle_profile_updated_at();
+
 alter table public.profiles enable row level security;
 alter table public.saved_protocols enable row level security;
 alter table public.waitlist_signups enable row level security;
+alter table public.billing_customers enable row level security;
+
+grant select, insert, update on public.profiles to authenticated;
+grant select, insert, update, delete on public.saved_protocols to authenticated;
+grant insert on public.waitlist_signups to anon, authenticated;
+grant select on public.waitlist_signups to authenticated;
+grant select on public.billing_customers to authenticated;
+grant all on public.billing_customers to service_role;
 
 drop policy if exists "profiles_select_own" on public.profiles;
 create policy "profiles_select_own"
@@ -125,8 +165,24 @@ create policy "protocols_update_own"
 on public.saved_protocols
 for update
 to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+using (
+  auth.uid() = user_id
+  and exists (
+    select 1
+    from public.billing_customers
+    where billing_customers.user_id = auth.uid()
+      and billing_customers.subscription_status in ('active', 'trialing')
+  )
+)
+with check (
+  auth.uid() = user_id
+  and exists (
+    select 1
+    from public.billing_customers
+    where billing_customers.user_id = auth.uid()
+      and billing_customers.subscription_status in ('active', 'trialing')
+  )
+);
 
 drop policy if exists "protocols_delete_own" on public.saved_protocols;
 create policy "protocols_delete_own"
@@ -145,6 +201,13 @@ with check (user_id is null or (select auth.uid()) = user_id);
 drop policy if exists "waitlist_select_own" on public.waitlist_signups;
 create policy "waitlist_select_own"
 on public.waitlist_signups
+for select
+to authenticated
+using ((select auth.uid()) = user_id);
+
+drop policy if exists "billing_customers_select_own" on public.billing_customers;
+create policy "billing_customers_select_own"
+on public.billing_customers
 for select
 to authenticated
 using ((select auth.uid()) = user_id);

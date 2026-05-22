@@ -9,6 +9,7 @@ import {
   FlaskConical,
   LoaderCircle,
   Plus,
+  Sparkles,
   UserCircle2,
   AlertTriangle,
   X,
@@ -537,6 +538,12 @@ export function PeptideCalculator() {
             active={isCalculatorRoute}
           />
           <IconTab
+            icon={<Sparkles size={20} />}
+            href="/pro"
+            label="PeptiCalc Pro"
+            active={pathname === "/pro"}
+          />
+          <IconTab
             icon={<FileText size={20} />}
             href="/disclaimer"
             label="Disclaimer"
@@ -812,6 +819,9 @@ export function PeptideCalculator() {
           <PopularCalculators className="mt-5" />
 
           <footer className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs font-medium text-sky-950/75">
+            <a href="/pro" className="hover:text-slate-950">
+              PeptiCalc Pro
+            </a>
             <a href="/privacy-policy" className="hover:text-slate-950">
               Privacy Policy
             </a>
@@ -838,7 +848,7 @@ function MobileTopNav({
   return (
     <nav
       aria-label="Primary mobile navigation"
-      className="sticky top-2 z-20 mt-3 grid grid-cols-3 gap-2 rounded-[24px] border border-sky-100 bg-white/85 p-2 shadow-[0_16px_45px_rgba(14,165,233,0.12)] backdrop-blur md:hidden"
+      className="sticky top-2 z-20 mt-3 grid grid-cols-4 gap-2 rounded-[24px] border border-sky-100 bg-white/85 p-2 shadow-[0_16px_45px_rgba(14,165,233,0.12)] backdrop-blur md:hidden"
     >
       <IconTab
         icon={<FlaskConical size={20} />}
@@ -851,6 +861,12 @@ function MobileTopNav({
         href="/calculator"
         label="Calculator"
         active={isCalculatorRoute}
+      />
+      <IconTab
+        icon={<Sparkles size={20} />}
+        href="/pro"
+        label="PeptiCalc Pro"
+        active={pathname === "/pro"}
       />
       <IconTab
         icon={<FileText size={20} />}
