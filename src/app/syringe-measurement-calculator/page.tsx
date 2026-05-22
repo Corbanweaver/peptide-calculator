@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowRight, Ruler, ShieldCheck } from "lucide-react";
+import { Ruler, ShieldCheck } from "lucide-react";
 import { SyringeMeasurementCalculator } from "@/components/SyringeMeasurementCalculator";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
 
 export const metadata: Metadata = {
-  title: "Free U-100 Syringe Measurement Calculator | PeptiCalc",
+  title: "Free U-100 Syringe Measurement Calculator",
   description:
     "Convert known label values into liquid volume and U-100 syringe marks. Free measurement calculator for mcg, mL, and syringe mark math.",
   keywords: [
@@ -70,7 +69,7 @@ export default function SyringeMeasurementCalculatorPage() {
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-slate-700">
                 Enter the amount on the label, total liquid volume, and target
-                amount. PeptiCalc shows the liquid volume and syringe mark in a
+                amount. This tool shows the liquid volume and syringe mark in a
                 clean visual format.
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
@@ -116,14 +115,9 @@ export default function SyringeMeasurementCalculatorPage() {
 
         <footer className="rounded-[26px] border border-sky-100 bg-white/90 p-5 text-sm leading-6 text-slate-600">
           <p>
-            Need the main calculator interface?{" "}
-            <Link
-              href="/calculator"
-              className="inline-flex items-center gap-1 font-semibold text-sky-900 underline-offset-4 hover:underline"
-            >
-              Open PeptiCalc
-              <ArrowRight size={14} aria-hidden="true" />
-            </Link>
+            This standalone calculator is for measurement math only. It does
+            not choose products, treatment plans, schedules, or personalized
+            instructions.
           </p>
         </footer>
       </div>
