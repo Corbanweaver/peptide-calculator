@@ -42,6 +42,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.74,
     },
+    {
+      url: `${siteUrl}/syringe-measurement-calculator`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.82,
+    },
     ...compoundSeoPages.map((page) => ({
       url: `${siteUrl}/peptides/${page.slug}`,
       lastModified: new Date(),
