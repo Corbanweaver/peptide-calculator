@@ -113,7 +113,7 @@ export function AccountConsole() {
   const [loadingBilling, setLoadingBilling] = useState(false);
   const [billingError, setBillingError] = useState("");
   const [billingAction, setBillingAction] = useState<
-    "checkout" | "portal" | null
+    "checkout" | "portal" | "sync" | null
   >(null);
   const [importingPending, setImportingPending] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -210,6 +210,61 @@ export function AccountConsole() {
     setLoadingBilling(false);
   }, [supabase, user]);
 
+  const syncBillingStatus = useCallback(
+    async ({ quiet = false }: { quiet?: boolean } = {}) => {
+      if (!user) {
+        return;
+      }
+
+      if (!quiet) {
+        setBillingAction("sync");
+        setBanner(null);
+      }
+
+      try {
+        const response = await fetch("/api/stripe/sync-billing", {
+          method: "POST",
+        });
+        const data = (await response.json().catch(() => ({}))) as {
+          error?: string;
+          pro?: boolean;
+          subscription_status?: string;
+        };
+
+        if (!response.ok) {
+          throw new Error(data.error || "Could not refresh Stripe billing.");
+        }
+
+        await loadBillingStatus();
+
+        if (!quiet) {
+          setBanner({
+            tone: "success",
+            text: data.pro
+              ? "Pro is active on this account."
+              : "Billing status refreshed.",
+          });
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Could not refresh Stripe billing.";
+
+        if (quiet) {
+          setBillingError(message);
+        } else {
+          setBanner({ tone: "error", text: message });
+        }
+      } finally {
+        if (!quiet) {
+          setBillingAction(null);
+        }
+      }
+    },
+    [loadBillingStatus, user],
+  );
+
   useEffect(() => {
     if (!supabase || !user) {
       pendingImportUserId.current = null;
@@ -286,14 +341,18 @@ export function AccountConsole() {
       const bannerTimer = window.setTimeout(() => {
         setBanner({
           tone: "success",
-          text: "Checkout complete. Stripe will unlock Pro as soon as the webhook finishes.",
+          text: "Checkout complete. Syncing your Pro access now.",
         });
       }, 0);
+      const syncTimer = window.setTimeout(() => {
+        void syncBillingStatus({ quiet: true });
+      }, 900);
       const refreshTimer = window.setTimeout(() => {
         void loadBillingStatus();
-      }, 2500);
+      }, 3500);
       return () => {
         window.clearTimeout(bannerTimer);
+        window.clearTimeout(syncTimer);
         window.clearTimeout(refreshTimer);
       };
     }
@@ -307,7 +366,7 @@ export function AccountConsole() {
       }, 0);
       return () => window.clearTimeout(bannerTimer);
     }
-  }, [loadBillingStatus]);
+  }, [loadBillingStatus, syncBillingStatus]);
 
   if (!configured) {
     return (
@@ -649,6 +708,7 @@ export function AccountConsole() {
             proPriceLabel={proPriceLabel}
             onCheckout={() => openStripeFlow("checkout")}
             onPortal={() => openStripeFlow("portal")}
+            onRefresh={() => syncBillingStatus()}
           />
 
           <section className="rounded-3xl border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0fbff_62%,#fff7ed_100%)] p-4 shadow-[0_18px_55px_rgba(14,165,233,0.08)]">
@@ -1073,15 +1133,17 @@ function ProBillingPanel({
   proPriceLabel,
   onCheckout,
   onPortal,
+  onRefresh,
 }: {
   billingStatus: BillingCustomerRow | null;
   billingError: string;
   loadingBilling: boolean;
-  billingAction: "checkout" | "portal" | null;
+  billingAction: "checkout" | "portal" | "sync" | null;
   proEnabled: boolean;
   proPriceLabel: string;
   onCheckout: () => void;
   onPortal: () => void;
+  onRefresh: () => void;
 }) {
   const statusLabel = proEnabled
     ? "Pro active"
@@ -1129,6 +1191,23 @@ function ProBillingPanel({
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={billingAction === "sync"}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-sky-800 ring-1 ring-sky-100 transition hover:bg-sky-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:text-slate-400"
+          >
+            {billingAction === "sync" ? (
+              <LoaderCircle
+                className="animate-spin"
+                size={16}
+                aria-hidden="true"
+              />
+            ) : (
+              <CircleCheckBig size={16} aria-hidden="true" />
+            )}
+            Refresh status
+          </button>
           {proEnabled ? (
             <button
               type="button"
