@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   title: "Free U-100 Syringe Measurement Calculator | PeptiCalc",
   description:
     "Convert known label values into liquid volume and U-100 syringe marks. Free measurement calculator for mcg, mL, and syringe mark math.",
+  keywords: [
+    "U-100 syringe calculator",
+    "syringe measurement calculator",
+    "mcg to mL calculator",
+    "syringe mark calculator",
+    "liquid measurement calculator",
+  ],
   alternates: {
     canonical: `${siteUrl}/syringe-measurement-calculator`,
   },
@@ -19,6 +26,12 @@ export const metadata: Metadata = {
       "Convert known label values into liquid volume and U-100 syringe marks.",
     url: `${siteUrl}/syringe-measurement-calculator`,
     type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Free U-100 Syringe Measurement Calculator",
+    description:
+      "Convert known label values into liquid volume and U-100 syringe marks.",
   },
 };
 
