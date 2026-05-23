@@ -186,30 +186,36 @@ export function AccountConsole() {
   }, [supabase, user]);
 
   const loadBillingStatus = useCallback(async () => {
-    if (!supabase || !user) {
+    if (!user) {
       return;
     }
 
     setLoadingBilling(true);
     setBillingError("");
 
-    const { data, error } = await supabase
-      .from("billing_customers")
-      .select(
-        "stripe_customer_id, stripe_subscription_id, stripe_price_id, subscription_status, subscription_cancel_at_period_end, subscription_current_period_end",
-      )
-      .eq("user_id", user.id)
-      .maybeSingle();
+    try {
+      const response = await fetch("/api/stripe/sync-billing", {
+        method: "GET",
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        billing_status?: BillingCustomerRow | null;
+        error?: string;
+      };
 
-    if (error) {
-      setBillingError(error.message);
+      if (!response.ok) {
+        throw new Error(data.error || "Could not load billing status.");
+      }
+
+      setBillingStatus(data.billing_status ?? null);
+    } catch (error) {
+      setBillingError(
+        error instanceof Error ? error.message : "Could not load billing status.",
+      );
       setBillingStatus(null);
-    } else {
-      setBillingStatus((data ?? null) as BillingCustomerRow | null);
     }
 
     setLoadingBilling(false);
-  }, [supabase, user]);
+  }, [user]);
 
   const syncBillingStatus = useCallback(
     async ({ quiet = false }: { quiet?: boolean } = {}) => {
@@ -225,8 +231,15 @@ export function AccountConsole() {
       try {
         const response = await fetch("/api/stripe/sync-billing", {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            session_id: getCheckoutSessionId(),
+          }),
         });
         const data = (await response.json().catch(() => ({}))) as {
+          billing_status?: BillingCustomerRow | null;
           error?: string;
           pro?: boolean;
           subscription_status?: string;
@@ -236,7 +249,7 @@ export function AccountConsole() {
           throw new Error(data.error || "Could not refresh Stripe billing.");
         }
 
-        await loadBillingStatus();
+        setBillingStatus(data.billing_status ?? null);
 
         if (!quiet) {
           setBanner({
@@ -263,7 +276,7 @@ export function AccountConsole() {
         }
       }
     },
-    [loadBillingStatus, user],
+    [user],
   );
 
   useEffect(() => {
@@ -319,7 +332,7 @@ export function AccountConsole() {
   }, [loadSavedCalculations, supabase, user]);
 
   useEffect(() => {
-    if (!supabase || !user) {
+    if (!user) {
       return;
     }
 
@@ -328,7 +341,7 @@ export function AccountConsole() {
     }, 0);
 
     return () => window.clearTimeout(loadTimer);
-  }, [loadBillingStatus, supabase, user]);
+  }, [loadBillingStatus, user]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -378,7 +391,6 @@ export function AccountConsole() {
     if (
       loadingBilling ||
       proEnabled ||
-      !billingStatus?.stripe_customer_id ||
       autoBillingSyncUserId.current === user.id
     ) {
       return;
@@ -387,7 +399,6 @@ export function AccountConsole() {
     autoBillingSyncUserId.current = user.id;
     void syncBillingStatus({ quiet: true });
   }, [
-    billingStatus?.stripe_customer_id,
     loadingBilling,
     proEnabled,
     syncBillingStatus,
@@ -1661,6 +1672,15 @@ function formatSavedDate(value: string) {
     day: "numeric",
     year: "numeric",
   }).format(date);
+}
+
+function getCheckoutSessionId() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const sessionId = new URLSearchParams(window.location.search).get("session_id");
+  return sessionId?.startsWith("cs_") ? sessionId : null;
 }
 
 function escapeHtml(value: string) {

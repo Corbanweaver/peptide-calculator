@@ -53,12 +53,7 @@ export async function POST(request: NextRequest) {
       existingBillingRow?.stripe_customer_id &&
       hasProAccess(existingBillingRow.subscription_status)
     ) {
-      const portalSession = await stripe.billingPortal.sessions.create({
-        customer: existingBillingRow.stripe_customer_id,
-        return_url: `${siteUrl}/account`,
-      });
-
-      return NextResponse.json({ url: portalSession.url });
+      return NextResponse.json({ url: `${siteUrl}/account?checkout=success` });
     }
 
     const stripeCustomerId =
@@ -84,6 +79,29 @@ export async function POST(request: NextRequest) {
       if (upsertError) {
         throw upsertError;
       }
+    }
+
+    const existingSubscription = await findActiveProSubscriptionForUser({
+      email: user.email,
+      priceId,
+      stripe,
+      stripeCustomerId,
+    });
+
+    if (existingSubscription) {
+      const existingSubscriptionCustomerId = getStripeCustomerId(
+        existingSubscription.customer,
+      );
+
+      await syncSubscriptionStatus({
+        admin,
+        priceId,
+        stripeCustomerId: existingSubscriptionCustomerId,
+        subscription: existingSubscription,
+        userId: user.id,
+      });
+
+      return NextResponse.json({ url: `${siteUrl}/account?checkout=success` });
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -144,6 +162,88 @@ async function createStripeCustomer(
   return customer.id;
 }
 
+async function findActiveProSubscriptionForUser({
+  email,
+  priceId,
+  stripe,
+  stripeCustomerId,
+}: {
+  email?: string | null;
+  priceId: string;
+  stripe: Stripe;
+  stripeCustomerId: string;
+}) {
+  const customerIds = new Set([stripeCustomerId]);
+
+  if (email) {
+    const matchingCustomers = await stripe.customers.list({
+      email,
+      limit: 10,
+    });
+
+    matchingCustomers.data.forEach((customer) => customerIds.add(customer.id));
+  }
+
+  const subscriptions = (
+    await Promise.all(
+      [...customerIds].map((customerId) =>
+        stripe.subscriptions.list({
+          customer: customerId,
+          limit: 10,
+          status: "all",
+        }),
+      ),
+    )
+  ).flatMap((result) => result.data);
+
+  return (
+    subscriptions.find(
+      (subscription) =>
+        subscription.items.data.some((item) => item.price.id === priceId) &&
+        hasProAccess(subscription.status),
+    ) ?? null
+  );
+}
+
+async function syncSubscriptionStatus({
+  admin,
+  priceId,
+  stripeCustomerId,
+  subscription,
+  userId,
+}: {
+  admin: ReturnType<typeof createAdminClient>;
+  priceId: string;
+  stripeCustomerId: string;
+  subscription: Stripe.Subscription;
+  userId: string;
+}) {
+  const firstItem =
+    subscription.items.data.find((item) => item.price.id === priceId) ??
+    subscription.items.data[0];
+  const { error } = await admin
+    .from("billing_customers")
+    .upsert(
+      {
+        user_id: userId,
+        stripe_customer_id: stripeCustomerId,
+        stripe_subscription_id: subscription.id,
+        stripe_price_id: firstItem?.price.id ?? null,
+        subscription_status: subscription.status,
+        subscription_cancel_at_period_end: subscription.cancel_at_period_end,
+        subscription_current_period_end: unixTimestampToIso(
+          firstItem?.current_period_end,
+        ),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    );
+
+  if (error) {
+    throw error;
+  }
+}
+
 async function readCheckoutContext(request: NextRequest) {
   try {
     const body = (await request.json()) as Record<string, unknown>;
@@ -167,4 +267,14 @@ function sanitizeMetadataValue(value: unknown, fallback: string) {
 
   const trimmedValue = value.trim();
   return trimmedValue ? trimmedValue.slice(0, 80) : fallback;
+}
+
+function getStripeCustomerId(
+  customer: string | Stripe.Customer | Stripe.DeletedCustomer,
+) {
+  return typeof customer === "string" ? customer : customer.id;
+}
+
+function unixTimestampToIso(value: number | null | undefined) {
+  return value ? new Date(value * 1000).toISOString() : null;
 }
