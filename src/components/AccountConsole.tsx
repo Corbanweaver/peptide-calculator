@@ -112,6 +112,7 @@ export function AccountConsole() {
     null,
   );
   const [loadingBilling, setLoadingBilling] = useState(false);
+  const [billingChecked, setBillingChecked] = useState(false);
   const [billingError, setBillingError] = useState("");
   const [billingAction, setBillingAction] = useState<
     "checkout" | "portal" | "sync" | null
@@ -123,6 +124,9 @@ export function AccountConsole() {
     Record<string, ProtocolDetailDraft>
   >({});
   const proEnabled = hasProAccess(billingStatus?.subscription_status);
+  const billingReady = billingChecked && !loadingBilling;
+  const billingPending = Boolean(user) && !billingReady && !proEnabled;
+  const canShowProUpsell = billingReady && !proEnabled;
   const proPriceLabel = getProPriceLabel();
 
   useEffect(() => {
@@ -142,6 +146,9 @@ export function AccountConsole() {
       }
 
       setUser(activeUser ?? null);
+      setBillingStatus(null);
+      setBillingError("");
+      setBillingChecked(false);
       setLoadingUser(false);
     };
 
@@ -152,6 +159,9 @@ export function AccountConsole() {
     } = supabase.auth.onAuthStateChange(
       (_event: AuthChangeEvent, session: Session | null) => {
         setUser(session?.user ?? null);
+        setBillingStatus(null);
+        setBillingError("");
+        setBillingChecked(false);
       },
     );
 
@@ -187,6 +197,7 @@ export function AccountConsole() {
 
   const loadBillingStatus = useCallback(async () => {
     if (!user) {
+      setBillingChecked(false);
       return;
     }
 
@@ -212,9 +223,10 @@ export function AccountConsole() {
         error instanceof Error ? error.message : "Could not load billing status.",
       );
       setBillingStatus(null);
+    } finally {
+      setBillingChecked(true);
+      setLoadingBilling(false);
     }
-
-    setLoadingBilling(false);
   }, [user]);
 
   const syncBillingStatus = useCallback(
@@ -250,6 +262,7 @@ export function AccountConsole() {
         }
 
         setBillingStatus(data.billing_status ?? null);
+        setBillingChecked(true);
 
         if (!quiet) {
           setBanner({
@@ -270,6 +283,7 @@ export function AccountConsole() {
         } else {
           setBanner({ tone: "error", text: message });
         }
+        setBillingChecked(true);
       } finally {
         if (!quiet) {
           setBillingAction(null);
@@ -389,6 +403,7 @@ export function AccountConsole() {
     }
 
     if (
+      !billingChecked ||
       loadingBilling ||
       proEnabled ||
       autoBillingSyncUserId.current === user.id
@@ -399,6 +414,7 @@ export function AccountConsole() {
     autoBillingSyncUserId.current = user.id;
     void syncBillingStatus({ quiet: true });
   }, [
+    billingChecked,
     loadingBilling,
     proEnabled,
     syncBillingStatus,
@@ -551,6 +567,7 @@ export function AccountConsole() {
     setBanner({ tone: "success", text: "Signed out." });
     setSavedCalculations([]);
     setBillingStatus(null);
+    setBillingChecked(false);
     setBillingError("");
     setBusyAction(null);
   };
@@ -597,6 +614,14 @@ export function AccountConsole() {
     }
 
     if (!proEnabled) {
+      if (billingPending) {
+        setBanner({
+          tone: "success",
+          text: "Checking Pro access. Try again in a moment.",
+        });
+        return;
+      }
+
       await openStripeFlow("checkout");
       return;
     }
@@ -666,6 +691,14 @@ export function AccountConsole() {
     detail: ProtocolDetailDraft,
   ) => {
     if (!proEnabled) {
+      if (billingPending) {
+        setBanner({
+          tone: "success",
+          text: "Checking Pro access. Try again in a moment.",
+        });
+        return;
+      }
+
       void openStripeFlow("checkout");
       return;
     }
@@ -719,7 +752,7 @@ export function AccountConsole() {
                   Premium tools
                 </div>
                 <div className="mt-1 text-base font-semibold text-slate-950">
-                  {loadingBilling
+                  {!billingReady
                     ? "Checking..."
                     : proEnabled
                       ? "Pro active"
@@ -739,7 +772,7 @@ export function AccountConsole() {
           <ProBillingPanel
             billingStatus={billingStatus}
             billingError={billingError}
-            loadingBilling={loadingBilling}
+            loadingBilling={!billingReady}
             billingAction={billingAction}
             proEnabled={proEnabled}
             proPriceLabel={proPriceLabel}
@@ -789,12 +822,12 @@ export function AccountConsole() {
               </div>
             ) : null}
 
-            {!loadingSaved && savedCalculations.length && !proEnabled ? (
+            {!loadingSaved && savedCalculations.length && canShowProUpsell ? (
               <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-2">
                   <Sparkles size={17} className="mt-0.5 shrink-0" aria-hidden="true" />
                   <span>
-                    Upgrade to Pro to add protocol notes, reminder plans, and
+                    Start Pro to add protocol notes, reminder plans, and
                     print-ready sheets to these saved calculations.
                   </span>
                 </div>
@@ -813,7 +846,7 @@ export function AccountConsole() {
                   ) : (
                     <CreditCard size={16} aria-hidden="true" />
                   )}
-                  Upgrade
+                  Start Pro
                 </button>
               </div>
             ) : null}
@@ -869,14 +902,17 @@ export function AccountConsole() {
                             onClick={() =>
                               handlePrintProtocolSheet(calculation, detailDraft)
                             }
-                            disabled={billingAction === "checkout"}
+                            disabled={billingAction === "checkout" || billingPending}
                             className={`inline-flex h-9 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold ring-1 transition disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 ${
                               proEnabled
                                 ? "bg-white text-sky-800 ring-sky-100 hover:bg-sky-50 hover:text-slate-950"
+                                : billingPending
+                                  ? "bg-white text-slate-500 ring-slate-200"
                                 : "bg-slate-950 text-white ring-slate-900 hover:bg-sky-800"
                             }`}
                           >
-                            {billingAction === "checkout" && !proEnabled ? (
+                            {billingPending ||
+                            (billingAction === "checkout" && !proEnabled) ? (
                               <LoaderCircle
                                 className="animate-spin"
                                 size={15}
@@ -887,7 +923,11 @@ export function AccountConsole() {
                             ) : (
                               <Sparkles size={15} aria-hidden="true" />
                             )}
-                            {proEnabled ? "Print" : "Pro print"}
+                            {proEnabled
+                              ? "Print"
+                              : billingPending
+                                ? "Checking"
+                                : "Pro print"}
                           </button>
                           <button
                             type="button"
@@ -1017,6 +1057,8 @@ export function AccountConsole() {
                           delivery expands.
                         </p>
                       </div>
+                      ) : billingPending ? (
+                        <ProStatusPendingProtocolTools />
                       ) : (
                         <ProLockedProtocolTools
                           loading={billingAction === "checkout"}
@@ -1263,7 +1305,7 @@ function ProBillingPanel({
               )}
               Manage billing
             </button>
-          ) : (
+          ) : loadingBilling ? null : (
             <button
               type="button"
               onClick={onCheckout}
@@ -1279,12 +1321,29 @@ function ProBillingPanel({
               ) : (
                 <CreditCard size={16} aria-hidden="true" />
               )}
-              Upgrade to Pro
+              Start Pro
             </button>
           )}
         </div>
       </div>
     </section>
+  );
+}
+
+function ProStatusPendingProtocolTools() {
+  return (
+    <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950">
+      <div className="flex items-center gap-2">
+        <LoaderCircle
+          className="animate-spin text-sky-800"
+          size={16}
+          aria-hidden="true"
+        />
+        <span className="font-semibold text-slate-950">
+          Checking Pro access
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -1321,7 +1380,7 @@ function ProLockedProtocolTools({
           ) : (
             <CreditCard size={16} aria-hidden="true" />
           )}
-          Upgrade
+          Start
         </button>
       </div>
     </div>

@@ -18,7 +18,7 @@ const priceLabel = getProPriceLabel();
 export const metadata: Metadata = {
   title: "PeptiCalc Pro | Paid Peptide Calculator Tools",
   description:
-    "Upgrade to PeptiCalc Pro for printable protocol sheets, saved notes, reminder planning, and advanced peptide calculator workflows.",
+    "PeptiCalc Pro adds printable protocol sheets, saved notes, reminder planning, and advanced peptide calculator workflows.",
   alternates: {
     canonical: `${siteUrl}/pro`,
   },

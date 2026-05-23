@@ -29,7 +29,7 @@ const accountFeatures = [
   {
     icon: <CreditCard size={20} />,
     title: "Premium access",
-    text: "Upgrade with Stripe Checkout and manage your subscription from the customer portal.",
+    text: "Use Stripe Checkout and manage your subscription from the customer portal.",
   },
   {
     icon: <Bell size={20} />,
