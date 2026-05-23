@@ -94,6 +94,7 @@ export function AccountConsole() {
   const configured = isSupabaseConfigured();
   const supabase = useMemo(() => (configured ? createClient() : null), [configured]);
   const pendingImportUserId = useRef<string | null>(null);
+  const autoBillingSyncUserId = useRef<string | null>(null);
 
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(configured);
@@ -367,6 +368,31 @@ export function AccountConsole() {
       return () => window.clearTimeout(bannerTimer);
     }
   }, [loadBillingStatus, syncBillingStatus]);
+
+  useEffect(() => {
+    if (!user) {
+      autoBillingSyncUserId.current = null;
+      return;
+    }
+
+    if (
+      loadingBilling ||
+      proEnabled ||
+      !billingStatus?.stripe_customer_id ||
+      autoBillingSyncUserId.current === user.id
+    ) {
+      return;
+    }
+
+    autoBillingSyncUserId.current = user.id;
+    void syncBillingStatus({ quiet: true });
+  }, [
+    billingStatus?.stripe_customer_id,
+    loadingBilling,
+    proEnabled,
+    syncBillingStatus,
+    user,
+  ]);
 
   if (!configured) {
     return (
