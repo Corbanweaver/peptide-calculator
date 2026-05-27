@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { GoogleAnalyticsPageView } from "@/components/GoogleAnalyticsPageView";
 import { PwaRegistration } from "@/components/PwaRegistration";
+import { googleAdsConversionId } from "@/lib/analytics";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,6 +20,7 @@ const geistMono = Geist_Mono({
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
+const googleTagId = gaMeasurementId || googleAdsConversionId;
 
 export const metadata: Metadata = {
   applicationName: "PeptiCalc",
@@ -98,21 +100,24 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <PwaRegistration />
-        {gaMeasurementId ? (
+        {googleTagId ? (
           <>
             <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+              src={`https://www.googletagmanager.com/gtag/js?id=${googleTagId}`}
               strategy="afterInteractive"
             />
             <Script id="google-analytics" strategy="afterInteractive">
               {`
                 window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${gaMeasurementId}');
+                window.gtag = window.gtag || function gtag(){window.dataLayer.push(arguments);}
+                window.gtag('js', new Date());
+                ${gaMeasurementId ? `window.gtag('config', '${gaMeasurementId}');` : ""}
+                ${googleAdsConversionId ? `window.gtag('config', '${googleAdsConversionId}');` : ""}
               `}
             </Script>
-            <GoogleAnalyticsPageView measurementId={gaMeasurementId} />
+            {gaMeasurementId ? (
+              <GoogleAnalyticsPageView measurementId={gaMeasurementId} />
+            ) : null}
           </>
         ) : null}
       </body>

@@ -26,7 +26,10 @@ import {
   Trash2,
   UserPlus,
 } from "lucide-react";
-import { trackEvent } from "@/lib/analytics";
+import {
+  trackEvent,
+  trackGoogleAdsSubscribeConversion,
+} from "@/lib/analytics";
 import {
   formatBillingStatus,
   getProPriceLabel,
@@ -64,6 +67,13 @@ type BillingCustomerRow = {
   subscription_status: string;
   subscription_cancel_at_period_end: boolean;
   subscription_current_period_end: string | null;
+};
+
+type SyncBillingResult = {
+  billing_status?: BillingCustomerRow | null;
+  error?: string;
+  pro?: boolean;
+  subscription_status?: string;
 };
 
 type ProtocolDetailDraft = {
@@ -232,7 +242,7 @@ export function AccountConsole() {
   const syncBillingStatus = useCallback(
     async ({ quiet = false }: { quiet?: boolean } = {}) => {
       if (!user) {
-        return;
+        return null;
       }
 
       if (!quiet) {
@@ -250,12 +260,7 @@ export function AccountConsole() {
             session_id: getCheckoutSessionId(),
           }),
         });
-        const data = (await response.json().catch(() => ({}))) as {
-          billing_status?: BillingCustomerRow | null;
-          error?: string;
-          pro?: boolean;
-          subscription_status?: string;
-        };
+        const data = (await response.json().catch(() => ({}))) as SyncBillingResult;
 
         if (!response.ok) {
           throw new Error(data.error || "Could not refresh Stripe billing.");
@@ -272,6 +277,8 @@ export function AccountConsole() {
               : "Billing status refreshed.",
           });
         }
+
+        return data;
       } catch (error) {
         const message =
           error instanceof Error
@@ -284,6 +291,7 @@ export function AccountConsole() {
           setBanner({ tone: "error", text: message });
         }
         setBillingChecked(true);
+        return null;
       } finally {
         if (!quiet) {
           setBillingAction(null);
@@ -366,6 +374,20 @@ export function AccountConsole() {
     const checkoutStatus = params.get("checkout");
 
     if (checkoutStatus === "success") {
+      const checkoutSessionId = getCheckoutSessionId();
+      let conversionRetryTimer: number | undefined;
+      const trackSubscribeConversion = (attempt = 0) => {
+        if (trackSubscribeConversionOnce(checkoutSessionId)) {
+          return;
+        }
+
+        if (attempt < 6) {
+          conversionRetryTimer = window.setTimeout(
+            () => trackSubscribeConversion(attempt + 1),
+            1000,
+          );
+        }
+      };
       const bannerTimer = window.setTimeout(() => {
         setBanner({
           tone: "success",
@@ -373,7 +395,11 @@ export function AccountConsole() {
         });
       }, 0);
       const syncTimer = window.setTimeout(() => {
-        void syncBillingStatus({ quiet: true });
+        void syncBillingStatus({ quiet: true }).then((data) => {
+          if (checkoutSessionId && data?.pro) {
+            trackSubscribeConversion();
+          }
+        });
       }, 900);
       const refreshTimer = window.setTimeout(() => {
         void loadBillingStatus();
@@ -381,6 +407,7 @@ export function AccountConsole() {
       return () => {
         window.clearTimeout(bannerTimer);
         window.clearTimeout(syncTimer);
+        window.clearTimeout(conversionRetryTimer);
         window.clearTimeout(refreshTimer);
       };
     }
@@ -1740,6 +1767,43 @@ function getCheckoutSessionId() {
 
   const sessionId = new URLSearchParams(window.location.search).get("session_id");
   return sessionId?.startsWith("cs_") ? sessionId : null;
+}
+
+function trackSubscribeConversionOnce(sessionId: string | null) {
+  if (typeof window === "undefined" || !sessionId) {
+    return false;
+  }
+
+  const storageKey = `pepticalc:google-ads-subscribe:${sessionId}`;
+
+  try {
+    if (window.localStorage.getItem(storageKey)) {
+      return true;
+    }
+  } catch {
+    // Google Ads can still dedupe through transaction_id when storage is blocked.
+  }
+
+  const tracked = trackGoogleAdsSubscribeConversion({
+    transactionId: sessionId,
+  });
+
+  if (!tracked) {
+    return false;
+  }
+
+  trackEvent("pro_checkout_completed", {
+    source: "stripe_checkout",
+    conversion: "google_ads_subscribe",
+  });
+
+  try {
+    window.localStorage.setItem(storageKey, new Date().toISOString());
+  } catch {
+    // Ignore storage failures; the conversion was already sent.
+  }
+
+  return true;
 }
 
 function escapeHtml(value: string) {
