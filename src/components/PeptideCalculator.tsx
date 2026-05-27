@@ -5,8 +5,10 @@ import {
   BookmarkPlus,
   Calculator,
   CheckCircle2,
+  CreditCard,
   FileText,
   FlaskConical,
+  LockKeyhole,
   LoaderCircle,
   Plus,
   Sparkles,
@@ -16,6 +18,7 @@ import {
 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { trackEvent } from "@/lib/analytics";
+import { getProPriceLabel } from "@/lib/billing";
 import { calculateDose, formatNumber } from "@/lib/calculations";
 import { PopularCalculators } from "@/components/PopularCalculators";
 import { ProEarlyAccess } from "@/components/ProEarlyAccess";
@@ -26,6 +29,7 @@ import {
 } from "@/lib/saved-calculations";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { useProBillingStatus } from "@/lib/use-pro-billing-status";
 
 type Choice = number | "other";
 type DoseInputUnit = "mcg" | "iu";
@@ -129,6 +133,15 @@ export function PeptideCalculator() {
   );
   const [savingCalculation, setSavingCalculation] = useState(false);
   const [saveBanner, setSaveBanner] = useState<SaveBanner | null>(null);
+  const [proCheckoutPlacement, setProCheckoutPlacement] = useState<string | null>(
+    null,
+  );
+  const {
+    loading: proStatusLoading,
+    proEnabled,
+    signedIn,
+  } = useProBillingStatus();
+  const proPriceLabel = getProPriceLabel();
 
   const vialAmount = Number(vialChoice === "other" ? vialOther : vialChoice);
   const vialMg = doseInputUnit === "iu" ? 0 : vialAmount;
@@ -247,7 +260,7 @@ export function PeptideCalculator() {
   );
   const splitBreakdown = useMemo(
     () =>
-      advancedSplitEnabled && result
+      advancedSplitEnabled && proEnabled && result
         ? buildSplitBreakdown(
             splitParts,
             result.doseMcg,
@@ -255,7 +268,14 @@ export function PeptideCalculator() {
             result.mcgPerSyringeUnit,
           )
         : [],
-    [advancedSplitEnabled, doseInputAmount, isIuMode, result, splitParts],
+    [
+      advancedSplitEnabled,
+      doseInputAmount,
+      isIuMode,
+      proEnabled,
+      result,
+      splitParts,
+    ],
   );
   const waitlistMetadata = useMemo(
     () => ({
@@ -381,6 +401,16 @@ export function PeptideCalculator() {
   }
 
   function handleAdvancedSplitToggle(enabled: boolean) {
+    if (enabled && !proEnabled) {
+      trackEvent("pro_gate_clicked", {
+        feature: "advanced_split",
+        placement: "calculator-advanced-split",
+        signed_in: signedIn,
+      });
+      void startProCheckout("calculator-advanced-split");
+      return;
+    }
+
     trackEvent("advanced_split_toggled", {
       enabled,
       split_count: splitParts.length,
@@ -429,9 +459,6 @@ export function PeptideCalculator() {
       return;
     }
 
-    setSavingCalculation(true);
-    setSaveBanner(null);
-
     const draft = createSavedCalculationDraft({
       compoundName: loadedPresetName,
       presetDetail: loadedPresetDetail,
@@ -451,6 +478,26 @@ export function PeptideCalculator() {
       splitParts,
       splitBreakdown,
     });
+
+    if (!proEnabled) {
+      savePendingCalculationDraft(draft);
+      setSaveBanner({
+        tone: "info",
+        text: "Saving calculations is a Pro feature. Start Pro to save this snapshot to your account.",
+        actionHref: "/pro",
+        actionLabel: "View Pro",
+      });
+      trackEvent("pro_gate_clicked", {
+        feature: "save_calculation",
+        placement: "calculator-save",
+        signed_in: signedIn,
+      });
+      void startProCheckout("calculator-save");
+      return;
+    }
+
+    setSavingCalculation(true);
+    setSaveBanner(null);
 
     if (!isSupabaseConfigured()) {
       savePendingCalculationDraft(draft);
@@ -518,6 +565,61 @@ export function PeptideCalculator() {
       });
     } finally {
       setSavingCalculation(false);
+    }
+  }
+
+  async function startProCheckout(placement: string) {
+    if (proStatusLoading || proCheckoutPlacement) {
+      return;
+    }
+
+    if (!signedIn) {
+      window.location.assign(`/account?upgrade=pro&from=${placement}`);
+      return;
+    }
+
+    setProCheckoutPlacement(placement);
+
+    try {
+      const response = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          source: "calculator-hard-paywall",
+          placement,
+          metadata: waitlistMetadata,
+        }),
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        url?: string;
+        error?: string;
+      };
+
+      if (response.status === 401) {
+        window.location.assign(`/account?upgrade=pro&from=${placement}`);
+        return;
+      }
+
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || "Could not start Stripe Checkout.");
+      }
+
+      trackEvent("pro_checkout_started", {
+        source: "calculator-hard-paywall",
+        placement,
+      });
+      window.location.assign(data.url);
+    } catch (error) {
+      setSaveBanner({
+        tone: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Could not start Stripe Checkout.",
+      });
+      setProCheckoutPlacement(null);
     }
   }
 
@@ -706,11 +808,18 @@ export function PeptideCalculator() {
                   parts={splitParts}
                   totalPercent={splitTotalPercent}
                   baseCompoundName={loadedPresetName}
+                  proEnabled={proEnabled}
+                  proLoading={proStatusLoading}
+                  proPriceLabel={proPriceLabel}
+                  checkoutLoading={
+                    proCheckoutPlacement === "calculator-advanced-split"
+                  }
                   onToggle={handleAdvancedSplitToggle}
                   onPartChange={updateSplitPart}
                   onAddPart={addSplitPart}
                   onRemovePart={removeSplitPart}
                   onApplyTemplate={applySplitTemplate}
+                  onStartPro={() => startProCheckout("calculator-advanced-split")}
                 />
               </div>
               </div>
@@ -774,7 +883,12 @@ export function PeptideCalculator() {
                 ready={hasReadyCalculation}
                 saving={savingCalculation}
                 banner={saveBanner}
+                proEnabled={proEnabled}
+                proLoading={proStatusLoading}
+                proPriceLabel={proPriceLabel}
+                checkoutLoading={proCheckoutPlacement === "calculator-save"}
                 onSave={handleSaveCalculation}
+                onStartPro={() => startProCheckout("calculator-save")}
               />
 
               <ProEarlyAccess
@@ -946,21 +1060,31 @@ function AdvancedSplitPanel({
   parts,
   totalPercent,
   baseCompoundName,
+  proEnabled,
+  proLoading,
+  proPriceLabel,
+  checkoutLoading,
   onToggle,
   onPartChange,
   onAddPart,
   onRemovePart,
   onApplyTemplate,
+  onStartPro,
 }: {
   enabled: boolean;
   parts: SplitPart[];
   totalPercent: number;
   baseCompoundName: string;
+  proEnabled: boolean;
+  proLoading: boolean;
+  proPriceLabel: string;
+  checkoutLoading: boolean;
   onToggle: (enabled: boolean) => void;
   onPartChange: (index: number, nextPart: Partial<SplitPart>) => void;
   onAddPart: () => void;
   onRemovePart: (index: number) => void;
   onApplyTemplate: (parts: SplitPart[]) => void;
+  onStartPro: () => void;
 }) {
   return (
     <section className="rounded-2xl border border-sky-100 bg-[linear-gradient(145deg,#ffffff_0%,#f3fbff_58%,#fff7ed_100%)] p-4 shadow-sm">
@@ -978,27 +1102,76 @@ function AdvancedSplitPanel({
           </p>
         </div>
 
-        <button
-          type="button"
-          aria-pressed={enabled}
-          onClick={() => onToggle(!enabled)}
-          className={`flex h-10 w-28 shrink-0 items-center rounded-full px-1 text-sm font-semibold transition ${
-            enabled ? "bg-sky-100 text-sky-950" : "bg-slate-100 text-slate-500"
-          }`}
-        >
-          <span
-            className={`grid h-8 w-14 place-items-center rounded-full transition ${
-              enabled
-                ? "translate-x-12 bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] text-white sm:translate-x-12"
-                : "translate-x-0 bg-white text-slate-600"
+        {proEnabled ? (
+          <button
+            type="button"
+            aria-pressed={enabled}
+            onClick={() => onToggle(!enabled)}
+            className={`flex h-10 w-28 shrink-0 items-center rounded-full px-1 text-sm font-semibold transition ${
+              enabled ? "bg-sky-100 text-sky-950" : "bg-slate-100 text-slate-500"
             }`}
           >
-            {enabled ? "On" : "Off"}
+            <span
+              className={`grid h-8 w-14 place-items-center rounded-full transition ${
+                enabled
+                  ? "translate-x-12 bg-[linear-gradient(135deg,#0f172a_0%,#075985_100%)] text-white sm:translate-x-12"
+                  : "translate-x-0 bg-white text-slate-600"
+              }`}
+            >
+              {enabled ? "On" : "Off"}
+            </span>
+          </button>
+        ) : (
+          <span className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white">
+            <LockKeyhole size={15} aria-hidden="true" />
+            Pro
           </span>
-        </button>
+        )}
       </div>
 
-      {enabled ? (
+      {!proEnabled ? (
+        <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50/90 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2 text-sm leading-6 text-sky-950">
+              <Sparkles
+                size={17}
+                className="mt-0.5 shrink-0"
+                aria-hidden="true"
+              />
+              <div>
+                <div className="font-semibold text-slate-950">
+                  Pro unlocks compound splits
+                </div>
+                <p className="mt-1 text-sky-950/80">
+                  Start Pro for {proPriceLabel} to unlock advanced split math
+                  while the free calculator stays simple.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onStartPro}
+              disabled={proLoading || checkoutLoading}
+              className="inline-flex h-10 min-w-[112px] shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            >
+              {proLoading || checkoutLoading ? (
+                <LoaderCircle
+                  className="animate-spin"
+                  size={16}
+                  aria-hidden="true"
+                />
+              ) : (
+                <CreditCard size={16} aria-hidden="true" />
+              )}
+              {checkoutLoading
+                ? "Opening Checkout"
+                : proLoading
+                  ? "Checking"
+                  : "Start Pro"}
+            </button>
+          </div>
+        </div>
+      ) : enabled ? (
         <div className="mt-4 grid gap-3">
           <datalist id="compound-split-options">
             {commonSplitCompounds.map((compound) => (
@@ -1983,37 +2156,74 @@ function SaveCalculationPanel({
   ready,
   saving,
   banner,
+  proEnabled,
+  proLoading,
+  proPriceLabel,
+  checkoutLoading,
   onSave,
+  onStartPro,
 }: {
   ready: boolean;
   saving: boolean;
   banner: SaveBanner | null;
+  proEnabled: boolean;
+  proLoading: boolean;
+  proPriceLabel: string;
+  checkoutLoading: boolean;
   onSave: () => void;
+  onStartPro: () => void;
 }) {
   return (
     <section className="mt-4 rounded-3xl border border-sky-100 bg-[linear-gradient(135deg,#ffffff_0%,#f0fbff_62%,#fff7ed_100%)] p-4 shadow-[0_18px_55px_rgba(14,165,233,0.08)]">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-slate-950">
-            Save this calculation
-          </h3>
+          <div className="flex items-center gap-2">
+            {!proEnabled ? (
+              <LockKeyhole size={16} className="text-sky-800" aria-hidden="true" />
+            ) : null}
+            <h3 className="text-sm font-semibold text-slate-950">
+              Save this calculation
+            </h3>
+          </div>
           <p className="mt-1 text-xs leading-5 text-slate-500">
-            Keep this math snapshot in your account so you can come back to it.
+            {proEnabled
+              ? "Keep this math snapshot in your account so you can come back to it."
+              : `Saving snapshots is a Pro feature for repeat workflows. Start Pro for ${proPriceLabel}.`}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onSave}
-          disabled={!ready || saving}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-        >
-          {saving ? (
-            <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
-          ) : (
-            <BookmarkPlus size={16} aria-hidden="true" />
-          )}
-          {saving ? "Saving" : "Save"}
-        </button>
+        {proEnabled ? (
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!ready || saving}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            {saving ? (
+              <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
+            ) : (
+              <BookmarkPlus size={16} aria-hidden="true" />
+            )}
+            {saving ? "Saving" : "Save"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onStartPro}
+            disabled={proLoading || checkoutLoading}
+            className="inline-flex h-10 min-w-[112px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            {proLoading || checkoutLoading ? (
+              <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
+            ) : (
+              <CreditCard size={16} aria-hidden="true" />
+            )}
+            {checkoutLoading
+              ? "Opening Checkout"
+              : proLoading
+                ? "Checking"
+                : "Start Pro"}
+          </button>
+        )}
       </div>
 
       {banner ? (

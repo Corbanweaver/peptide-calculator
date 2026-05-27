@@ -1,42 +1,49 @@
 import Link from "next/link";
 import { ArrowLeft, Calculator, ExternalLink, ShieldCheck } from "lucide-react";
 import type { SeoPage } from "@/lib/seo-pages";
+import {
+  breadcrumbJsonLd,
+  jsonLd,
+  webApplicationJsonLd,
+  webPageJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 
 export function SeoLandingPage({
   page,
   backHref,
   backLabel,
+  currentHref,
+  sectionLabel,
+  sectionHref,
 }: {
   page: SeoPage;
   backHref: string;
   backLabel: string;
+  currentHref: string;
+  sectionLabel: string;
+  sectionHref: string;
 }) {
-  const jsonLd = {
+  const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
-      {
-        "@type": "WebPage",
-        name: page.title,
+      websiteJsonLd(),
+      webPageJsonLd({
+        path: currentHref,
+        title: page.title,
         description: page.description,
-      },
-      {
-        "@type": "FAQPage",
-        mainEntity: page.faqs.map((faq) => ({
-          "@type": "Question",
-          name: faq.question,
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: faq.answer,
-          },
-        })),
-      },
-      {
-        "@type": "SoftwareApplication",
+      }),
+      breadcrumbJsonLd([
+        { name: "PeptiCalc", path: "/" },
+        { name: sectionLabel, path: sectionHref },
+        { name: page.shortTitle, path: currentHref },
+      ]),
+      webApplicationJsonLd({
+        path: currentHref,
         name: page.title,
         applicationCategory: "HealthApplication",
-        operatingSystem: "Web",
         description: page.description,
-      },
+      }),
     ],
   };
 
@@ -44,7 +51,7 @@ export function SeoLandingPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
       <main className="min-h-screen bg-[linear-gradient(135deg,#f8fbff_0%,#eef9ff_38%,#fff7fb_70%,#fffaf1_100%)] px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">

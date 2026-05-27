@@ -22,7 +22,7 @@ type ProBanner = {
 const proFeatures = [
   {
     icon: <FileText size={16} aria-hidden="true" />,
-    text: "Printable protocol sheets from saved calculator snapshots",
+    text: "Save calculator snapshots and reopen them later",
   },
   {
     icon: <Bell size={16} aria-hidden="true" />,
@@ -30,7 +30,7 @@ const proFeatures = [
   },
   {
     icon: <Sparkles size={16} aria-hidden="true" />,
-    text: "Priority access to advanced Pro tools as they ship",
+    text: "Advanced compound split math and Pro tools",
   },
 ];
 
@@ -255,8 +255,8 @@ function ProStatusShell({
             </span>
           </div>
           <p className="mt-1 text-xs leading-5 text-slate-500">
-            Saved protocol notes, printable sheets, reminders, and advanced
-            tools for repeat calculator workflows.
+            Saved snapshots, protocol notes, printable sheets, reminders, and
+            advanced split tools for repeat calculator workflows.
           </p>
         </div>
       </div>

@@ -34,7 +34,7 @@ let adminClient: ReturnType<typeof createSupabaseClient<AdminDatabase>> | null =
   null;
 
 export function isSupabaseAdminConfigured() {
-  return Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+  return Boolean(getSupabaseAdminKey());
 }
 
 export function createAdminClient() {
@@ -43,13 +43,15 @@ export function createAdminClient() {
   }
 
   const { url } = requireSupabaseEnv();
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  const adminKey = getSupabaseAdminKey();
 
-  if (!serviceRoleKey) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured.");
+  if (!adminKey) {
+    throw new Error(
+      "Supabase admin key is not configured. Set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY.",
+    );
   }
 
-  adminClient = createSupabaseClient<AdminDatabase>(url, serviceRoleKey, {
+  adminClient = createSupabaseClient<AdminDatabase>(url, adminKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -57,4 +59,11 @@ export function createAdminClient() {
   });
 
   return adminClient;
+}
+
+function getSupabaseAdminKey() {
+  return (
+    process.env.SUPABASE_SECRET_KEY?.trim() ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  );
 }

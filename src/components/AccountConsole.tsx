@@ -105,6 +105,7 @@ export function AccountConsole() {
   const supabase = useMemo(() => (configured ? createClient() : null), [configured]);
   const pendingImportUserId = useRef<string | null>(null);
   const autoBillingSyncUserId = useRef<string | null>(null);
+  const autoProCheckoutStartedUserId = useRef<string | null>(null);
 
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setLoadingUser] = useState(configured);
@@ -302,8 +303,92 @@ export function AccountConsole() {
   );
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (!user) {
+      autoProCheckoutStartedUserId.current = null;
+      return;
+    }
+
+    if (
+      !billingReady ||
+      proEnabled ||
+      billingAction ||
+      autoProCheckoutStartedUserId.current === user.id
+    ) {
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("upgrade") !== "pro") {
+      return;
+    }
+
+    let alive = true;
+    const placement = (params.get("from") || "account-upgrade").slice(0, 80);
+
+    autoProCheckoutStartedUserId.current = user.id;
+
+    const startCheckout = async () => {
+      try {
+        const response = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            source: "account-upgrade-redirect",
+            placement,
+          }),
+        });
+        const data = (await response.json().catch(() => ({}))) as {
+          url?: string;
+          error?: string;
+        };
+
+        if (!response.ok || !data.url) {
+          throw new Error(data.error || "Could not start Stripe Checkout.");
+        }
+
+        window.location.assign(data.url);
+      } catch (error) {
+        if (!alive) {
+          return;
+        }
+
+        setBanner({
+          tone: "error",
+          text:
+            error instanceof Error
+              ? error.message
+              : "Could not start Stripe Checkout.",
+        });
+        setBillingAction(null);
+      }
+    };
+
+    const checkoutTimer = window.setTimeout(() => {
+      setBanner(null);
+      setBillingAction("checkout");
+      void startCheckout();
+    }, 0);
+
+    return () => {
+      alive = false;
+      window.clearTimeout(checkoutTimer);
+    };
+  }, [billingAction, billingReady, proEnabled, user]);
+
+  useEffect(() => {
     if (!supabase || !user) {
       pendingImportUserId.current = null;
+      return;
+    }
+
+    if (!billingReady) {
       return;
     }
 
@@ -311,6 +396,22 @@ export function AccountConsole() {
 
     const importPendingAndLoad = async () => {
       const pendingDraft = readPendingCalculationDraft();
+
+      if (!proEnabled) {
+        setSavedCalculations([]);
+        setLoadingSaved(false);
+        setSavedError("");
+
+        if (pendingDraft && pendingImportUserId.current !== user.id) {
+          pendingImportUserId.current = user.id;
+          setBanner({
+            tone: "error",
+            text: "Start Pro to save your pending calculation to this account.",
+          });
+        }
+
+        return;
+      }
 
       if (pendingDraft && pendingImportUserId.current !== user.id) {
         pendingImportUserId.current = user.id;
@@ -351,7 +452,7 @@ export function AccountConsole() {
     return () => {
       alive = false;
     };
-  }, [loadSavedCalculations, supabase, user]);
+  }, [billingReady, loadSavedCalculations, proEnabled, supabase, user]);
 
   useEffect(() => {
     if (!user) {
@@ -769,9 +870,13 @@ export function AccountConsole() {
                   Saved calculations
                 </div>
                 <div className="mt-1 text-base font-semibold text-slate-950">
-                  {loadingSaved
-                    ? "Loading..."
-                    : `${savedCalculations.length} saved`}
+                  {!billingReady
+                    ? "Checking..."
+                    : !proEnabled
+                      ? "Pro locked"
+                      : loadingSaved
+                        ? "Loading..."
+                        : `${savedCalculations.length} saved`}
                 </div>
               </div>
               <div className="rounded-2xl bg-white/80 p-3 ring-1 ring-emerald-100">
@@ -816,8 +921,8 @@ export function AccountConsole() {
                   Saved calculations
                 </div>
                 <p className="mt-1 text-sm leading-6 text-slate-600">
-                  Math snapshots are free. Pro adds notes, reminders, and
-                  printable protocol sheets.
+                  Saved snapshots, notes, reminders, and printable sheets are
+                  Pro-only. The basic calculator stays free.
                 </p>
               </div>
               <a
@@ -849,13 +954,13 @@ export function AccountConsole() {
               </div>
             ) : null}
 
-            {!loadingSaved && savedCalculations.length && canShowProUpsell ? (
+            {canShowProUpsell ? (
               <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-2">
                   <Sparkles size={17} className="mt-0.5 shrink-0" aria-hidden="true" />
                   <span>
-                    Start Pro to add protocol notes, reminder plans, and
-                    print-ready sheets to these saved calculations.
+                    Start Pro to save calculations, add protocol notes, plan
+                    reminders, and print clean sheets.
                   </span>
                 </div>
                 <button
@@ -878,14 +983,14 @@ export function AccountConsole() {
               </div>
             ) : null}
 
-            {!loadingSaved && !savedCalculations.length && !savedError ? (
+            {!loadingSaved && proEnabled && !savedCalculations.length && !savedError ? (
               <div className="mt-4 rounded-2xl border border-dashed border-sky-200 bg-white/70 p-4 text-sm leading-6 text-slate-600">
                 Nothing saved yet. Use the calculator, press Save, and it will show
                 up here.
               </div>
             ) : null}
 
-            {savedCalculations.length ? (
+            {proEnabled && savedCalculations.length ? (
               <div className="mt-4 grid gap-3">
                 {savedCalculations.map((calculation) => {
                   const snapshot = getFirstScheduleRecord(calculation.schedule);
@@ -1281,8 +1386,8 @@ function ProBillingPanel({
             </span>
           </div>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-            Pro unlocks printable protocol sheets, saved notes, and reminder
-            planning for repeat calculator workflows.
+            Pro unlocks saved calculations, advanced compound splits, printable
+            sheets, notes, and reminder planning.
           </p>
           {renewalLabel ? (
             <p className="mt-1 text-xs font-semibold text-slate-500">

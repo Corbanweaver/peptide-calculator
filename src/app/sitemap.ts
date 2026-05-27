@@ -1,68 +1,66 @@
 import type { MetadataRoute } from "next";
 import { compoundSeoPages, toolSeoPages } from "@/lib/seo-pages";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
+import { absoluteUrl, sitemapLastModified } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: `${siteUrl}/`,
-      lastModified: new Date(),
+      url: absoluteUrl("/"),
+      lastModified: sitemapLastModified,
       changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: `${siteUrl}/disclaimer`,
-      lastModified: new Date(),
+      url: absoluteUrl("/disclaimer"),
+      lastModified: sitemapLastModified,
       changeFrequency: "yearly",
       priority: 0.8,
     },
     {
-      url: `${siteUrl}/privacy-policy`,
-      lastModified: new Date(),
+      url: absoluteUrl("/privacy-policy"),
+      lastModified: sitemapLastModified,
       changeFrequency: "yearly",
       priority: 0.4,
     },
     {
-      url: `${siteUrl}/terms-of-service`,
-      lastModified: new Date(),
+      url: absoluteUrl("/terms-of-service"),
+      lastModified: sitemapLastModified,
       changeFrequency: "yearly",
       priority: 0.4,
     },
     {
-      url: `${siteUrl}/peptides`,
-      lastModified: new Date(),
+      url: absoluteUrl("/peptides"),
+      lastModified: sitemapLastModified,
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
-      url: `${siteUrl}/tools`,
-      lastModified: new Date(),
+      url: absoluteUrl("/tools"),
+      lastModified: sitemapLastModified,
       changeFrequency: "monthly",
       priority: 0.74,
     },
     {
-      url: `${siteUrl}/pro`,
-      lastModified: new Date(),
+      url: absoluteUrl("/pro"),
+      lastModified: sitemapLastModified,
       changeFrequency: "monthly",
       priority: 0.72,
     },
     {
-      url: `${siteUrl}/syringe-measurement-calculator`,
-      lastModified: new Date(),
+      url: absoluteUrl("/syringe-measurement-calculator"),
+      lastModified: sitemapLastModified,
       changeFrequency: "monthly",
       priority: 0.82,
     },
     ...compoundSeoPages.map((page) => ({
-      url: `${siteUrl}/peptides/${page.slug}`,
-      lastModified: new Date(),
+      url: absoluteUrl(`/peptides/${page.slug}`),
+      lastModified: sitemapLastModified,
       changeFrequency: "monthly" as const,
       priority: 0.82,
     })),
     ...toolSeoPages.map((page) => ({
-      url: `${siteUrl}/tools/${page.slug}`,
-      lastModified: new Date(),
+      url: absoluteUrl(`/tools/${page.slug}`),
+      lastModified: sitemapLastModified,
       changeFrequency: "monthly" as const,
       priority: 0.84,
     })),

@@ -7,7 +7,13 @@ export function hasProAccess(status: string | null | undefined) {
 }
 
 export function getProPriceLabel() {
-  return process.env.NEXT_PUBLIC_PRO_PRICE_LABEL?.trim() || "$5/mo";
+  const priceLabel = process.env.NEXT_PUBLIC_PRO_PRICE_LABEL?.trim();
+
+  if (!priceLabel || !/\d/.test(priceLabel)) {
+    return "$5/mo";
+  }
+
+  return priceLabel;
 }
 
 export function formatBillingStatus(status: string | null | undefined) {

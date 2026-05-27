@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { Ruler, ShieldCheck } from "lucide-react";
 import { SyringeMeasurementCalculator } from "@/components/SyringeMeasurementCalculator";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  jsonLd,
+  webApplicationJsonLd,
+  webPageJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Free U-100 Syringe Measurement Calculator",
@@ -17,13 +22,13 @@ export const metadata: Metadata = {
     "liquid measurement calculator",
   ],
   alternates: {
-    canonical: `${siteUrl}/syringe-measurement-calculator`,
+    canonical: absoluteUrl("/syringe-measurement-calculator"),
   },
   openGraph: {
     title: "Free U-100 Syringe Measurement Calculator",
     description:
       "Convert known label values into liquid volume and U-100 syringe marks.",
-    url: `${siteUrl}/syringe-measurement-calculator`,
+    url: absoluteUrl("/syringe-measurement-calculator"),
     type: "website",
   },
   twitter: {
@@ -34,18 +39,31 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
+const syringeJsonLd = {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "U-100 Syringe Measurement Calculator",
-  applicationCategory: "UtilitiesApplication",
-  operatingSystem: "Web",
-  url: `${siteUrl}/syringe-measurement-calculator`,
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  "@graph": [
+    websiteJsonLd(),
+    webPageJsonLd({
+      path: "/syringe-measurement-calculator",
+      title: "Free U-100 Syringe Measurement Calculator",
+      description:
+        "Convert known label values into liquid volume and U-100 syringe marks. Free measurement calculator for mcg, mL, and syringe mark math.",
+    }),
+    breadcrumbJsonLd([
+      { name: "PeptiCalc", path: "/" },
+      {
+        name: "U-100 Syringe Measurement Calculator",
+        path: "/syringe-measurement-calculator",
+      },
+    ]),
+    webApplicationJsonLd({
+      path: "/syringe-measurement-calculator",
+      name: "U-100 Syringe Measurement Calculator",
+      applicationCategory: "UtilitiesApplication",
+      description:
+        "Convert known label values into liquid volume and U-100 syringe marks.",
+    }),
+  ],
 };
 
 export default function SyringeMeasurementCalculatorPage() {
@@ -53,7 +71,7 @@ export default function SyringeMeasurementCalculatorPage() {
     <main className="min-h-screen bg-[linear-gradient(135deg,#d8edf6_0%,#eaf8ff_38%,#fff9f0_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(syringeJsonLd) }}
       />
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
         <header className="relative overflow-hidden rounded-[32px] border border-sky-100 bg-white/95 p-6 shadow-[0_24px_80px_rgba(14,165,233,0.1)] sm:p-8">

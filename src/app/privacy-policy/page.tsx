@@ -2,16 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowLeft, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
+import { absoluteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | PeptiCalc",
   description:
     "Privacy policy for PeptiCalc, including analytics, account data, saved calculations, and contact information.",
   alternates: {
-    canonical: `${siteUrl}/privacy-policy`,
+    canonical: absoluteUrl("/privacy-policy"),
   },
 };
 

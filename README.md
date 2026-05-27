@@ -46,7 +46,7 @@ cp .env.example .env.local
 - `NEXT_PUBLIC_SITE_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_PRO_PRICE_ID`
 - `STRIPE_WEBHOOK_SECRET`
@@ -65,7 +65,7 @@ npm run dev
 3. In Supabase Auth settings:
    - enable Email auth
    - configure your site URL to `https://peptidecalculator.co`
-4. Add project URL and publishable key into Vercel/Railway environment variables.
+4. Add project URL, publishable key, and server-only secret/admin key into Vercel/Railway environment variables.
 
 ## Stripe setup
 
@@ -87,7 +87,7 @@ npm run dev
    - `NEXT_PUBLIC_SITE_URL=https://peptidecalculator.co`
    - `NEXT_PUBLIC_SUPABASE_URL=...`
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...`
-   - `SUPABASE_SERVICE_ROLE_KEY=...`
+   - `SUPABASE_SECRET_KEY=...` or `SUPABASE_SERVICE_ROLE_KEY=...`
    - `STRIPE_SECRET_KEY=...`
    - `STRIPE_PRO_PRICE_ID=...`
    - `STRIPE_WEBHOOK_SECRET=...`

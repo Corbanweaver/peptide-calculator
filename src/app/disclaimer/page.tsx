@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -9,11 +10,15 @@ import {
   Scale,
   ShieldCheck,
 } from "lucide-react";
+import { absoluteUrl } from "@/lib/seo";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Safety and Legal Policy | PeptiCalc",
   description:
     "Legal disclosure, safety policy, and source review standards for PeptiCalc.",
+  alternates: {
+    canonical: absoluteUrl("/disclaimer"),
+  },
 };
 
 const policies = [

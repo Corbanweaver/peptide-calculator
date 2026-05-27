@@ -5,9 +5,7 @@ import {
   compoundSeoPages,
   getCompoundSeoPage,
 } from "@/lib/seo-pages";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
+import { absoluteUrl } from "@/lib/seo";
 
 export function generateStaticParams() {
   return compoundSeoPages.map((page) => ({ slug: page.slug }));
@@ -29,12 +27,12 @@ export async function generateMetadata({
     title: `${page.title} | PeptiCalc`,
     description: page.description,
     alternates: {
-      canonical: `${siteUrl}/peptides/${page.slug}`,
+      canonical: absoluteUrl(`/peptides/${page.slug}`),
     },
     openGraph: {
       title: `${page.title} | PeptiCalc`,
       description: page.description,
-      url: `${siteUrl}/peptides/${page.slug}`,
+      url: absoluteUrl(`/peptides/${page.slug}`),
       type: "website",
     },
   };
@@ -57,6 +55,9 @@ export default async function CompoundSeoPage({
       page={page}
       backHref="/peptides"
       backLabel="Back to peptide library"
+      currentHref={`/peptides/${page.slug}`}
+      sectionLabel="Peptide library"
+      sectionHref="/peptides"
     />
   );
 }

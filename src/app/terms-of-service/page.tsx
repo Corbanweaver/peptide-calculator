@@ -2,16 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowLeft, CircleAlert, FileText, Scale, ShieldCheck } from "lucide-react";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
+import { absoluteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Terms of Service | PeptiCalc",
   description:
     "Terms of service for PeptiCalc, including calculator use, medical disclaimer, account responsibilities, and acceptable use.",
   alternates: {
-    canonical: `${siteUrl}/terms-of-service`,
+    canonical: absoluteUrl("/terms-of-service"),
   },
 };
 

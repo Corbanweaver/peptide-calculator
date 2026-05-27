@@ -3,29 +3,69 @@ import Link from "next/link";
 import { ArrowLeft, BookOpenCheck, ShieldCheck } from "lucide-react";
 import { PeptideLibrary } from "@/components/PeptideLibrary";
 import { PopularCalculators } from "@/components/PopularCalculators";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
+import { compoundSeoPages } from "@/lib/seo-pages";
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  jsonLd,
+  webPageJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Peptide Calculator Library: Preloaded Calculator Pages",
   description:
     "Choose preloaded peptide calculator pages for semaglutide, tirzepatide, BPC-157, TB-500, NAD+, B12, and MCG-to-units math.",
   alternates: {
-    canonical: `${siteUrl}/peptides`,
+    canonical: absoluteUrl("/peptides"),
   },
   openGraph: {
     title: "Peptide Calculator Library: Preloaded Calculator Pages",
     description:
       "Choose preloaded peptide calculator pages for semaglutide, tirzepatide, BPC-157, TB-500, NAD+, B12, and MCG-to-units math.",
-    url: `${siteUrl}/peptides`,
+    url: absoluteUrl("/peptides"),
     type: "website",
   },
+};
+
+const peptidesJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    websiteJsonLd(),
+    webPageJsonLd({
+      path: "/peptides",
+      title: "Peptide Calculator Library: Preloaded Calculator Pages",
+      description:
+        "Choose preloaded peptide calculator pages for semaglutide, tirzepatide, BPC-157, TB-500, NAD+, B12, and MCG-to-units math.",
+    }),
+    breadcrumbJsonLd([
+      { name: "PeptiCalc", path: "/" },
+      { name: "Peptide library", path: "/peptides" },
+    ]),
+    {
+      "@type": "CollectionPage",
+      name: "PeptiCalc peptide calculator library",
+      url: absoluteUrl("/peptides"),
+      mainEntity: {
+        "@type": "ItemList",
+        itemListElement: compoundSeoPages.map((page, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: page.title,
+          url: absoluteUrl(`/peptides/${page.slug}`),
+        })),
+      },
+    },
+  ],
 };
 
 export default function PeptidesPage() {
   return (
     <main className="min-h-screen bg-[linear-gradient(135deg,#f8fbff_0%,#eef9ff_38%,#fff7fb_70%,#fffaf1_100%)] px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(peptidesJsonLd) }}
+      />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <Link
           href="/calculator"

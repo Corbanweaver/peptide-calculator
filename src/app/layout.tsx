@@ -5,6 +5,7 @@ import Script from "next/script";
 import { GoogleAnalyticsPageView } from "@/components/GoogleAnalyticsPageView";
 import { PwaRegistration } from "@/components/PwaRegistration";
 import { googleAdsConversionId } from "@/lib/analytics";
+import { siteUrl } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,8 +18,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
 const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
 const googleTagId = gaMeasurementId || googleAdsConversionId;
 
@@ -60,6 +59,7 @@ export const metadata: Metadata = {
       "A simple peptide calculator for concentration, syringe marks, mg to mcg conversion, BAC water math, and editable reference presets.",
     locale: "en_US",
     siteName: "PeptiCalc",
+    url: siteUrl,
   },
   robots: {
     index: true,

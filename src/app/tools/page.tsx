@@ -2,29 +2,68 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Calculator, FlaskConical } from "lucide-react";
 import { toolSeoPages } from "@/lib/seo-pages";
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  jsonLd,
+  webPageJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Free Peptide Calculator Tools: MCG, BAC Water & Units",
   description:
     "Browse free peptide calculator tools for reconstitution, U-100 syringe units, mg to mcg, BAC water, and split-compound math.",
   alternates: {
-    canonical: `${siteUrl}/tools`,
+    canonical: absoluteUrl("/tools"),
   },
   openGraph: {
     title: "Free Peptide Calculator Tools: MCG, BAC Water & Units",
     description:
       "Browse free peptide calculator tools for reconstitution, U-100 syringe units, mg to mcg, BAC water, and split-compound math.",
-    url: `${siteUrl}/tools`,
+    url: absoluteUrl("/tools"),
     type: "website",
   },
+};
+
+const toolsJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    websiteJsonLd(),
+    webPageJsonLd({
+      path: "/tools",
+      title: "Free Peptide Calculator Tools: MCG, BAC Water & Units",
+      description:
+        "Browse free peptide calculator tools for reconstitution, U-100 syringe units, mg to mcg, BAC water, and split-compound math.",
+    }),
+    breadcrumbJsonLd([
+      { name: "PeptiCalc", path: "/" },
+      { name: "Calculator tools", path: "/tools" },
+    ]),
+    {
+      "@type": "CollectionPage",
+      name: "PeptiCalc calculator tools",
+      url: absoluteUrl("/tools"),
+      mainEntity: {
+        "@type": "ItemList",
+        itemListElement: toolSeoPages.map((page, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: page.title,
+          url: absoluteUrl(`/tools/${page.slug}`),
+        })),
+      },
+    },
+  ],
 };
 
 export default function ToolsPage() {
   return (
     <main className="min-h-screen bg-[linear-gradient(135deg,#e6f8ff_0%,#f4fbff_42%,#fff7fb_75%,#fffaf1_100%)] px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(toolsJsonLd) }}
+      />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <Link
           href="/calculator"

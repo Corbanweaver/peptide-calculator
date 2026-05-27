@@ -10,32 +10,56 @@ import {
 } from "lucide-react";
 import { ProEarlyAccess } from "@/components/ProEarlyAccess";
 import { getProPriceLabel } from "@/lib/billing";
+import {
+  absoluteUrl,
+  breadcrumbJsonLd,
+  jsonLd,
+  proServiceJsonLd,
+  webPageJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co";
 const priceLabel = getProPriceLabel();
 
 export const metadata: Metadata = {
   title: "PeptiCalc Pro | Paid Peptide Calculator Tools",
   description:
-    "PeptiCalc Pro adds printable protocol sheets, saved notes, reminder planning, and advanced peptide calculator workflows.",
+    "PeptiCalc Pro adds saved calculations, advanced compound splits, printable protocol sheets, saved notes, and reminder planning.",
   alternates: {
-    canonical: `${siteUrl}/pro`,
+    canonical: absoluteUrl("/pro"),
   },
   openGraph: {
     title: "PeptiCalc Pro",
     description:
-      "Printable sheets, saved notes, reminder planning, and advanced calculator workflows for PeptiCalc users.",
-    url: `${siteUrl}/pro`,
+      "Saved calculations, advanced compound splits, printable sheets, saved notes, and reminder planning for PeptiCalc users.",
+    url: absoluteUrl("/pro"),
     type: "website",
   },
+};
+
+const proJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    websiteJsonLd(),
+    webPageJsonLd({
+      path: "/pro",
+      title: "PeptiCalc Pro | Paid Peptide Calculator Tools",
+      description:
+        "PeptiCalc Pro adds saved calculations, advanced compound splits, printable protocol sheets, saved notes, and reminder planning.",
+    }),
+    breadcrumbJsonLd([
+      { name: "PeptiCalc", path: "/" },
+      { name: "PeptiCalc Pro", path: "/pro" },
+    ]),
+    proServiceJsonLd({ priceLabel }),
+  ],
 };
 
 const proFeatures = [
   {
     icon: <FileText size={20} aria-hidden="true" />,
-    title: "Printable sheets",
-    text: "Turn a saved calculator result into a clean protocol sheet with dose math, vial notes, and safety context.",
+    title: "Saved calculations",
+    text: "Save calculator snapshots to your account and reopen repeat workflows without rebuilding the same setup.",
   },
   {
     icon: <Bell size={20} aria-hidden="true" />,
@@ -44,14 +68,18 @@ const proFeatures = [
   },
   {
     icon: <Calculator size={20} aria-hidden="true" />,
-    title: "Advanced workflows",
-    text: "Keep deeper tools close to your saved calculations instead of rebuilding the same setup every time.",
+    title: "Advanced splits",
+    text: "Split one dose across mixed compounds and see the per-compound breakdown in the calculator result.",
   },
 ];
 
 export default function ProPage() {
   return (
     <main className="min-h-screen bg-[linear-gradient(135deg,#f8fbff_0%,#eefbff_42%,#fff7ed_100%)] px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(proJsonLd) }}
+      />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <Link
           href="/calculator"
@@ -74,8 +102,9 @@ export default function ProPage() {
                 PeptiCalc Pro
               </h1>
               <p className="mt-3 max-w-2xl text-base leading-7 text-slate-700">
-                A paid workspace for people who save calculations, print sheets,
-                and keep repeat protocol notes organized around the calculator.
+                A paid workspace for people who save calculations, use compound
+                splits, print sheets, and keep repeat protocol notes organized
+                around the calculator.
               </p>
               <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1.5 ring-1 ring-sky-100">
