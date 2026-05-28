@@ -8,9 +8,19 @@ const popularCalculators = [
     href: "/peptides/semaglutide-calculator",
   },
   {
+    label: "Semaglutide reconstitution",
+    detail: "BAC water and dose math",
+    href: "/tools/semaglutide-reconstitution-calculator",
+  },
+  {
     label: "Tirzepatide calculator",
     detail: "Free syringe mark calculator",
     href: "/peptides/tirzepatide-calculator",
+  },
+  {
+    label: "Tirzepatide reconstitution",
+    detail: "BAC water and dose math",
+    href: "/tools/tirzepatide-reconstitution-calculator",
   },
   {
     label: "Retatrutide calculator",

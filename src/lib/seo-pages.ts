@@ -702,6 +702,7 @@ export const compoundSeoPages: SeoPage[] = [
       ...sharedCalculatorFaqs,
     ],
     related: [
+      { label: "Semaglutide reconstitution calculator", href: "/tools/semaglutide-reconstitution-calculator" },
       { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
       { label: "Reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
       { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
@@ -755,6 +756,7 @@ export const compoundSeoPages: SeoPage[] = [
       ...sharedCalculatorFaqs,
     ],
     related: [
+      { label: "Tirzepatide reconstitution calculator", href: "/tools/tirzepatide-reconstitution-calculator" },
       { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
       { label: "Reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
       { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
@@ -820,6 +822,124 @@ export const toolSeoPages: SeoPage[] = [
       { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
       { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
       { label: "CagriSema calculator", href: "/peptides/cagrisema-calculator" },
+    ],
+  },
+  {
+    slug: "semaglutide-reconstitution-calculator",
+    title: "Free Semaglutide Reconstitution Calculator",
+    shortTitle: "Semaglutide reconstitution",
+    eyebrow: "Semaglutide BAC water math",
+    description:
+      "Calculate semaglutide concentration, mL to draw, and U-100 syringe marks after entering vial amount, BAC water, and a known dose. Math only.",
+    searchPhrase: "semaglutide reconstitution calculator",
+    ctaLabel: "Calculate semaglutide reconstitution",
+    calculatorHref:
+      "/calculator?compound=Semaglutide&preset=Semaglutide+reconstitution+example&presetType=reference&vialMg=5&waterMl=2&doseMcg=250",
+    sourceLabel: "DailyMed Wegovy label",
+    sourceUrl:
+      "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=ee06186f-2aa3-4990-a760-757579d8f77b",
+    example: makeSeoExample({
+      name: "Semaglutide reconstitution",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example shows how a known semaglutide amount changes after BAC water is entered. It converts the known dose into concentration, liquid volume, and a U-100 syringe mark.",
+    }),
+    sections: [
+      {
+        title: "What this page does",
+        body:
+          "This semaglutide reconstitution calculator starts with known values: vial strength, BAC water volume, and dose amount. It then calculates concentration, mL to draw, and U-100 syringe marks.",
+      },
+      {
+        title: "Why results vary",
+        body:
+          "The syringe mark changes when the vial amount or BAC water amount changes. A 0.25 mg reference amount can land on different marks depending on concentration.",
+      },
+      {
+        title: "Safety limit",
+        body:
+          "DailyMed labeling for Wegovy describes semaglutide product instructions. Use this calculator only for measurement math from a product label, pharmacy, or licensed prescriber; it does not create a protocol.",
+      },
+    ],
+    faqs: [
+      {
+        question: "How much BAC water do I add to semaglutide?",
+        answer:
+          "PeptiCalc does not choose a BAC water amount. Enter the exact diluent volume from the product label, pharmacy, or licensed prescriber, then the calculator handles the math.",
+      },
+      {
+        question: "How many units is 0.25 mg semaglutide after reconstitution?",
+        answer:
+          "It depends on vial strength and BAC water volume. In this example, 5 mg mixed with 2 mL and a 0.25 mg dose lands on the 10th U-100 mark.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
+      { label: "Semaglutide units calculator", href: "/tools/semaglutide-units-calculator" },
+      { label: "GLP-1 dose calculator", href: "/tools/glp-1-dose-calculator" },
+      { label: "Peptide reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
+    ],
+  },
+  {
+    slug: "tirzepatide-reconstitution-calculator",
+    title: "Free Tirzepatide Reconstitution Calculator",
+    shortTitle: "Tirzepatide reconstitution",
+    eyebrow: "Tirzepatide BAC water math",
+    description:
+      "Calculate tirzepatide concentration, mL to draw, and U-100 syringe marks after entering vial amount, BAC water, and a known dose. Math only.",
+    searchPhrase: "tirzepatide reconstitution calculator",
+    ctaLabel: "Calculate tirzepatide reconstitution",
+    calculatorHref:
+      "/calculator?compound=Tirzepatide&preset=Tirzepatide+reconstitution+example&presetType=reference&vialMg=10&waterMl=2&doseMcg=2500",
+    sourceLabel: "DailyMed Zepbound label",
+    sourceUrl:
+      "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=487cd7e7-434c-4925-99fa-aa80b1cc776b",
+    example: makeSeoExample({
+      name: "Tirzepatide reconstitution",
+      vialMg: 10,
+      waterMl: 2,
+      doseMcg: 2500,
+      context:
+        "This example shows how a known tirzepatide amount becomes concentration, liquid volume, and a U-100 syringe mark after the vial and BAC water values are entered.",
+    }),
+    sections: [
+      {
+        title: "What this page does",
+        body:
+          "This tirzepatide reconstitution calculator starts with known values: vial strength, BAC water volume, and dose amount. It then calculates concentration, mL to draw, and U-100 syringe marks.",
+      },
+      {
+        title: "Why results vary",
+        body:
+          "The syringe mark changes when the vial amount or BAC water amount changes. A 2.5 mg reference amount can land on different marks depending on concentration.",
+      },
+      {
+        title: "Safety limit",
+        body:
+          "DailyMed labeling for Zepbound describes tirzepatide product instructions. Use this calculator only for measurement math from a product label, pharmacy, or licensed prescriber; it does not create a protocol.",
+      },
+    ],
+    faqs: [
+      {
+        question: "How much BAC water do I add to tirzepatide?",
+        answer:
+          "PeptiCalc does not choose a BAC water amount. Enter the exact diluent volume from the product label, pharmacy, or licensed prescriber, then the calculator handles the math.",
+      },
+      {
+        question: "How many units is 2.5 mg tirzepatide after reconstitution?",
+        answer:
+          "It depends on vial strength and BAC water volume. In this example, 10 mg mixed with 2 mL and a 2.5 mg dose lands on the 50th U-100 mark.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
+      { label: "Tirzepatide units calculator", href: "/tools/tirzepatide-units-calculator" },
+      { label: "GLP-1 dose calculator", href: "/tools/glp-1-dose-calculator" },
+      { label: "Peptide reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
     ],
   },
   {
