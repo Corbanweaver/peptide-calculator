@@ -23,6 +23,11 @@ const popularCalculators = [
     href: "/peptides/cagrilintide-calculator",
   },
   {
+    label: "CagriSema calculator",
+    detail: "Combination math only",
+    href: "/peptides/cagrisema-calculator",
+  },
+  {
     label: "MCG to units calculator",
     detail: "U-100 syringe converter",
     href: "/tools/mcg-to-units-calculator",

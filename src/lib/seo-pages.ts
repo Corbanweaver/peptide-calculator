@@ -97,6 +97,8 @@ const fdaGlp1ConcernsUrl =
   "https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss";
 const lillyRetatrutideStatusUrl =
   "https://www.lilly.com/news/stories/what-to-know-about-retatrutide";
+const novoQ12026InvestorPresentationUrl =
+  "https://www.novonordisk.com/content/dam/nncorp/global/en/investors/pdfs/financial-results/2026/Q1-2026-investor-presentation.pdf";
 
 const additionalCompoundSeoSeeds: CompoundSeoSeed[] = [
   {
@@ -267,6 +269,7 @@ const mathOnlyCompoundSeoSeeds: MathOnlyCompoundSeoSeed[] = [
     exampleWaterMl: 2,
     exampleDoseMcg: 250,
     related: [
+      { label: "CagriSema calculator", href: "/peptides/cagrisema-calculator" },
       { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
       { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
       { label: "Cagrilintide calculator", href: "/peptides/cagrilintide-calculator" },
@@ -287,9 +290,30 @@ const mathOnlyCompoundSeoSeeds: MathOnlyCompoundSeoSeed[] = [
     exampleWaterMl: 2,
     exampleDoseMcg: 250,
     related: [
+      { label: "CagriSema calculator", href: "/peptides/cagrisema-calculator" },
       { label: "Retatrutide calculator", href: "/peptides/retatrutide-calculator" },
       { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
       { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+    ],
+  },
+  {
+    slug: "cagrisema-calculator",
+    name: "CagriSema",
+    description:
+      "Open a math-only CagriSema calculator page for editable cagrilintide/semaglutide vial math, concentration, and syringe marks.",
+    sourceLabel: "Novo Nordisk Q1 2026 pipeline update",
+    sourceUrl: novoQ12026InvestorPresentationUrl,
+    regulatoryNote:
+      "Novo Nordisk describes CagriSema as cagrilintide 2.4 mg plus semaglutide 2.4 mg in its Q1 2026 investor materials. FDA says cagrilintide is not a component of an FDA-approved drug, has not been found safe and effective for any condition, and cannot be used in compounding under federal law. This page is not a CagriSema protocol or approval claim.",
+    searchAngle:
+      "CagriSema calculator searches are high-intent because users are looking for combination GLP-1/amylin measurement math. This page gives Google a focused, safety-limited calculator result instead of sending that traffic to a generic calculator.",
+    exampleVialMg: 5,
+    exampleWaterMl: 2,
+    exampleDoseMcg: 250,
+    related: [
+      { label: "Cagrilintide calculator", href: "/peptides/cagrilintide-calculator" },
+      { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
+      { label: "Retatrutide calculator", href: "/peptides/retatrutide-calculator" },
     ],
   },
   {

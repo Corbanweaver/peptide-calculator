@@ -50,6 +50,7 @@ const profileGuideSlugs: Record<string, string> = {
   Tirzepatide: "tirzepatide-calculator",
   Retatrutide: "retatrutide-calculator",
   Cagrilintide: "cagrilintide-calculator",
+  CagriSema: "cagrisema-calculator",
   Liraglutide: "liraglutide-calculator",
   Dulaglutide: "dulaglutide-calculator",
   Exenatide: "exenatide-calculator",
@@ -149,6 +150,19 @@ const profiles: CompoundProfile[] = [
     sourceLabel: "Investigational status",
     protocolState:
       "No dosing preset is provided until an approved product label is available.",
+  },
+  {
+    name: "CagriSema",
+    category: "Trending",
+    status: "Investigational",
+    tone: "cyan",
+    summary:
+      "Investigational combination of cagrilintide and semaglutide discussed in Novo Nordisk pipeline materials.",
+    usefulFor: ["Trending", "Combination GLP-1", "No public preset"],
+    referenceDose: "No public calculator preset.",
+    sourceLabel: "Novo Nordisk pipeline status",
+    protocolState:
+      "No dosing preset is provided because there is no approved consumer product label to load.",
   },
   {
     name: "Liraglutide",
