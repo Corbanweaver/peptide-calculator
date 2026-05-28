@@ -13,6 +13,11 @@ const popularCalculators = [
     href: "/tools/semaglutide-reconstitution-calculator",
   },
   {
+    label: "Semaglutide dosage",
+    detail: "Known dose to syringe mark",
+    href: "/tools/semaglutide-dosage-calculator",
+  },
+  {
     label: "Tirzepatide calculator",
     detail: "Free syringe mark calculator",
     href: "/peptides/tirzepatide-calculator",
@@ -21,6 +26,11 @@ const popularCalculators = [
     label: "Tirzepatide reconstitution",
     detail: "BAC water and dose math",
     href: "/tools/tirzepatide-reconstitution-calculator",
+  },
+  {
+    label: "Tirzepatide dosage",
+    detail: "Known dose to syringe mark",
+    href: "/tools/tirzepatide-dosage-calculator",
   },
   {
     label: "Retatrutide calculator",
@@ -46,6 +56,21 @@ const popularCalculators = [
     label: "GLP-1 reconstitution",
     detail: "BAC water to syringe mark",
     href: "/tools/glp-1-reconstitution-calculator",
+  },
+  {
+    label: "GLP-1 units calculator",
+    detail: "U-100 GLP-1 conversion",
+    href: "/tools/glp-1-units-calculator",
+  },
+  {
+    label: "BAC water mixing",
+    detail: "Mixing to concentration math",
+    href: "/tools/bac-water-mixing-calculator",
+  },
+  {
+    label: "Compound peptide calculator",
+    detail: "Known dose and vial math",
+    href: "/tools/compound-peptide-calculator",
   },
   {
     label: "MCG to units calculator",

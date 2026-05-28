@@ -820,9 +820,303 @@ export const toolSeoPages: SeoPage[] = [
     ],
     related: [
       { label: "GLP-1 reconstitution calculator", href: "/tools/glp-1-reconstitution-calculator" },
+      { label: "GLP-1 units calculator", href: "/tools/glp-1-units-calculator" },
+      { label: "Semaglutide dosage calculator", href: "/tools/semaglutide-dosage-calculator" },
+      { label: "Tirzepatide dosage calculator", href: "/tools/tirzepatide-dosage-calculator" },
       { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
       { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
       { label: "CagriSema calculator", href: "/peptides/cagrisema-calculator" },
+    ],
+  },
+  {
+    slug: "semaglutide-dosage-calculator",
+    title: "Free Semaglutide Dosage Calculator: Syringe Units",
+    shortTitle: "Semaglutide dosage",
+    eyebrow: "Known semaglutide dose math",
+    description:
+      "Convert a known semaglutide dose into concentration, mL to draw, and U-100 syringe marks after entering vial amount and BAC water.",
+    searchPhrase: "semaglutide dosage calculator",
+    ctaLabel: "Calculate semaglutide dosage math",
+    calculatorHref:
+      "/calculator?compound=Semaglutide&preset=Semaglutide+dosage+example&presetType=reference&vialMg=5&waterMl=2&doseMcg=250",
+    sourceLabel: "FDA GLP-1 safety concerns",
+    sourceUrl: fdaGlp1ConcernsUrl,
+    example: makeSeoExample({
+      name: "Semaglutide dosage",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example uses a known 0.25 mg semaglutide amount so users can see how vial strength and BAC water change the final U-100 syringe mark.",
+    }),
+    sections: [
+      {
+        title: "What this page does",
+        body:
+          "This semaglutide dosage calculator does not choose a dose. It converts a known semaglutide amount into concentration, mL to draw, and U-100 syringe mark math.",
+      },
+      {
+        title: "Why it matches search intent",
+        body:
+          "Search Console is already showing semaglutide calculator and semaglutide mixing searches. A focused dosage page gives those users a clearer path into the calculator.",
+      },
+      {
+        title: "Safety limit",
+        body:
+          "FDA has warned about dosing errors with compounded injectable semaglutide. Use this page only for measurement math from a product label, pharmacy, or licensed prescriber.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Does this choose a semaglutide dose?",
+        answer:
+          "No. It only converts a known dose into measurement math. Dose selection, timing, and titration must come from a licensed medical source.",
+      },
+      {
+        question: "How many units is 0.25 mg semaglutide?",
+        answer:
+          "It depends on vial strength and BAC water amount. In this example, 5 mg mixed with 2 mL and a 0.25 mg dose lands on the 10th U-100 mark.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
+      { label: "Semaglutide units calculator", href: "/tools/semaglutide-units-calculator" },
+      { label: "Semaglutide reconstitution calculator", href: "/tools/semaglutide-reconstitution-calculator" },
+      { label: "GLP-1 dose calculator", href: "/tools/glp-1-dose-calculator" },
+      { label: "GLP-1 units calculator", href: "/tools/glp-1-units-calculator" },
+    ],
+  },
+  {
+    slug: "tirzepatide-dosage-calculator",
+    title: "Free Tirzepatide Dosage Calculator: Syringe Units",
+    shortTitle: "Tirzepatide dosage",
+    eyebrow: "Known tirzepatide dose math",
+    description:
+      "Convert a known tirzepatide dose into concentration, mL to draw, and U-100 syringe marks after entering vial amount and BAC water.",
+    searchPhrase: "tirzepatide dosage calculator",
+    ctaLabel: "Calculate tirzepatide dosage math",
+    calculatorHref:
+      "/calculator?compound=Tirzepatide&preset=Tirzepatide+dosage+example&presetType=reference&vialMg=10&waterMl=2&doseMcg=2500",
+    sourceLabel: "FDA GLP-1 safety concerns",
+    sourceUrl: fdaGlp1ConcernsUrl,
+    example: makeSeoExample({
+      name: "Tirzepatide dosage",
+      vialMg: 10,
+      waterMl: 2,
+      doseMcg: 2500,
+      context:
+        "This example uses a known 2.5 mg tirzepatide amount so users can see how vial strength and BAC water change the final U-100 syringe mark.",
+    }),
+    sections: [
+      {
+        title: "What this page does",
+        body:
+          "This tirzepatide dosage calculator converts known instructions into concentration, mL to draw, and U-100 syringe mark math. It does not create a protocol.",
+      },
+      {
+        title: "Why it matches search intent",
+        body:
+          "Search Console is already showing tirzepatide calculator, tirzepatide dose calculator, and tirzepatide dosage calculator impressions. This page targets that exact search language.",
+      },
+      {
+        title: "Safety limit",
+        body:
+          "FDA has warned about unapproved GLP-1 products and dosing errors. Use this page only for measurement math from a product label, pharmacy, or licensed prescriber.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Does this choose a tirzepatide dose?",
+        answer:
+          "No. It only converts a known dose into measurement math. Dose selection, timing, and titration must come from a licensed medical source.",
+      },
+      {
+        question: "How many units is 2.5 mg tirzepatide?",
+        answer:
+          "It depends on vial strength and BAC water amount. In this example, 10 mg mixed with 2 mL and a 2.5 mg dose lands on the 50th U-100 mark.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
+      { label: "Tirzepatide units calculator", href: "/tools/tirzepatide-units-calculator" },
+      { label: "Tirzepatide reconstitution calculator", href: "/tools/tirzepatide-reconstitution-calculator" },
+      { label: "GLP-1 dose calculator", href: "/tools/glp-1-dose-calculator" },
+      { label: "GLP-1 units calculator", href: "/tools/glp-1-units-calculator" },
+    ],
+  },
+  {
+    slug: "glp-1-units-calculator",
+    title: "Free GLP-1 Units Calculator: U-100 Syringe Marks",
+    shortTitle: "GLP-1 units",
+    eyebrow: "GLP-1 units to syringe math",
+    description:
+      "Convert known GLP-1 dose math into mL and U-100 syringe units with editable vial amount, BAC water, and dose values.",
+    searchPhrase: "GLP-1 units calculator",
+    ctaLabel: "Calculate GLP-1 units",
+    calculatorHref:
+      "/calculator?compound=GLP-1+units&preset=GLP-1+units+example&presetType=math&vialMg=5&waterMl=2&doseMcg=250",
+    sourceLabel: "FDA GLP-1 safety concerns",
+    sourceUrl: fdaGlp1ConcernsUrl,
+    example: makeSeoExample({
+      name: "GLP-1 units",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example shows how a known GLP-1 amount becomes mL and U-100 syringe units after concentration is calculated.",
+    }),
+    sections: [
+      {
+        title: "What units mean here",
+        body:
+          "On PeptiCalc, units means the U-100 syringe mark scale. It is not a universal biological International Unit conversion.",
+      },
+      {
+        title: "Why it can rank",
+        body:
+          "Search Console shows impressions for mcg units, units to mcg, peptide calculator IU, and GLP-1 calculator terms. This page gives those searches a more direct landing page.",
+      },
+      {
+        title: "Safety limit",
+        body:
+          "Use this only to convert known instructions into measurement math. The calculator cannot verify product quality, dosing, storage, legality, or whether a product is appropriate.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Is one GLP-1 unit always the same amount?",
+        answer:
+          "No. A U-100 syringe mark depends on concentration, and concentration depends on vial amount and BAC water volume.",
+      },
+      {
+        question: "Can this convert mg to units?",
+        answer:
+          "Yes, after you enter vial amount, BAC water amount, and dose. The calculator converts mg to mcg internally, then calculates the mL and syringe mark.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "GLP-1 dose calculator", href: "/tools/glp-1-dose-calculator" },
+      { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+      { label: "Units to MCG calculator", href: "/tools/units-to-mcg-calculator" },
+      { label: "Semaglutide units calculator", href: "/tools/semaglutide-units-calculator" },
+      { label: "Tirzepatide units calculator", href: "/tools/tirzepatide-units-calculator" },
+    ],
+  },
+  {
+    slug: "compound-peptide-calculator",
+    title: "Free Compound Peptide Calculator",
+    shortTitle: "Compound peptide",
+    eyebrow: "Compound math to syringe marks",
+    description:
+      "Calculate concentration, dose volume, and U-100 syringe marks for compound peptide math after entering vial amount, BAC water, and a known dose.",
+    searchPhrase: "compound peptide calculator",
+    ctaLabel: "Calculate compound peptide math",
+    calculatorHref:
+      "/calculator?compound=Compound+peptide&preset=Compound+peptide+example&presetType=math&vialMg=10&waterMl=2&doseMcg=500",
+    example: makeSeoExample({
+      name: "Compound peptide",
+      vialMg: 10,
+      waterMl: 2,
+      doseMcg: 500,
+      context:
+        "This example keeps the language generic so users can replace the values with instructions from a verified source.",
+    }),
+    sections: [
+      {
+        title: "What this page does",
+        body:
+          "This compound peptide calculator handles measurement math: vial amount, BAC water, known dose, mL to draw, and U-100 syringe marks.",
+      },
+      {
+        title: "Why it can rank",
+        body:
+          "Search Console shows broad peptide calculator and peptide dose calculator impressions. This page targets people searching for a compound-focused calculator without promising a protocol.",
+      },
+      {
+        title: "Safety limit",
+        body:
+          "This page does not verify sterility, legality, product quality, or whether any compound is appropriate. It only formats known instructions into calculator math.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Is this for compounded prescriptions?",
+        answer:
+          "It can calculate measurement math from verified instructions, but it does not validate a prescription, product, pharmacy, or protocol.",
+      },
+      {
+        question: "Can I use it for a custom peptide blend?",
+        answer:
+          "Use the split-compound calculator for mixed-vial breakdowns. This page is best for a single known dose and concentration calculation.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "Peptide dosage calculator", href: "/tools/peptide-dosage-calculator" },
+      { label: "Reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
+      { label: "BAC water mixing calculator", href: "/tools/bac-water-mixing-calculator" },
+      { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+      { label: "Split compound calculator", href: "/tools/cjc-ipamorelin-split-calculator" },
+    ],
+  },
+  {
+    slug: "bac-water-mixing-calculator",
+    title: "Free BAC Water Mixing Calculator",
+    shortTitle: "BAC water mixing",
+    eyebrow: "BAC water to concentration math",
+    description:
+      "See how BAC water amount changes concentration, mL to draw, and U-100 syringe marks for a known vial amount and dose.",
+    searchPhrase: "BAC water mixing calculator",
+    ctaLabel: "Calculate BAC water mixing",
+    calculatorHref:
+      "/calculator?compound=BAC+water+mixing&preset=BAC+water+mixing+example&presetType=math&vialMg=10&waterMl=2&doseMcg=500",
+    example: makeSeoExample({
+      name: "BAC water mixing",
+      vialMg: 10,
+      waterMl: 2,
+      doseMcg: 500,
+      context:
+        "This example shows how changing BAC water volume changes concentration and the final U-100 syringe mark.",
+    }),
+    sections: [
+      {
+        title: "What this page does",
+        body:
+          "This BAC water mixing calculator shows concentration and syringe mark math after you enter the exact vial amount, BAC water amount, and known dose.",
+      },
+      {
+        title: "Why BAC water changes the result",
+        body:
+          "BAC water changes concentration, not the total amount in the vial. More water usually means each syringe mark contains less compound.",
+      },
+      {
+        title: "Safety limit",
+        body:
+          "PeptiCalc does not choose how much BAC water to add. Use the exact diluent, volume, storage, and beyond-use instructions from a product label, pharmacy, or prescriber.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Does this tell me how much BAC water to add?",
+        answer:
+          "No. Enter the BAC water amount from a verified instruction source. The calculator then shows concentration, mL, and syringe mark math.",
+      },
+      {
+        question: "Does more BAC water make the dose stronger?",
+        answer:
+          "No. More BAC water lowers concentration. The dose amount depends on how much compound is drawn, not just the liquid volume.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "BAC water calculator", href: "/tools/bac-water-calculator" },
+      { label: "Reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
+      { label: "GLP-1 reconstitution calculator", href: "/tools/glp-1-reconstitution-calculator" },
+      { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+      { label: "Compound peptide calculator", href: "/tools/compound-peptide-calculator" },
     ],
   },
   {
@@ -883,8 +1177,10 @@ export const toolSeoPages: SeoPage[] = [
     ],
     related: [
       { label: "GLP-1 dose calculator", href: "/tools/glp-1-dose-calculator" },
+      { label: "GLP-1 units calculator", href: "/tools/glp-1-units-calculator" },
       { label: "Semaglutide reconstitution calculator", href: "/tools/semaglutide-reconstitution-calculator" },
       { label: "Tirzepatide reconstitution calculator", href: "/tools/tirzepatide-reconstitution-calculator" },
+      { label: "BAC water mixing calculator", href: "/tools/bac-water-mixing-calculator" },
       { label: "Peptide reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
     ],
   },
@@ -942,6 +1238,7 @@ export const toolSeoPages: SeoPage[] = [
     ],
     related: [
       { label: "GLP-1 reconstitution calculator", href: "/tools/glp-1-reconstitution-calculator" },
+      { label: "Semaglutide dosage calculator", href: "/tools/semaglutide-dosage-calculator" },
       { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
       { label: "Semaglutide units calculator", href: "/tools/semaglutide-units-calculator" },
       { label: "GLP-1 dose calculator", href: "/tools/glp-1-dose-calculator" },
@@ -1002,6 +1299,7 @@ export const toolSeoPages: SeoPage[] = [
     ],
     related: [
       { label: "GLP-1 reconstitution calculator", href: "/tools/glp-1-reconstitution-calculator" },
+      { label: "Tirzepatide dosage calculator", href: "/tools/tirzepatide-dosage-calculator" },
       { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
       { label: "Tirzepatide units calculator", href: "/tools/tirzepatide-units-calculator" },
       { label: "GLP-1 dose calculator", href: "/tools/glp-1-dose-calculator" },
