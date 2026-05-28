@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { ArrowLeft, Calculator, ExternalLink, ShieldCheck } from "lucide-react";
 import { ProEarlyAccess } from "@/components/ProEarlyAccess";
+import {
+  SeoLandingAnalytics,
+  SeoTrackedAnchor,
+  SeoTrackedLink,
+} from "@/components/SeoLandingAnalytics";
 import { getPrimaryCalculatorHref, type SeoPage } from "@/lib/seo-pages";
 import {
   breadcrumbJsonLd,
@@ -49,6 +54,12 @@ export function SeoLandingPage({
   const structuredFaqs = page.faqs.filter(
     (faq) => !repeatedCalculatorFaqQuestions.has(faq.question),
   );
+  const analyticsMetadata = {
+    pageSlug: page.slug,
+    pageSection: sectionLabel,
+    pageHref: currentHref,
+    searchPhrase: page.searchPhrase,
+  };
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -79,6 +90,7 @@ export function SeoLandingPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
+      <SeoLandingAnalytics metadata={analyticsMetadata} />
       <main className="min-h-screen bg-[linear-gradient(135deg,#f8fbff_0%,#eef9ff_38%,#fff7fb_70%,#fffaf1_100%)] px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
           <Link
@@ -119,23 +131,27 @@ export function SeoLandingPage({
                   ))}
                 </div>
                 <div className="mt-6 flex flex-wrap gap-3">
-                  <Link
+                  <SeoTrackedLink
+                    action="primary_calculator"
                     href={calculatorHref}
+                    label={page.ctaLabel ?? "Open calculator"}
+                    metadata={analyticsMetadata}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-sky-900"
                   >
                     <Calculator size={17} aria-hidden="true" />
                     {page.ctaLabel ?? "Open calculator"}
-                  </Link>
+                  </SeoTrackedLink>
                   {page.sourceUrl ? (
-                    <a
+                    <SeoTrackedAnchor
+                      action="source"
                       href={page.sourceUrl}
-                      target="_blank"
-                      rel="noreferrer"
+                      label={page.sourceLabel}
+                      metadata={analyticsMetadata}
                       className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-slate-600 ring-1 ring-sky-100 transition hover:text-slate-950"
                     >
                       {page.sourceLabel}
                       <ExternalLink size={15} aria-hidden="true" />
-                    </a>
+                    </SeoTrackedAnchor>
                   ) : null}
                 </div>
               </div>
@@ -163,12 +179,15 @@ export function SeoLandingPage({
                     {page.example.title}
                   </h2>
                 </div>
-                <Link
+                <SeoTrackedLink
+                  action="example_calculator"
                   href={exampleCalculatorHref}
+                  label="Try these values"
+                  metadata={analyticsMetadata}
                   className="inline-flex h-10 w-fit items-center justify-center gap-2 rounded-full bg-sky-50 px-4 text-sm font-semibold text-sky-900 ring-1 ring-sky-100 transition hover:bg-sky-100"
                 >
                   Try these values
-                </Link>
+                </SeoTrackedLink>
               </div>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
                 {page.example.intro}
@@ -247,13 +266,16 @@ export function SeoLandingPage({
             </h2>
             <div className="mt-3 flex flex-wrap gap-2">
               {page.related.map((item) => (
-                <Link
+                <SeoTrackedLink
                   key={item.href}
+                  action="related_tool"
                   href={item.href}
+                  label={item.label}
+                  metadata={analyticsMetadata}
                   className="rounded-full bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-900 ring-1 ring-sky-100 transition hover:bg-sky-100"
                 >
                   {item.label}
-                </Link>
+                </SeoTrackedLink>
               ))}
             </div>
           </section>
