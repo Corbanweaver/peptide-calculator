@@ -4,11 +4,18 @@ import { ProEarlyAccess } from "@/components/ProEarlyAccess";
 import { getPrimaryCalculatorHref, type SeoPage } from "@/lib/seo-pages";
 import {
   breadcrumbJsonLd,
+  faqPageJsonLd,
   jsonLd,
   webApplicationJsonLd,
   webPageJsonLd,
   websiteJsonLd,
 } from "@/lib/seo";
+
+const repeatedCalculatorFaqQuestions = new Set([
+  "Is this a prescription or protocol?",
+  "Can I edit the preloaded values?",
+  "Why do syringe marks matter?",
+]);
 
 export function SeoLandingPage({
   page,
@@ -39,6 +46,9 @@ export function SeoLandingPage({
         sectionLabel,
       })
     : calculatorHref;
+  const structuredFaqs = page.faqs.filter(
+    (faq) => !repeatedCalculatorFaqQuestions.has(faq.question),
+  );
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -59,6 +69,7 @@ export function SeoLandingPage({
         applicationCategory: "HealthApplication",
         description: page.description,
       }),
+      ...(structuredFaqs.length ? [faqPageJsonLd(structuredFaqs)] : []),
     ],
   };
 
