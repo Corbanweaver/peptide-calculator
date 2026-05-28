@@ -1525,3 +1525,9 @@ export function getCompoundSeoPage(slug: string) {
 export function getToolSeoPage(slug: string) {
   return toolSeoPages.find((page) => page.slug === slug);
 }
+
+export function getPrimaryCalculatorHref(page: SeoPage) {
+  return page.calculatorHref === "/calculator" && page.example
+    ? page.example.calculatorHref
+    : page.calculatorHref;
+}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, Calculator, FlaskConical } from "lucide-react";
-import { toolSeoPages } from "@/lib/seo-pages";
+import { getPrimaryCalculatorHref, toolSeoPages } from "@/lib/seo-pages";
 import {
   absoluteUrl,
   breadcrumbJsonLd,
@@ -113,7 +113,10 @@ export default function ToolsPage() {
                   Read guide
                 </Link>
                 <Link
-                  href={withToolsIndexAttribution(page.calculatorHref, page.slug)}
+                  href={withToolsIndexAttribution(
+                    getPrimaryCalculatorHref(page),
+                    page.slug,
+                  )}
                   className="inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-sky-800 ring-1 ring-sky-100 transition hover:bg-sky-50"
                 >
                   Open calculator

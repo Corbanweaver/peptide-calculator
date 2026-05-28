@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Calculator, ExternalLink, ShieldCheck } from "lucide-react";
 import { ProEarlyAccess } from "@/components/ProEarlyAccess";
-import type { SeoPage } from "@/lib/seo-pages";
+import { getPrimaryCalculatorHref, type SeoPage } from "@/lib/seo-pages";
 import {
   breadcrumbJsonLd,
   jsonLd,
@@ -27,7 +27,7 @@ export function SeoLandingPage({
 }) {
   const calculatorHref = withLandingAttribution({
     action: "primary",
-    href: page.calculatorHref,
+    href: getPrimaryCalculatorHref(page),
     pageSlug: page.slug,
     sectionLabel,
   });
