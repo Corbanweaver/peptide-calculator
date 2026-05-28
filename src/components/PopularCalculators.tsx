@@ -43,6 +43,11 @@ const popularCalculators = [
     href: "/tools/glp-1-dose-calculator",
   },
   {
+    label: "GLP-1 reconstitution",
+    detail: "BAC water to syringe mark",
+    href: "/tools/glp-1-reconstitution-calculator",
+  },
+  {
     label: "MCG to units calculator",
     detail: "U-100 syringe converter",
     href: "/tools/mcg-to-units-calculator",

@@ -819,9 +819,73 @@ export const toolSeoPages: SeoPage[] = [
       ...sharedCalculatorFaqs,
     ],
     related: [
+      { label: "GLP-1 reconstitution calculator", href: "/tools/glp-1-reconstitution-calculator" },
       { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
       { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
       { label: "CagriSema calculator", href: "/peptides/cagrisema-calculator" },
+    ],
+  },
+  {
+    slug: "glp-1-reconstitution-calculator",
+    title: "Free GLP-1 Reconstitution Calculator",
+    shortTitle: "GLP-1 reconstitution",
+    eyebrow: "GLP-1 BAC water math",
+    description:
+      "Calculate GLP-1 concentration, mL to draw, and U-100 syringe marks after entering vial amount, BAC water, and a known dose. Math only.",
+    searchPhrase: "GLP-1 reconstitution calculator",
+    ctaLabel: "Calculate GLP-1 reconstitution",
+    calculatorHref:
+      "/calculator?compound=GLP-1+reconstitution&preset=GLP-1+reconstitution+example&presetType=math&vialMg=5&waterMl=2&doseMcg=250",
+    sourceLabel: "FDA GLP-1 safety concerns",
+    sourceUrl: fdaGlp1ConcernsUrl,
+    example: makeSeoExample({
+      name: "GLP-1 reconstitution",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example shows how a known GLP-1 vial amount and BAC water amount create concentration, liquid volume, and a U-100 syringe mark for a known dose.",
+    }),
+    sections: [
+      {
+        title: "What this page does",
+        body:
+          "This GLP-1 reconstitution calculator starts with the values you already have: vial amount, BAC water amount, and known dose. It then calculates concentration, mL to draw, and U-100 syringe marks.",
+      },
+      {
+        title: "Why the syringe mark changes",
+        body:
+          "A GLP-1 dose cannot be converted to syringe marks from the dose alone. The vial amount and BAC water volume set the concentration, and concentration decides the liquid volume.",
+      },
+      {
+        title: "Safety limit",
+        body:
+          "FDA has warned about dosing errors with compounded injectable GLP-1 products. Use this page only for measurement math from a product label, pharmacy, or licensed prescriber; it does not choose a dose or mixing protocol.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Can this tell me how much BAC water to add?",
+        answer:
+          "No. Enter the exact BAC water amount from the product label, pharmacy, or licensed prescriber. PeptiCalc then calculates the concentration and syringe mark.",
+      },
+      {
+        question: "Is this only for semaglutide or tirzepatide?",
+        answer:
+          "This page is a general GLP-1 measurement calculator. For more specific search paths, use the semaglutide and tirzepatide reconstitution pages.",
+      },
+      {
+        question: "Can this choose or adjust a GLP-1 dose?",
+        answer:
+          "No. It only converts a known dose into measurement math. Dose selection, titration, route, and timing must come from a licensed medical source.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "GLP-1 dose calculator", href: "/tools/glp-1-dose-calculator" },
+      { label: "Semaglutide reconstitution calculator", href: "/tools/semaglutide-reconstitution-calculator" },
+      { label: "Tirzepatide reconstitution calculator", href: "/tools/tirzepatide-reconstitution-calculator" },
+      { label: "Peptide reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
     ],
   },
   {
@@ -877,6 +941,7 @@ export const toolSeoPages: SeoPage[] = [
       ...sharedCalculatorFaqs,
     ],
     related: [
+      { label: "GLP-1 reconstitution calculator", href: "/tools/glp-1-reconstitution-calculator" },
       { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
       { label: "Semaglutide units calculator", href: "/tools/semaglutide-units-calculator" },
       { label: "GLP-1 dose calculator", href: "/tools/glp-1-dose-calculator" },
@@ -936,6 +1001,7 @@ export const toolSeoPages: SeoPage[] = [
       ...sharedCalculatorFaqs,
     ],
     related: [
+      { label: "GLP-1 reconstitution calculator", href: "/tools/glp-1-reconstitution-calculator" },
       { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
       { label: "Tirzepatide units calculator", href: "/tools/tirzepatide-units-calculator" },
       { label: "GLP-1 dose calculator", href: "/tools/glp-1-dose-calculator" },
