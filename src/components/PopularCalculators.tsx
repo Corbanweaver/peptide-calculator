@@ -13,6 +13,16 @@ const popularCalculators = [
     href: "/peptides/tirzepatide-calculator",
   },
   {
+    label: "Retatrutide calculator",
+    detail: "Investigational math only",
+    href: "/peptides/retatrutide-calculator",
+  },
+  {
+    label: "Cagrilintide calculator",
+    detail: "Investigational math only",
+    href: "/peptides/cagrilintide-calculator",
+  },
+  {
     label: "MCG to units calculator",
     detail: "U-100 syringe converter",
     href: "/tools/mcg-to-units-calculator",

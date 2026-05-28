@@ -48,6 +48,8 @@ const categories = [
 const profileGuideSlugs: Record<string, string> = {
   Semaglutide: "semaglutide-calculator",
   Tirzepatide: "tirzepatide-calculator",
+  Retatrutide: "retatrutide-calculator",
+  Cagrilintide: "cagrilintide-calculator",
   Liraglutide: "liraglutide-calculator",
   Dulaglutide: "dulaglutide-calculator",
   Exenatide: "exenatide-calculator",

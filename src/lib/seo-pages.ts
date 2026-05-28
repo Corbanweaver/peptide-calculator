@@ -93,6 +93,10 @@ const fda503aBulkListUrl =
   "https://www.fda.gov/media/94155/download?attachment=";
 const fdaCompoundingSafetyUrl =
   "https://www.fda.gov/drugs/human-drug-compounding/certain-bulk-drug-substances-use-compounding-may-present-significant-safety-risks";
+const fdaGlp1ConcernsUrl =
+  "https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss";
+const lillyRetatrutideStatusUrl =
+  "https://www.lilly.com/news/stories/what-to-know-about-retatrutide";
 
 const additionalCompoundSeoSeeds: CompoundSeoSeed[] = [
   {
@@ -248,6 +252,46 @@ const additionalCompoundSeoSeeds: CompoundSeoSeed[] = [
 ];
 
 const mathOnlyCompoundSeoSeeds: MathOnlyCompoundSeoSeed[] = [
+  {
+    slug: "retatrutide-calculator",
+    name: "Retatrutide",
+    description:
+      "Open a math-only retatrutide calculator page for editable vial amount, BAC water, concentration, and syringe marks.",
+    sourceLabel: "Lilly retatrutide status",
+    sourceUrl: lillyRetatrutideStatusUrl,
+    regulatoryNote:
+      "Lilly says retatrutide is investigational, not currently FDA approved, and should not be taken outside Lilly-sponsored clinical trials. FDA also says retatrutide cannot be used in compounding under federal law. This page is only a measurement calculator entry point.",
+    searchAngle:
+      "Retatrutide calculator searches are growing because people want GLP-1/GIP/glucagon syringe math. This page captures that high-intent traffic while clearly avoiding dosing instructions or approval claims.",
+    exampleVialMg: 5,
+    exampleWaterMl: 2,
+    exampleDoseMcg: 250,
+    related: [
+      { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
+      { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
+      { label: "Cagrilintide calculator", href: "/peptides/cagrilintide-calculator" },
+    ],
+  },
+  {
+    slug: "cagrilintide-calculator",
+    name: "Cagrilintide",
+    description:
+      "Open a math-only cagrilintide calculator page for editable concentration, dose volume, and U-100 syringe marks.",
+    sourceLabel: "FDA GLP-1 compounding concerns",
+    sourceUrl: fdaGlp1ConcernsUrl,
+    regulatoryNote:
+      "FDA says cagrilintide is not a component of an FDA-approved drug, has not been found safe and effective for any condition, and cannot be used in compounding under federal law. This page does not provide a cagrilintide protocol.",
+    searchAngle:
+      "Cagrilintide calculator searches overlap with CagriSema and amylin-analogue traffic. A focused math-only page gives those users a safer calculator path without claiming approval or choosing a dose.",
+    exampleVialMg: 5,
+    exampleWaterMl: 2,
+    exampleDoseMcg: 250,
+    related: [
+      { label: "Retatrutide calculator", href: "/peptides/retatrutide-calculator" },
+      { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
+      { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+    ],
+  },
   {
     slug: "bpc-157-calculator",
     name: "BPC-157",
@@ -1527,7 +1571,21 @@ export function getToolSeoPage(slug: string) {
 }
 
 export function getPrimaryCalculatorHref(page: SeoPage) {
-  return page.calculatorHref === "/calculator" && page.example
+  return isCalculatorHrefMissingInputs(page.calculatorHref) && page.example
     ? page.example.calculatorHref
     : page.calculatorHref;
+}
+
+function isCalculatorHrefMissingInputs(href: string) {
+  const [pathname, query = ""] = href.split("?");
+
+  if (pathname !== "/calculator") {
+    return false;
+  }
+
+  const params = new URLSearchParams(query);
+  const hasVial = params.has("vialMg") || params.has("vialIu");
+  const hasDose = params.has("doseMcg") || params.has("doseIu");
+
+  return !hasVial || !params.has("waterMl") || !hasDose;
 }
