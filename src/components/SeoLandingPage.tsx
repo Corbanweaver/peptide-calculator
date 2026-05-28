@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, Calculator, ExternalLink, ShieldCheck } from "lucide-react";
+import { ProEarlyAccess } from "@/components/ProEarlyAccess";
 import type { SeoPage } from "@/lib/seo-pages";
 import {
   breadcrumbJsonLd,
@@ -24,6 +25,20 @@ export function SeoLandingPage({
   sectionLabel: string;
   sectionHref: string;
 }) {
+  const calculatorHref = withLandingAttribution({
+    action: "primary",
+    href: page.calculatorHref,
+    pageSlug: page.slug,
+    sectionLabel,
+  });
+  const exampleCalculatorHref = page.example
+    ? withLandingAttribution({
+        action: "example",
+        href: page.example.calculatorHref,
+        pageSlug: page.slug,
+        sectionLabel,
+      })
+    : calculatorHref;
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -94,7 +109,7 @@ export function SeoLandingPage({
                 </div>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link
-                    href={page.calculatorHref}
+                    href={calculatorHref}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-sky-900"
                   >
                     <Calculator size={17} aria-hidden="true" />
@@ -138,7 +153,7 @@ export function SeoLandingPage({
                   </h2>
                 </div>
                 <Link
-                  href={page.calculatorHref}
+                  href={exampleCalculatorHref}
                   className="inline-flex h-10 w-fit items-center justify-center gap-2 rounded-full bg-sky-50 px-4 text-sm font-semibold text-sky-900 ring-1 ring-sky-100 transition hover:bg-sky-100"
                 >
                   Try these values
@@ -167,6 +182,16 @@ export function SeoLandingPage({
               </p>
             </section>
           ) : null}
+
+          <ProEarlyAccess
+            source="seo-landing"
+            placement={`${toPlacementSegment(sectionLabel)}-${page.slug}`}
+            metadata={{
+              page_slug: page.slug,
+              page_section: sectionLabel,
+              page_href: currentHref,
+            }}
+          />
 
           <section className="grid gap-4 md:grid-cols-3">
             {page.sections.map((section) => (
@@ -225,4 +250,32 @@ export function SeoLandingPage({
       </main>
     </>
   );
+}
+
+function withLandingAttribution({
+  action,
+  href,
+  pageSlug,
+  sectionLabel,
+}: {
+  action: string;
+  href: string;
+  pageSlug: string;
+  sectionLabel: string;
+}) {
+  const [pathname, query = ""] = href.split("?");
+  const params = new URLSearchParams(query);
+
+  params.set("source", "seo-landing");
+  params.set("placement", `${toPlacementSegment(sectionLabel)}-${pageSlug}`);
+  params.set("cta", action);
+
+  return `${pathname}?${params.toString()}`;
+}
+
+function toPlacementSegment(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }

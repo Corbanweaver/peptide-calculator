@@ -6,6 +6,7 @@ export type SeoFaq = {
 export type SeoExample = {
   title: string;
   intro: string;
+  calculatorHref: string;
   rows: {
     label: string;
     value: string;
@@ -533,6 +534,12 @@ function makeSeoExample({
   return {
     title: `${name} calculator example`,
     intro: context,
+    calculatorHref: makeExampleCalculatorHref({
+      name,
+      vialMg,
+      waterMl,
+      doseMcg,
+    }),
     rows: [
       { label: "Vial amount", value: `${formatNumber(vialMg, 3)} mg total` },
       { label: "BAC water added", value: formatMl(waterMl) },
@@ -549,6 +556,33 @@ function makeSeoExample({
         syringeMark,
       )}. Change the vial, water, or dose values in the calculator to match the exact instructions you are using.`,
   };
+}
+
+function makeExampleCalculatorHref({
+  name,
+  vialMg,
+  waterMl,
+  doseMcg,
+}: {
+  name: string;
+  vialMg: number;
+  waterMl: number;
+  doseMcg: number;
+}) {
+  const params = new URLSearchParams({
+    compound: name,
+    preset: "Example values",
+    presetType: "math",
+    vialMg: formatQueryNumber(vialMg),
+    waterMl: formatQueryNumber(waterMl),
+    doseMcg: formatQueryNumber(doseMcg),
+  });
+
+  return `/calculator?${params.toString()}`;
+}
+
+function formatQueryNumber(value: number) {
+  return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(6)));
 }
 
 export const compoundSeoPages: SeoPage[] = [

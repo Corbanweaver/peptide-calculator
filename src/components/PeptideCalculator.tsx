@@ -103,6 +103,18 @@ export function PeptideCalculator() {
     () => readPresetFromSearchParams(searchParams),
     [searchParams],
   );
+  const entrySource = useMemo(
+    () => getAttributionValue(searchParams, "source"),
+    [searchParams],
+  );
+  const entryPlacement = useMemo(
+    () => getAttributionValue(searchParams, "placement"),
+    [searchParams],
+  );
+  const entryCta = useMemo(
+    () => getAttributionValue(searchParams, "cta"),
+    [searchParams],
+  );
   const [syringeMl, setSyringeMl] = useState(initialPreset.syringeMl);
   const [loadedPresetName] = useState(initialPreset.compoundName);
   const [loadedPresetDetail] = useState(initialPreset.presetDetail);
@@ -293,11 +305,17 @@ export function PeptideCalculator() {
       ready: hasReadyCalculation,
       split_enabled: advancedSplitEnabled,
       split_count: advancedSplitEnabled ? splitParts.length : 0,
+      entry_source: entrySource || null,
+      entry_placement: entryPlacement || null,
+      entry_cta: entryCta || null,
     }),
     [
       advancedSplitEnabled,
       doseInputUnit,
       doseLabel,
+      entryCta,
+      entryPlacement,
+      entrySource,
       hasReadyCalculation,
       isIuMode,
       loadedPresetDetail,
@@ -365,11 +383,17 @@ export function PeptideCalculator() {
       preset_type: loadedPresetName ? loadedPresetType : "manual",
       split_enabled: advancedSplitEnabled,
       split_count: advancedSplitEnabled ? splitParts.length : 0,
+      entry_source: entrySource || null,
+      entry_placement: entryPlacement || null,
+      entry_cta: entryCta || null,
     });
   }, [
     advancedSplitEnabled,
     doseInputAmount,
     doseInputUnit,
+    entryCta,
+    entryPlacement,
+    entrySource,
     hasReadyCalculation,
     isIuMode,
     loadedPresetName,
@@ -1627,6 +1651,15 @@ function readPresetFromSearchParams(params: { get: (name: string) => string | nu
     doseInputUnit,
     split: readSplitFromSearchParams(params, compoundName),
   };
+}
+
+function getAttributionValue(
+  params: { get: (name: string) => string | null },
+  key: string,
+) {
+  const value = params.get(key)?.trim() ?? "";
+
+  return value.slice(0, 80);
 }
 
 function readSplitFromSearchParams(

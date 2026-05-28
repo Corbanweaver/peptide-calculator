@@ -104,6 +104,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ url: `${siteUrl}/account?checkout=success` });
     }
 
+    const checkoutMetadata = {
+      ...context.metadata,
+      supabase_user_id: user.id,
+      source: context.source,
+      placement: context.placement,
+    };
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: stripeCustomerId,
@@ -115,13 +122,11 @@ export async function POST(request: NextRequest) {
       subscription_data: {
         metadata: {
           supabase_user_id: user.id,
+          source: context.source,
+          placement: context.placement,
         },
       },
-      metadata: {
-        supabase_user_id: user.id,
-        source: context.source,
-        placement: context.placement,
-      },
+      metadata: checkoutMetadata,
     });
 
     if (!session.url) {
@@ -251,11 +256,13 @@ async function readCheckoutContext(request: NextRequest) {
     return {
       source: sanitizeMetadataValue(body.source, "checkout"),
       placement: sanitizeMetadataValue(body.placement, "unknown"),
+      metadata: sanitizeMetadataObject(body.metadata),
     };
   } catch {
     return {
       source: "checkout",
       placement: "unknown",
+      metadata: {},
     };
   }
 }
@@ -267,6 +274,57 @@ function sanitizeMetadataValue(value: unknown, fallback: string) {
 
   const trimmedValue = value.trim();
   return trimmedValue ? trimmedValue.slice(0, 80) : fallback;
+}
+
+function sanitizeMetadataObject(value: unknown) {
+  if (!isRecord(value)) {
+    return {};
+  }
+
+  const metadata: Record<string, string> = {};
+  const reservedKeys = new Set(["supabase_user_id", "source", "placement"]);
+
+  for (const [rawKey, rawValue] of Object.entries(value)) {
+    if (Object.keys(metadata).length >= 20) {
+      break;
+    }
+
+    const key = sanitizeMetadataKey(rawKey);
+
+    if (!key || reservedKeys.has(key) || rawValue == null) {
+      continue;
+    }
+
+    if (
+      typeof rawValue !== "string" &&
+      typeof rawValue !== "number" &&
+      typeof rawValue !== "boolean"
+    ) {
+      continue;
+    }
+
+    const stringValue = String(rawValue).trim();
+
+    if (!stringValue) {
+      continue;
+    }
+
+    metadata[key] = stringValue.slice(0, 500);
+  }
+
+  return metadata;
+}
+
+function sanitizeMetadataKey(value: string) {
+  return value
+    .trim()
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 40);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function getStripeCustomerId(
