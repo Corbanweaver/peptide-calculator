@@ -1,9 +1,16 @@
 import type { NextConfig } from "next";
 
+const googleScriptHosts = [
+  "https://www.googletagmanager.com",
+  "https://www.google-analytics.com",
+  "https://googleads.g.doubleclick.net",
+  "https://www.googleadservices.com",
+].join(" ");
+
 const scriptSrc =
   process.env.NODE_ENV === "development"
-    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com"
-    : "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com";
+    ? `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${googleScriptHosts}`
+    : `script-src 'self' 'unsafe-inline' ${googleScriptHosts}`;
 
 const securityHeaders = [
   {
@@ -36,6 +43,7 @@ const securityHeaders = [
       "img-src 'self' data: https:",
       "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com",
       "connect-src 'self' https:",
+      "frame-src 'self' https://www.googletagmanager.com https://www.google.com https://googleads.g.doubleclick.net",
       "frame-ancestors 'none'",
     ].join("; "),
   },

@@ -5,6 +5,7 @@ import {
   BookmarkPlus,
   Calculator,
   CheckCircle2,
+  Copy,
   CreditCard,
   FileText,
   FlaskConical,
@@ -65,6 +66,10 @@ type SaveBanner = {
   text: string;
   actionHref?: string;
   actionLabel?: string;
+};
+type ShareBanner = {
+  tone: "success" | "error";
+  text: string;
 };
 
 const syringeOptions = [0.3, 0.5, 1.0];
@@ -145,6 +150,7 @@ export function PeptideCalculator() {
   );
   const [savingCalculation, setSavingCalculation] = useState(false);
   const [saveBanner, setSaveBanner] = useState<SaveBanner | null>(null);
+  const [shareBanner, setShareBanner] = useState<ShareBanner | null>(null);
   const [proCheckoutPlacement, setProCheckoutPlacement] = useState<string | null>(
     null,
   );
@@ -334,6 +340,33 @@ export function PeptideCalculator() {
       waterMl,
     ],
   );
+  const shareUrlPath = useMemo(
+    () =>
+      createSharedCalculationPath({
+        compoundName: loadedPresetName,
+        presetDetail: loadedPresetDetail,
+        presetType: loadedPresetName ? loadedPresetType : "math",
+        syringeMl,
+        waterMl,
+        doseInputUnit,
+        vialAmount,
+        doseInputAmount,
+        advancedSplitEnabled,
+        splitParts,
+      }),
+    [
+      advancedSplitEnabled,
+      doseInputAmount,
+      doseInputUnit,
+      loadedPresetDetail,
+      loadedPresetName,
+      loadedPresetType,
+      splitParts,
+      syringeMl,
+      vialAmount,
+      waterMl,
+    ],
+  );
 
   useEffect(() => {
     if (!loadedPresetName) {
@@ -481,6 +514,41 @@ export function PeptideCalculator() {
 
       return createSplitParts(remainingNames.length, remainingNames);
     });
+  }
+
+  async function handleCopyCalculationLink() {
+    if (!hasReadyCalculation || !result) {
+      return;
+    }
+
+    const shareUrl = new URL(shareUrlPath, window.location.origin).toString();
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareBanner({
+        tone: "success",
+        text: "Link copied. It opens this exact calculation.",
+      });
+      trackEvent("calculation_link_copied", {
+        dose_unit_mode: doseInputUnit,
+        syringe_ml: syringeMl,
+        vial_unit: isIuMode ? "iu" : "mg",
+        vial_amount: Number(vialAmount.toFixed(3)),
+        water_ml: waterMl,
+        syringe_mark: Number(result.syringeUnits.toFixed(3)),
+        preset_type: loadedPresetName ? loadedPresetType : "manual",
+        split_enabled: advancedSplitEnabled,
+        split_count: advancedSplitEnabled ? splitParts.length : 0,
+        entry_source: entrySource || null,
+        entry_placement: entryPlacement || null,
+        entry_cta: entryCta || null,
+      });
+    } catch {
+      setShareBanner({
+        tone: "error",
+        text: "Could not copy the link. Open it first, then copy it from the address bar.",
+      });
+    }
   }
 
   async function handleSaveCalculation() {
@@ -918,6 +986,13 @@ export function PeptideCalculator() {
                 checkoutLoading={proCheckoutPlacement === "calculator-save"}
                 onSave={handleSaveCalculation}
                 onStartPro={() => startProCheckout("calculator-save")}
+              />
+
+              <ShareCalculationPanel
+                ready={hasReadyCalculation}
+                shareUrlPath={shareUrlPath}
+                banner={shareBanner}
+                onCopy={handleCopyCalculationLink}
               />
 
               <ProEarlyAccess
@@ -1663,6 +1738,71 @@ function readPresetFromSearchParams(params: { get: (name: string) => string | nu
   };
 }
 
+function createSharedCalculationPath({
+  compoundName,
+  presetDetail,
+  presetType,
+  syringeMl,
+  waterMl,
+  doseInputUnit,
+  vialAmount,
+  doseInputAmount,
+  advancedSplitEnabled,
+  splitParts,
+}: {
+  compoundName: string;
+  presetDetail: string;
+  presetType: PresetType;
+  syringeMl: number;
+  waterMl: number;
+  doseInputUnit: DoseInputUnit;
+  vialAmount: number;
+  doseInputAmount: number;
+  advancedSplitEnabled: boolean;
+  splitParts: SplitPart[];
+}) {
+  const params = new URLSearchParams({
+    compound: compoundName || "Custom calculation",
+    preset: presetDetail || "Shared calculation",
+    presetType,
+    syringeMl: formatUrlNumber(syringeMl),
+    waterMl: formatUrlNumber(waterMl),
+    doseUnit: doseInputUnit,
+    source: "shared-calculation",
+    placement: "calculator-result",
+    cta: "copy-link",
+  });
+
+  if (doseInputUnit === "iu") {
+    params.set("vialIu", formatUrlNumber(vialAmount));
+    params.set("doseIu", formatUrlNumber(doseInputAmount));
+  } else {
+    params.set("vialMg", formatUrlNumber(vialAmount));
+    params.set("doseMcg", formatUrlNumber(doseInputAmount));
+  }
+
+  if (advancedSplitEnabled) {
+    const shareableSplit = splitParts
+      .map((part) => {
+        const name = part.name.trim();
+        const percent = parseSplitPercent(part.percent);
+        return name && percent > 0 ? `${name}:${formatUrlNumber(percent)}` : "";
+      })
+      .filter(Boolean)
+      .join(",");
+
+    if (shareableSplit) {
+      params.set("split", shareableSplit);
+    }
+  }
+
+  return `/calculator?${params.toString()}`;
+}
+
+function formatUrlNumber(value: number) {
+  return Number.isFinite(value) ? String(Number(value.toFixed(6))) : "0";
+}
+
 function getAttributionValue(
   params: { get: (name: string) => string | null },
   key: string,
@@ -2288,6 +2428,71 @@ function SaveCalculationPanel({
               {banner.actionLabel}
             </a>
           ) : null}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function ShareCalculationPanel({
+  ready,
+  shareUrlPath,
+  banner,
+  onCopy,
+}: {
+  ready: boolean;
+  shareUrlPath: string;
+  banner: ShareBanner | null;
+  onCopy: () => void;
+}) {
+  return (
+    <section className="mt-4 rounded-3xl border border-cyan-100 bg-white p-4 shadow-[0_18px_55px_rgba(8,145,178,0.08)]">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Copy size={16} className="text-cyan-800" aria-hidden="true" />
+            <h3 className="text-sm font-semibold text-slate-950">
+              Share this result
+            </h3>
+          </div>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            Send the exact dose math to yourself, a teammate, or another device.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onCopy}
+            disabled={!ready}
+            className="inline-flex h-10 min-w-[112px] items-center justify-center gap-2 whitespace-nowrap rounded-full bg-cyan-700 px-4 text-sm font-semibold text-white transition hover:bg-cyan-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            <Copy size={16} aria-hidden="true" />
+            Copy link
+          </button>
+          <a
+            href={ready ? shareUrlPath : undefined}
+            aria-disabled={!ready}
+            className={`inline-flex h-10 min-w-[112px] items-center justify-center gap-2 whitespace-nowrap rounded-full border px-4 text-sm font-semibold transition ${
+              ready
+                ? "border-cyan-200 bg-white text-cyan-900 hover:bg-cyan-50"
+                : "pointer-events-none border-slate-200 bg-slate-100 text-slate-400"
+            }`}
+          >
+            Open link
+          </a>
+        </div>
+      </div>
+
+      {banner ? (
+        <div
+          aria-live="polite"
+          className={`mt-3 rounded-2xl border p-3 text-sm leading-6 ${
+            banner.tone === "success"
+              ? "border-emerald-300 bg-emerald-50 text-emerald-950"
+              : "border-rose-300 bg-rose-50 text-rose-950"
+          }`}
+        >
+          {banner.text}
         </div>
       ) : null}
     </section>
