@@ -239,6 +239,11 @@ export function PeptideCalculator() {
   const doseDisplayDescription = isIuMode
     ? "This is the target IU amount used for the syringe guide."
     : "This is the target dose used for the syringe guide.";
+  const dosesPerVialDisplayValue = result
+    ? `${formatNumber(result.dosesPerVial, 1)} doses`
+    : "-";
+  const dosesPerVialDisplayDescription =
+    "Math estimate before syringe dead space, priming, or product loss.";
   const concentrationDisplayValue = isIuMode
     ? `${formatNumber(result?.concentrationMcgMl)} IU per mL`
     : `${formatNumber(result?.concentrationMcgMl)} mcg per mL`;
@@ -939,6 +944,11 @@ export function PeptideCalculator() {
                   label="Dose you entered"
                   value={doseDisplayValue}
                   description={doseDisplayDescription}
+                />
+                <MetricRow
+                  label="Estimated doses per vial"
+                  value={dosesPerVialDisplayValue}
+                  description={dosesPerVialDisplayDescription}
                 />
                 <MetricRow
                   label={isIuMode ? "Each IU / mark equals" : "Each syringe mark equals"}

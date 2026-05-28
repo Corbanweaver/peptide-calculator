@@ -895,6 +895,356 @@ export const toolSeoPages: SeoPage[] = [
     ],
   },
   {
+    slug: "ml-to-units-calculator",
+    title: "Free mL to Units Calculator: U-100 Syringe",
+    shortTitle: "mL to units",
+    eyebrow: "U-100 volume conversion",
+    description:
+      "Convert mL into U-100 syringe marks and check how vial concentration changes the dose amount at that mark.",
+    searchPhrase: "mL to units calculator",
+    ctaLabel: "Convert mL to syringe units",
+    calculatorHref:
+      "/calculator?compound=mL+to+units&preset=0.25+mL+example&presetType=math&vialMg=5&waterMl=2&doseMcg=625",
+    example: makeSeoExample({
+      name: "mL to units",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 625,
+      context:
+        "This example creates a 0.25 mL draw, which lands on the 25th U-100 syringe mark. The calculator also shows how much compound that volume contains.",
+    }),
+    sections: [
+      {
+        title: "Simple U-100 rule",
+        body:
+          "On a U-100 syringe, 1 mL equals 100 marks. That means 0.25 mL is 25 marks and 0.5 mL is 50 marks.",
+      },
+      {
+        title: "Why concentration still matters",
+        body:
+          "mL only tells you liquid volume. To know the compound amount in that volume, the calculator still needs vial strength and BAC water.",
+      },
+      {
+        title: "Best use",
+        body:
+          "Use this page when your instructions mention mL but your syringe is marked on a U-100 scale.",
+      },
+    ],
+    faqs: [
+      {
+        question: "How many U-100 units are in 0.25 mL?",
+        answer:
+          "On a U-100 syringe, 0.25 mL equals 25 syringe marks. The amount of compound at that mark depends on concentration.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "Units to mL calculator", href: "/tools/units-to-ml-calculator" },
+      { label: "U-100 units calculator", href: "/tools/u100-syringe-units-calculator" },
+      { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+    ],
+  },
+  {
+    slug: "units-to-ml-calculator",
+    title: "Free Units to mL Calculator: U-100 Syringe",
+    shortTitle: "Units to mL",
+    eyebrow: "Syringe marks to volume",
+    description:
+      "Convert U-100 syringe marks into mL and verify the dose amount using vial strength and BAC water.",
+    searchPhrase: "units to mL calculator",
+    ctaLabel: "Convert units to mL",
+    calculatorHref:
+      "/calculator?compound=Units+to+mL&preset=10+unit+example&presetType=math&vialMg=5&waterMl=2&doseMcg=250",
+    example: makeSeoExample({
+      name: "Units to mL",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example shows a 10-mark U-100 syringe draw, which is 0.1 mL. PeptiCalc then connects that volume back to concentration and dose amount.",
+    }),
+    sections: [
+      {
+        title: "What units mean here",
+        body:
+          "This page uses units as U-100 syringe marks. It is a volume scale, not a universal International Unit conversion.",
+      },
+      {
+        title: "Quick conversion",
+        body:
+          "Divide U-100 marks by 100 to get mL. Ten marks is 0.1 mL, 25 marks is 0.25 mL, and 50 marks is 0.5 mL.",
+      },
+      {
+        title: "Dose check",
+        body:
+          "After the volume is known, vial amount and BAC water determine how many mcg or mg are actually in that draw.",
+      },
+    ],
+    faqs: [
+      {
+        question: "How many mL is 10 units on a U-100 syringe?",
+        answer:
+          "Ten U-100 syringe marks equals 0.1 mL. The calculator can then show what dose amount that volume represents.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "mL to units calculator", href: "/tools/ml-to-units-calculator" },
+      { label: "Units to MCG calculator", href: "/tools/units-to-mcg-calculator" },
+      { label: "U-100 units calculator", href: "/tools/u100-syringe-units-calculator" },
+    ],
+  },
+  {
+    slug: "units-to-mcg-calculator",
+    title: "Free Units to MCG Calculator",
+    shortTitle: "Units to MCG",
+    eyebrow: "Syringe marks to dose amount",
+    description:
+      "Convert U-100 syringe marks into mcg after entering vial strength, BAC water, and concentration math.",
+    searchPhrase: "units to MCG calculator",
+    ctaLabel: "Convert units to MCG",
+    calculatorHref:
+      "/calculator?compound=Units+to+MCG&preset=10+unit+example&presetType=math&vialMg=5&waterMl=2&doseMcg=250",
+    example: makeSeoExample({
+      name: "Units to MCG",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example shows why a syringe mark cannot be converted to mcg until vial strength and BAC water are known.",
+    }),
+    sections: [
+      {
+        title: "The missing value",
+        body:
+          "A syringe mark only gives volume. To convert units to mcg, PeptiCalc first calculates concentration from vial amount and BAC water.",
+      },
+      {
+        title: "Example logic",
+        body:
+          "If a 5 mg vial is mixed with 2 mL, the concentration is 2,500 mcg/mL. Ten U-100 marks is 0.1 mL, so that draw contains 250 mcg.",
+      },
+      {
+        title: "Avoid the common mistake",
+        body:
+          "Do not treat one unit as one mcg. The mcg per mark changes whenever vial strength or BAC water changes.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Can units be converted to mcg directly?",
+        answer:
+          "Only after concentration is known. The same syringe mark can contain different mcg amounts depending on how the vial was mixed.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+      { label: "Units to mL calculator", href: "/tools/units-to-ml-calculator" },
+      { label: "Peptide concentration calculator", href: "/tools/peptide-concentration-calculator" },
+    ],
+  },
+  {
+    slug: "peptide-concentration-calculator",
+    title: "Free Peptide Concentration Calculator",
+    shortTitle: "Concentration",
+    eyebrow: "MG, mL, and mcg/mL math",
+    description:
+      "Calculate peptide concentration in mcg/mL after entering total vial amount and BAC water volume.",
+    searchPhrase: "peptide concentration calculator",
+    ctaLabel: "Calculate concentration",
+    calculatorHref:
+      "/calculator?compound=Concentration&preset=10+mg+in+2+mL&presetType=math&vialMg=10&waterMl=2&doseMcg=500",
+    example: makeSeoExample({
+      name: "Peptide concentration",
+      vialMg: 10,
+      waterMl: 2,
+      doseMcg: 500,
+      context:
+        "This example shows a 10 mg vial mixed with 2 mL BAC water. The concentration is 5,000 mcg/mL before any dose volume is calculated.",
+    }),
+    sections: [
+      {
+        title: "Formula",
+        body:
+          "PeptiCalc converts total mg to mcg, then divides by BAC water in mL to get mcg per mL.",
+      },
+      {
+        title: "Why it matters",
+        body:
+          "Concentration is the bridge between dose amount and liquid volume. It decides how many U-100 marks match the selected dose.",
+      },
+      {
+        title: "Check before drawing",
+        body:
+          "Use the exact vial amount and diluent volume from the label, pharmacy, or prescriber instructions.",
+      },
+    ],
+    faqs: [
+      {
+        question: "What is the concentration of 10 mg in 2 mL?",
+        answer:
+          "Ten mg equals 10,000 mcg. Divided by 2 mL, the concentration is 5,000 mcg/mL.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "BAC water calculator", href: "/tools/bac-water-calculator" },
+      { label: "Reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
+      { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+    ],
+  },
+  {
+    slug: "semaglutide-units-calculator",
+    title: "Free Semaglutide Units Calculator",
+    shortTitle: "Semaglutide units",
+    eyebrow: "Semaglutide syringe math",
+    description:
+      "Convert semaglutide reference amounts into mL and U-100 syringe marks with editable vial and BAC water values.",
+    searchPhrase: "semaglutide units calculator",
+    ctaLabel: "Calculate semaglutide units",
+    calculatorHref:
+      "/calculator?compound=Semaglutide&preset=0.25+mg+starter+dose&presetType=reference&vialMg=5&waterMl=2&doseMcg=250",
+    example: makeSeoExample({
+      name: "Semaglutide units",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example uses 0.25 mg as 250 mcg so users can see how a semaglutide reference amount becomes liquid volume and a U-100 mark.",
+    }),
+    sections: [
+      {
+        title: "What this page does",
+        body:
+          "It opens editable semaglutide calculator math for concentration, mL to draw, and U-100 syringe marks.",
+      },
+      {
+        title: "Why units vary",
+        body:
+          "Semaglutide units on a syringe depend on vial strength and BAC water amount. Changing either value changes the mark.",
+      },
+      {
+        title: "Safety limit",
+        body:
+          "Use this only to calculate measurement math from instructions you already have. It does not choose a dose or protocol.",
+      },
+    ],
+    faqs: [
+      {
+        question: "How many units is 0.25 mg semaglutide?",
+        answer:
+          "It depends on concentration. In the example shown here, 0.25 mg equals 250 mcg and lands on the 10th U-100 mark.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
+      { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+      { label: "Units to MCG calculator", href: "/tools/units-to-mcg-calculator" },
+    ],
+  },
+  {
+    slug: "tirzepatide-units-calculator",
+    title: "Free Tirzepatide Units Calculator",
+    shortTitle: "Tirzepatide units",
+    eyebrow: "Tirzepatide syringe math",
+    description:
+      "Convert tirzepatide reference amounts into mL and U-100 syringe marks with editable vial and BAC water values.",
+    searchPhrase: "tirzepatide units calculator",
+    ctaLabel: "Calculate tirzepatide units",
+    calculatorHref:
+      "/calculator?compound=Tirzepatide&preset=2.5+mg+starter+dose&presetType=reference&vialMg=10&waterMl=2&doseMcg=2500",
+    example: makeSeoExample({
+      name: "Tirzepatide units",
+      vialMg: 10,
+      waterMl: 2,
+      doseMcg: 2500,
+      context:
+        "This example uses 2.5 mg as 2,500 mcg so users can see how a tirzepatide reference amount becomes mL and a syringe mark.",
+    }),
+    sections: [
+      {
+        title: "What this page does",
+        body:
+          "It opens editable tirzepatide calculator math for vial strength, BAC water, dose volume, and U-100 syringe marks.",
+      },
+      {
+        title: "Why units vary",
+        body:
+          "The same tirzepatide amount can land on a different syringe mark if the vial amount or BAC water volume changes.",
+      },
+      {
+        title: "Safety limit",
+        body:
+          "This is calculator support only. Verify every value against the product label, pharmacy instructions, or prescriber directions.",
+      },
+    ],
+    faqs: [
+      {
+        question: "How many units is 2.5 mg tirzepatide?",
+        answer:
+          "It depends on concentration. In the example shown here, 2.5 mg equals 2,500 mcg and lands on the 50th U-100 mark.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
+      { label: "MCG to units calculator", href: "/tools/mcg-to-units-calculator" },
+      { label: "Units to MCG calculator", href: "/tools/units-to-mcg-calculator" },
+    ],
+  },
+  {
+    slug: "doses-per-vial-calculator",
+    title: "Free Doses Per Vial Calculator",
+    shortTitle: "Doses per vial",
+    eyebrow: "Vial count estimate",
+    description:
+      "Estimate how many calculated doses are in a vial after entering vial strength, BAC water, and target dose.",
+    searchPhrase: "doses per vial calculator",
+    ctaLabel: "Estimate doses per vial",
+    calculatorHref:
+      "/calculator?compound=Doses+per+vial&preset=10+mg+vial+example&presetType=math&vialMg=10&waterMl=2&doseMcg=500",
+    example: makeSeoExample({
+      name: "Doses per vial",
+      vialMg: 10,
+      waterMl: 2,
+      doseMcg: 500,
+      context:
+        "This example shows a 10 mg vial and a 500 mcg target dose. The calculator estimates 20 calculated doses before waste or dead space.",
+    }),
+    sections: [
+      {
+        title: "What this estimate means",
+        body:
+          "PeptiCalc divides total vial amount by the selected dose amount to estimate calculated doses per vial.",
+      },
+      {
+        title: "What it does not include",
+        body:
+          "Real-world count can differ because of syringe dead space, priming, spills, product loss, or instructions that require discarding remaining liquid.",
+      },
+      {
+        title: "Best use",
+        body:
+          "Use it for planning math after you already know the exact vial amount, BAC water amount, and dose instructions.",
+      },
+    ],
+    faqs: [
+      {
+        question: "How many 500 mcg doses are in a 10 mg vial?",
+        answer:
+          "Ten mg equals 10,000 mcg. Divided by 500 mcg, that is 20 calculated doses before waste or dead space.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "Peptide dosage calculator", href: "/tools/peptide-dosage-calculator" },
+      { label: "Reconstitution calculator", href: "/tools/peptide-reconstitution-calculator" },
+      { label: "BAC water calculator", href: "/tools/bac-water-calculator" },
+    ],
+  },
+  {
     slug: "mg-to-mcg-calculator",
     title: "Free MG to MCG Calculator",
     shortTitle: "MG to MCG",

@@ -13,7 +13,7 @@ export const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://peptidecalculator.co"
   ).replace(/\/+$/, "");
 
-export const sitemapLastModified = new Date("2026-05-27T00:00:00.000Z");
+export const sitemapLastModified = new Date("2026-05-28T00:00:00.000Z");
 
 export function absoluteUrl(path = "/") {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;

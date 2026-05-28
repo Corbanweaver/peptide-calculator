@@ -11,16 +11,16 @@ import {
 } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Free Peptide Calculator Tools: MCG, BAC Water & Units",
+  title: "Free Peptide Calculator Tools: MCG, mL, BAC Water & Units",
   description:
-    "Browse free peptide calculator tools for reconstitution, U-100 syringe units, mg to mcg, BAC water, and split-compound math.",
+    "Browse free peptide calculator tools for reconstitution, U-100 syringe units, mL conversion, concentration, mg to mcg, BAC water, and split-compound math.",
   alternates: {
     canonical: absoluteUrl("/tools"),
   },
   openGraph: {
-    title: "Free Peptide Calculator Tools: MCG, BAC Water & Units",
+    title: "Free Peptide Calculator Tools: MCG, mL, BAC Water & Units",
     description:
-      "Browse free peptide calculator tools for reconstitution, U-100 syringe units, mg to mcg, BAC water, and split-compound math.",
+      "Browse free peptide calculator tools for reconstitution, U-100 syringe units, mL conversion, concentration, mg to mcg, BAC water, and split-compound math.",
     url: absoluteUrl("/tools"),
     type: "website",
   },
@@ -32,9 +32,9 @@ const toolsJsonLd = {
     websiteJsonLd(),
     webPageJsonLd({
       path: "/tools",
-      title: "Free Peptide Calculator Tools: MCG, BAC Water & Units",
+      title: "Free Peptide Calculator Tools: MCG, mL, BAC Water & Units",
       description:
-        "Browse free peptide calculator tools for reconstitution, U-100 syringe units, mg to mcg, BAC water, and split-compound math.",
+        "Browse free peptide calculator tools for reconstitution, U-100 syringe units, mL conversion, concentration, mg to mcg, BAC water, and split-compound math.",
     }),
     breadcrumbJsonLd([
       { name: "PeptiCalc", path: "/" },
@@ -113,7 +113,7 @@ export default function ToolsPage() {
                   Read guide
                 </Link>
                 <Link
-                  href={page.calculatorHref}
+                  href={withToolsIndexAttribution(page.calculatorHref, page.slug)}
                   className="inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-sm font-semibold text-sky-800 ring-1 ring-sky-100 transition hover:bg-sky-50"
                 >
                   Open calculator
@@ -125,4 +125,15 @@ export default function ToolsPage() {
       </div>
     </main>
   );
+}
+
+function withToolsIndexAttribution(href: string, slug: string) {
+  const [pathname, query = ""] = href.split("?");
+  const params = new URLSearchParams(query);
+
+  params.set("source", "tools-index");
+  params.set("placement", `tools-index-${slug}`);
+  params.set("cta", "open-calculator");
+
+  return `${pathname}?${params.toString()}`;
 }

@@ -13,6 +13,21 @@ const popularCalculators = [
     href: "/peptides/tirzepatide-calculator",
   },
   {
+    label: "MCG to units calculator",
+    detail: "U-100 syringe converter",
+    href: "/tools/mcg-to-units-calculator",
+  },
+  {
+    label: "mL to units calculator",
+    detail: "U-100 volume conversion",
+    href: "/tools/ml-to-units-calculator",
+  },
+  {
+    label: "Units to mL calculator",
+    detail: "Syringe marks to volume",
+    href: "/tools/units-to-ml-calculator",
+  },
+  {
     label: "BPC-157 calculator",
     detail: "BAC water and U-100 marks",
     href: "/peptides/bpc-157-calculator",
