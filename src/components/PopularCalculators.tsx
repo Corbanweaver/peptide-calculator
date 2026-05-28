@@ -28,6 +28,11 @@ const popularCalculators = [
     href: "/peptides/cagrisema-calculator",
   },
   {
+    label: "GLP-1 dose calculator",
+    detail: "Known dose to syringe mark",
+    href: "/tools/glp-1-dose-calculator",
+  },
+  {
     label: "MCG to units calculator",
     detail: "U-100 syringe converter",
     href: "/tools/mcg-to-units-calculator",

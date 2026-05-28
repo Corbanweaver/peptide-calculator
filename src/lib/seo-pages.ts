@@ -766,6 +766,63 @@ export const compoundSeoPages: SeoPage[] = [
 
 export const toolSeoPages: SeoPage[] = [
   {
+    slug: "glp-1-dose-calculator",
+    title: "Free GLP-1 Dose Calculator: Syringe Units",
+    shortTitle: "GLP-1 dose",
+    eyebrow: "Known dose to syringe mark math",
+    description:
+      "Enter a known GLP-1 vial amount, BAC water amount, and dose to calculate concentration, mL to draw, and U-100 syringe marks. Math only.",
+    searchPhrase: "GLP-1 dose calculator",
+    ctaLabel: "Calculate GLP-1 syringe mark",
+    calculatorHref:
+      "/calculator?compound=GLP-1+dose&preset=Known+dose+example&presetType=math&vialMg=5&waterMl=2&doseMcg=250",
+    sourceLabel: "FDA GLP-1 safety concerns",
+    sourceUrl: fdaGlp1ConcernsUrl,
+    example: makeSeoExample({
+      name: "GLP-1 dose",
+      vialMg: 5,
+      waterMl: 2,
+      doseMcg: 250,
+      context:
+        "This example shows how a known GLP-1 dose becomes concentration, liquid volume, and a U-100 syringe mark after the vial and BAC water values are entered.",
+    }),
+    sections: [
+      {
+        title: "What this page does",
+        body:
+          "This GLP-1 dose calculator translates known instructions into measurement math. It does not choose a dose, adjust a titration schedule, or decide whether a product is appropriate.",
+      },
+      {
+        title: "Why verification matters",
+        body:
+          "FDA warns that dosing errors with compounded injectable semaglutide have caused adverse events, including some requiring hospitalization. Match every calculator value to a licensed prescriber, pharmacy, or product label.",
+      },
+      {
+        title: "Best use",
+        body:
+          "Use this when you already know the exact dose, vial strength, diluent amount, and syringe type. The calculator then shows mL to draw and the U-100 mark.",
+      },
+    ],
+    faqs: [
+      {
+        question: "Can this choose my GLP-1 dose?",
+        answer:
+          "No. It only converts a dose you already have into concentration, mL, and U-100 syringe mark math. Dose decisions must come from a licensed medical source.",
+      },
+      {
+        question: "Can this verify compounded GLP-1 products?",
+        answer:
+          "No. The calculator cannot verify product quality, legality, sterility, storage, or whether a compound is appropriate. It only performs measurement math.",
+      },
+      ...sharedCalculatorFaqs,
+    ],
+    related: [
+      { label: "Semaglutide calculator", href: "/peptides/semaglutide-calculator" },
+      { label: "Tirzepatide calculator", href: "/peptides/tirzepatide-calculator" },
+      { label: "CagriSema calculator", href: "/peptides/cagrisema-calculator" },
+    ],
+  },
+  {
     slug: "mcg-to-units-calculator",
     title: "Free MCG to Units Calculator: U-100 Converter",
     shortTitle: "MCG to units",
